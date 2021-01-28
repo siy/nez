@@ -11,11 +11,11 @@ public class LongRange {
 
 	@Override
 	public boolean equals(Object obj) {
-		return obj instanceof LongRange && this.pos == ((LongRange) obj).pos && this.len == ((LongRange) obj).len;
+		return obj instanceof LongRange && pos == ((LongRange) obj).pos && len == ((LongRange) obj).len;
 	}
 
 	@Override
 	public String toString() {
-		return "(pos=" + this.pos + ", len=" + this.len + ")";
+		return "(pos=" + pos + ", len=" + len + ")";
 	}
 }

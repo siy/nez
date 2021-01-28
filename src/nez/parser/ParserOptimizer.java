@@ -74,16 +74,12 @@ public class ParserOptimizer {
 		return typestate.inferTypestate(e);
 	}
 
-	// final static Short True = 1;
-	// final static Short False = -1;
-	// final static Short Unknown = 0;
-
 	@SuppressWarnings("serial")
 	static class Conditions extends TreeMap<String, Boolean> {
 
-		public final static Conditions newConditions(Production start, Map<String, Boolean> inits, boolean defaultTrue) {
+		public static Conditions newConditions(Production start, Map<String, Boolean> inits, boolean defaultTrue) {
 			Conditions conds = new Conditions();
-			Set<String> s = retriveConditionSet(start);
+			Set<String> s = retrieveConditionSet(start);
 			for (String c : s) {
 				if (inits != null && inits.containsKey(c)) {
 					conds.put(c, inits.get(c));
@@ -95,7 +91,7 @@ public class ParserOptimizer {
 			return conds;
 		}
 
-		public final static Set<String> retriveConditionSet(Production start) {
+		public static Set<String> retrieveConditionSet(Production start) {
 			TreeSet<String> ts = new TreeSet<>();
 			HashMap<String, Boolean> visited = new HashMap<>();
 			checkCondition(start.getExpression(), ts, visited);
@@ -119,10 +115,10 @@ public class ParserOptimizer {
 		}
 
 		enum Value {
-			Reachable, Unreachable, Undecided;
+			Reachable, Unreachable, Undecided
 		}
 
-		HashMap<String, Value> reachMap = new HashMap<String, Value>();
+		HashMap<String, Value> reachMap = new HashMap<>();
 
 		public final boolean isConditional(Production p, String condition) {
 			return (hasIfCondition(p, condition) != Value.Unreachable);
@@ -134,7 +130,7 @@ public class ParserOptimizer {
 
 		private Value hasIfCondition(Production p, String condition) {
 			if (reachMap == null) {
-				this.reachMap = new HashMap<String, Value>();
+				this.reachMap = new HashMap<>();
 			}
 			String key = p.getUniqueName() + "+" + condition;
 			Value res = reachMap.get(key);
@@ -148,7 +144,7 @@ public class ParserOptimizer {
 			return res;
 		}
 
-		private final Value hasIfCondition(Expression e, String condition) {
+		private Value hasIfCondition(Expression e, String condition) {
 			if (e instanceof Nez.IfCondition) {
 				return condition.equals(((Nez.IfCondition) e).flagName) ? Value.Reachable : Value.Unreachable;
 			}
@@ -181,9 +177,9 @@ public class ParserOptimizer {
 				sb.append("~");
 			}
 			sb.append(p.getUniqueName());
-			for (String c : this.keySet()) {
+			for (String c : keySet()) {
 				if (isConditional(p, c)) {
-					if (this.get(c)) {
+					if (get(c)) {
 						sb.append("&");
 					} else {
 						sb.append("!");
@@ -191,10 +187,8 @@ public class ParserOptimizer {
 					sb.append(c);
 				}
 			}
-			String cname = sb.toString();
-			// System.out.println("flags: " + this.keySet());
-			// System.out.println(p.getUniqueName() + "=>" + cname);
-			return cname;
+
+			return sb.toString();
 		}
 	}
 
@@ -217,44 +211,44 @@ public class ParserOptimizer {
 		}
 
 		final boolean isNoTreeConstruction() {
-			return !this.ConstructingTree;
+			return !ConstructingTree;
 		}
 
 		/* Conditional */
 
 		final void onFlag(String flag) {
-			this.conds.put(flag, true);
+			conds.put(flag, true);
 		}
 
 		final void offFlag(String flag) {
-			this.conds.put(flag, false);
+			conds.put(flag, false);
 		}
 
 		final boolean isFlag(String flag) {
-			return this.conds.get(flag);
+			return conds.get(flag);
 		}
 
 		final void check(Production start, TreeMap<String, Boolean> boolMap) {
 			this.conds = Conditions.newConditions(start, boolMap, strategy.DefaultCondition);
 			if (!strategy.TreeConstruction) {
-				this.enterNoTreeConstruction();
+				enterNoTreeConstruction();
 			}
 			String uname = conds.conditionalName(start, isNoTreeConstruction());
 			// String uname = uniqueName(start.getUniqueName(), start);
-			this.checkFirstVisitedProduction(uname, start); // start
+			checkFirstVisitedProduction(uname, start); // start
 		}
 
-		private final Expression visitExpression(Expression e) {
+		private Expression visitExpression(Expression e) {
 			return (Expression) e.visit(this, null);
 		}
 
 		void checkFirstVisitedProduction(String uname, Production p) {
 			Production parserProduction/* local production */= grammar.addProduction(uname, null);
-			this.visited(uname);
+			visited(uname);
 			Productions.checkLeftRecursion(p);
-			Typestate stackedTypestate = this.requiredTypestate;
-			this.requiredTypestate = this.isNoTreeConstruction() ? Typestate.Unit : typeState(p);
-			Expression e = this.visitExpression(p.getExpression());
+			Typestate stackedTypestate = requiredTypestate;
+			this.requiredTypestate = isNoTreeConstruction() ? Typestate.Unit : typeState(p);
+			Expression e = visitExpression(p.getExpression());
 			if (strategy.Coverage) {
 				e = Expressions.newCoverage(p.getUniqueName(), e);
 			}
@@ -283,23 +277,13 @@ public class ParserOptimizer {
 				}
 			}
 
-			Typestate innerState = this.isNoTreeConstruction() ? Typestate.Unit : typeState(p);
-
-			// if (innerTypestate == Typestate.TreeMutation) {
-			// if (this.requiredTypestate == Typestate.TreeMutation) {
-			// reportNotice(n, "inlining mutation nonterminal" +
-			// p.getLocalName());
-			// return visitExpression(p.getExpression());
-			// }
-			// }
-
+			Typestate innerState = isNoTreeConstruction() ? Typestate.Unit : typeState(p);
 			String uname = conds.conditionalName(p, innerState == Typestate.Unit);
-			// System.out.println("@@@@@ uname=" + p.getLocalName() + ", " +
-			// uname);
-			if (!this.isVisited(uname)) {
+
+			if (!isVisited(uname)) {
 				checkFirstVisitedProduction(uname, p);
 			}
-			Typestate required = this.requiredTypestate;
+			Typestate required = requiredTypestate;
 			NonTerminal pn = Expressions.newNonTerminal(n.getSourceLocation(), grammar, uname);
 			if (innerState == Typestate.Unit) {
 				return pn;
@@ -333,9 +317,9 @@ public class ParserOptimizer {
 
 		private Expression detree(Expression inner) {
 			if (strategy.Moz || strategy.Detree) {
-				boolean stacked = this.enterNoTreeConstruction();
-				inner = this.visitExpression(inner);
-				this.exitNoTreeConstruction(stacked);
+				boolean stacked = enterNoTreeConstruction();
+				inner = visitExpression(inner);
+				exitNoTreeConstruction(stacked);
 				return inner;
 			} else {
 				return Expressions.newDetree(inner);
@@ -348,7 +332,7 @@ public class ParserOptimizer {
 				reportWarning(p, "unused condition: " + p.flagName);
 				return visitExpression(p.get(0));
 			}
-			Boolean stackedFlag = isFlag(p.flagName);
+			boolean stackedFlag = isFlag(p.flagName);
 			if (p.isPositive()) {
 				onFlag(p.flagName);
 			} else {
@@ -371,29 +355,20 @@ public class ParserOptimizer {
 			return p.predicate ? p.newFailure() : p.newEmpty();
 		}
 
-		//
-		// void reportInserted(Expression e, String operator) {
-		// reportWarning(e, "expected " + operator + " .. => inserted!!");
-		// }
-		//
-		// void reportRemoved(Expression e, String operator) {
-		// reportWarning(e, "unexpected " + operator + " .. => removed!!");
-		// }
-
 		@Override
 		public Expression visitBeginTree(Nez.BeginTree p, Object a) {
-			if (this.isNoTreeConstruction()) {
+			if (isNoTreeConstruction()) {
 				return Expressions.newEmpty();
 			}
-			if (this.requiredTypestate == Typestate.TreeMutation) {
-				if (this.requiredTypestate != null) {
+			if (requiredTypestate == Typestate.TreeMutation) {
+				if (requiredTypestate != null) {
 					reportError(p, "The labeled link ${ is required");
 					this.requiredTypestate = null;
 				}
 				return Expressions.newEmpty();
 			}
-			if (this.requiredTypestate != Typestate.Tree) {
-				if (this.requiredTypestate != null) {
+			if (requiredTypestate != Typestate.Tree) {
+				if (requiredTypestate != null) {
 					reportError(p, "The tree constrution is unexpected");
 					this.requiredTypestate = null;
 				}
@@ -405,11 +380,11 @@ public class ParserOptimizer {
 
 		@Override
 		public Expression visitEndTree(Nez.EndTree p, Object a) {
-			if (this.isNoTreeConstruction()) {
+			if (isNoTreeConstruction()) {
 				return Expressions.newEmpty();
 			}
-			if (this.requiredTypestate != Typestate.TreeMutation) {
-				if (this.requiredTypestate != null) {
+			if (requiredTypestate != Typestate.TreeMutation) {
+				if (requiredTypestate != null) {
 					reportWarning(p, "The left tree cannot be mutated");
 					this.requiredTypestate = null;
 				}
@@ -421,11 +396,11 @@ public class ParserOptimizer {
 
 		@Override
 		public Expression visitFoldTree(Nez.FoldTree p, Object a) {
-			if (this.isNoTreeConstruction()) {
+			if (isNoTreeConstruction()) {
 				return Expressions.newEmpty();
 			}
-			if (this.requiredTypestate != Typestate.Immutation) {
-				if (this.requiredTypestate != null) {
+			if (requiredTypestate != Typestate.Immutation) {
+				if (requiredTypestate != null) {
 					reportWarning(p, "A tree to fold is expected on the left hand");
 					this.requiredTypestate = null;
 				}
@@ -437,10 +412,10 @@ public class ParserOptimizer {
 
 		@Override
 		public Expression visitTag(Nez.Tag p, Object a) {
-			if (this.isNoTreeConstruction()) {
+			if (isNoTreeConstruction()) {
 				return Expressions.newEmpty();
 			}
-			if (this.requiredTypestate != Typestate.TreeMutation) {
+			if (requiredTypestate != Typestate.TreeMutation) {
 				if (requiredTypestate != null) {
 					reportWarning(p, "The left tree cannot be mutated");
 					this.requiredTypestate = null;
@@ -452,10 +427,10 @@ public class ParserOptimizer {
 
 		@Override
 		public Expression visitReplace(Nez.Replace p, Object a) {
-			if (this.isNoTreeConstruction()) {
+			if (isNoTreeConstruction()) {
 				return Expressions.newEmpty();
 			}
-			if (this.requiredTypestate != Typestate.TreeMutation) {
+			if (requiredTypestate != Typestate.TreeMutation) {
 				if (requiredTypestate != null) {
 					reportWarning(p, "The left tree cannot be mutated");
 					this.requiredTypestate = null;
@@ -468,27 +443,27 @@ public class ParserOptimizer {
 		@Override
 		public Expression visitLinkTree(Nez.LinkTree p, Object a) {
 			Expression inner = p.get(0);
-			if (this.isNoTreeConstruction()) {
-				return this.visitExpression(inner);
+			if (isNoTreeConstruction()) {
+				return visitExpression(inner);
 			}
-			if (this.requiredTypestate != Typestate.TreeMutation) {
+			if (requiredTypestate != Typestate.TreeMutation) {
 				if (requiredTypestate != null) {
 					reportWarning(p, "The left tree cannot be mutated");
 					this.requiredTypestate = null;
 				}
-				boolean backed = this.enterNoTreeConstruction();
-				inner = this.visitExpression(inner);
-				this.exitNoTreeConstruction(backed);
+				boolean backed = enterNoTreeConstruction();
+				inner = visitExpression(inner);
+				exitNoTreeConstruction(backed);
 				return inner;
 			}
 
-			Typestate innerState = this.isNoTreeConstruction() ? Typestate.Unit : typeState(inner);
+			Typestate innerState = isNoTreeConstruction() ? Typestate.Unit : typeState(inner);
 			if (innerState != Typestate.Tree) {
 				reportWarning(p, "Implicit tree construction");
-				inner = Expressions.newTree(inner.getSourceLocation(), this.visitExpression(inner));
+				inner = Expressions.newTree(inner.getSourceLocation(), visitExpression(inner));
 			} else {
 				this.requiredTypestate = Typestate.Tree;
-				inner = this.visitExpression(p.get(0));
+				inner = visitExpression(p.get(0));
 			}
 			this.requiredTypestate = Typestate.TreeMutation;
 			return Expressions.newLinkTree(p.getSourceLocation(), p.label, inner);
@@ -496,14 +471,14 @@ public class ParserOptimizer {
 
 		@Override
 		public Expression visitChoice(Nez.Choice p, Object a) {
-			Typestate required = this.requiredTypestate;
-			Typestate next = this.requiredTypestate;
+			Typestate required = requiredTypestate;
+			Typestate next = requiredTypestate;
 			UList<Expression> l = Expressions.newUList(p.size());
 			for (Expression inner : p) {
 				this.requiredTypestate = required;
-				Expressions.addChoice(l, this.visitExpression(inner));
-				if (this.requiredTypestate != required && this.requiredTypestate != next) {
-					next = this.requiredTypestate;
+				Expressions.addChoice(l, visitExpression(inner));
+				if (requiredTypestate != required && requiredTypestate != next) {
+					next = requiredTypestate;
 				}
 			}
 			this.requiredTypestate = next;
@@ -526,9 +501,9 @@ public class ParserOptimizer {
 		}
 
 		private Expression visitOptionalInner(Nez.Unary p) {
-			Typestate innerState = this.isNoTreeConstruction() ? Typestate.Unit : typeState(p.get(0));
+			Typestate innerState = isNoTreeConstruction() ? Typestate.Unit : typeState(p.get(0));
 			if (innerState == Typestate.Tree) {
-				if (this.requiredTypestate == Typestate.TreeMutation) {
+				if (requiredTypestate == Typestate.TreeMutation) {
 					reportWarning(p.get(0), "Implicit subtree construction");
 					this.requiredTypestate = Typestate.Tree;
 					Expression inner = visitExpression(p.get(0));
@@ -536,10 +511,10 @@ public class ParserOptimizer {
 					this.requiredTypestate = Typestate.TreeMutation;
 					return checkUnconsumed(p, inner);
 				} else {
-					reportWarning(p, "disallowed tree construction in e?, e*, e+, or &e  " + innerState);
-					boolean stacked = this.enterNoTreeConstruction();
+					reportWarning(p, "disallowed tree construction in e?, e*, e+, or &e  " + Typestate.Tree);
+					boolean stacked = enterNoTreeConstruction();
 					Expression inner = visitExpression(p.get(0));
-					this.exitNoTreeConstruction(stacked);
+					exitNoTreeConstruction(stacked);
 					return checkUnconsumed(p, inner);
 				}
 			}
@@ -563,14 +538,14 @@ public class ParserOptimizer {
 		@Override
 		public Expression visitNot(Nez.Not p, Object a) {
 			Expression inner = p.get(0);
-			Typestate innerTypestate = this.isNoTreeConstruction() ? Typestate.Unit : typeState(inner);
+			Typestate innerTypestate = isNoTreeConstruction() ? Typestate.Unit : typeState(inner);
 			if (innerTypestate != Typestate.Unit) {
 				// reportWarning(p, "disallowed tree construction in !e");
-				boolean stacked = this.enterNoTreeConstruction();
-				inner = this.visitExpression(inner);
-				this.exitNoTreeConstruction(stacked);
+				boolean stacked = enterNoTreeConstruction();
+				inner = visitExpression(inner);
+				exitNoTreeConstruction(stacked);
 			} else {
-				inner = this.visitExpression(inner);
+				inner = visitExpression(inner);
 			}
 			return Expressions.newNot(p.getSourceLocation(), inner);
 		}
@@ -578,7 +553,7 @@ public class ParserOptimizer {
 	}
 
 	// used to test inlining
-	public final static boolean isMultiChar(Expression e) {
+	public static boolean isMultiChar(Expression e) {
 		if (e instanceof Nez.Byte || e instanceof Nez.MultiByte || e instanceof Nez.Empty) {
 			return true;
 		}
@@ -597,7 +572,7 @@ public class ParserOptimizer {
 	}
 
 	// used to test inlining
-	public final static boolean isSingleInstruction(Expression e) {
+	public static boolean isSingleInstruction(Expression e) {
 		if (e instanceof Nez.Not || e instanceof Nez.ZeroMore || e instanceof Nez.Option || e instanceof Nez.OneMore) {
 			return isSingleCharacter(e.get(0)) || isMultiChar(e.get(0));
 		}
@@ -605,11 +580,8 @@ public class ParserOptimizer {
 	}
 
 	// used to test inlining
-	public final static boolean isSingleCharacter(Expression e) {
-		if (e instanceof Nez.ByteSet || e instanceof Nez.Byte || e instanceof Nez.Any) {
-			return true;
-		}
-		return false;
+	public static boolean isSingleCharacter(Expression e) {
+		return e instanceof Nez.ByteSet || e instanceof Nez.Byte || e instanceof Nez.Any;
 	}
 
 	class OptimizerVisitor extends Expression.TransformVisitor {
@@ -618,12 +590,12 @@ public class ParserOptimizer {
 		 * Local Optimization Option
 		 */
 
-		boolean verboseGrammar = false;
+		boolean verboseGrammar;
 		boolean InliningSubchoice = true;
-		boolean enabledSecondChoice = false;
+		boolean enabledSecondChoice;
 
-		HashMap<String, Production> bodyMap = null;
-		HashMap<String, String> aliasMap = null;
+		HashMap<String, Production> bodyMap;
+		HashMap<String, String> aliasMap;
 
 		OptimizerVisitor() {
 			initOption();
@@ -631,12 +603,12 @@ public class ParserOptimizer {
 
 		private void initOption() {
 			if (strategy.Oalias) {
-				this.bodyMap = new HashMap<String, Production>();
-				this.aliasMap = new HashMap<String, String>();
+				this.bodyMap = new HashMap<>();
+				this.aliasMap = new HashMap<>();
 			}
 		}
 
-		private NonterminalReference refc = null;
+		private NonterminalReference refc;
 
 		void optimize() {
 			long t1 = System.nanoTime();
@@ -647,13 +619,12 @@ public class ParserOptimizer {
 			Verbose.printElapsedTime("Lexical Optimization", t1, t2);
 
 			if (strategy.Prediction > 1) {
-				t1 = t2;
 				optimizeChoicePrediction();
 				t2 = System.nanoTime();
 				Verbose.printElapsedTime("Prediction", t2, t2);
 			}
 			NonterminalReference refc2 = Productions.countNonterminalReference(grammar);
-			UList<Production> prodList = new UList<Production>(new Production[grammar.size()]);
+			UList<Production> prodList = new UList<>(new Production[grammar.size()]);
 			for (Production p : grammar) {
 				String uname = p.getUniqueName();
 				// System.out.printf("%s refc %d -> %d rec=%s\n", uname,
@@ -669,9 +640,9 @@ public class ParserOptimizer {
 
 		private Expression optimizeProduction(Production p) {
 			String uname = p.getUniqueName();
-			if (!this.isVisited(uname)) {
-				this.visited(uname);
-				Expression optimized = this.visitInner(p.getExpression(), null);
+			if (!isVisited(uname)) {
+				visited(uname);
+				Expression optimized = visitInner(p.getExpression(), null);
 				p.setExpression(optimized);
 				if (strategy.Oalias) {
 					performAliasAnalysis(p);
@@ -694,10 +665,7 @@ public class ParserOptimizer {
 
 		private String findAliasName(String nname) {
 			if (aliasMap != null) {
-				String alias = aliasMap.get(nname);
-				if (alias != null) {
-					return alias;
-				}
+				return aliasMap.get(nname);
 			}
 			return null;
 		}
@@ -709,7 +677,7 @@ public class ParserOptimizer {
 			if (strategy.Oinline) {
 				if (deref instanceof NonTerminal) {
 					// verboseInline("inline(deref)", n, deref);
-					return this.visitNonTerminal((NonTerminal) deref, a);
+					return visitNonTerminal((NonTerminal) deref, a);
 				}
 				if (deref.size() == 0) {
 					// verboseInline("inline(single)", n, deref);
@@ -729,12 +697,8 @@ public class ParserOptimizer {
 			}
 			String alias = findAliasName(n.getLocalName());
 			if (alias != null) {
-				NonTerminal nn = n.newNonTerminal(alias);
-				// verboseInline("inline(alias)", n, nn);
-				return nn;
+				return n.newNonTerminal(alias);
 			}
-			// verboseInline("*inline(ref=" + refc.count(n.getUniqueName()), n,
-			// n);
 			return n;
 		}
 
@@ -742,14 +706,13 @@ public class ParserOptimizer {
 		public Expression visitPair(Nez.Pair p, Object a) {
 			List<Expression> l = Expressions.flatten(p);
 			List<Expression> l2 = Expressions.newList(l.size());
-			for (int i = 0; i < l.size(); i++) {
-				Expression inner = l.get(i);
+			for (Expression inner : l) {
 				inner = (Expression) inner.visit(this, a);
 				Expressions.addSequence(l2, inner);
 			}
-			this.optimizeNotCharacterSet(l2);
+			optimizeNotCharacterSet(l2);
 			if (strategy.Oorder) {
-				while (this.optimizeTreeConstruction(l2))
+				while (optimizeTreeConstruction(l2))
 					;
 			}
 			return Expressions.newPair(l2);
@@ -764,27 +727,23 @@ public class ParserOptimizer {
 					if (first instanceof Nez.BeginTree) {
 						((Nez.BeginTree) first).shift -= 1;
 						Expressions.swap(l, i - 1, i);
-						// this.verboseSequence("reorder", second, first);
 						res = true;
 						continue;
 					}
 					if (first instanceof Nez.FoldTree) {
 						((Nez.FoldTree) first).shift -= 1;
 						Expressions.swap(l, i - 1, i);
-						// this.verboseSequence("reorder", second, first);
 						res = true;
 						continue;
 					}
 					if (first instanceof Nez.EndTree) {
 						((Nez.EndTree) first).shift -= 1;
 						Expressions.swap(l, i - 1, i);
-						// this.verboseSequence("reorder", second, first);
 						res = true;
 						continue;
 					}
 					if (first instanceof Nez.Tag || first instanceof Nez.Replace) {
 						Expressions.swap(l, i - 1, i);
-						// this.verboseSequence("reorder", second, first);
 						res = true;
 						continue;
 					}
@@ -795,7 +754,6 @@ public class ParserOptimizer {
 							((Nez.EndTree) second).tag = ((Nez.Tag) first).tag;
 							Expressions.swap(l, i - 1, i);
 							l.set(i, Expressions.newEmpty());
-							// this.verboseSequence("merge", second, first);
 							res = true;
 							continue;
 						}
@@ -803,9 +761,7 @@ public class ParserOptimizer {
 							((Nez.EndTree) second).value = ((Nez.Replace) first).value;
 							Expressions.swap(l, i - 1, i);
 							l.set(i, Expressions.newEmpty());
-							// this.verboseSequence("merge", second, first);
 							res = true;
-							continue;
 						}
 					}
 				}
@@ -858,14 +814,14 @@ public class ParserOptimizer {
 			if (not instanceof Nez.ByteSet) {
 				Nez.ByteSet bm = (Nez.ByteSet) not;
 				for (int c = 0; c < bany.length - 1; c++) {
-					if (bm.byteset[c] && bany[c] == true) {
+					if (bm.byteset[c] && bany[c]) {
 						bany[c] = false;
 					}
 				}
 			}
 			if (not instanceof Nez.Byte) {
 				Nez.Byte bc = (Nez.Byte) not;
-				if (bany[bc.byteChar] == true) {
+				if (bany[bc.byteChar]) {
 					bany[bc.byteChar] = false;
 				}
 			}
@@ -878,7 +834,7 @@ public class ParserOptimizer {
 				Expression choice = p.get(0);
 				UList<Expression> l = Expressions.newUList(choice.size());
 				for (Expression inner : choice) {
-					inner = this.visitInner(inner, a);
+					inner = visitInner(inner, a);
 					l.add(Expressions.newLinkTree(p.getSourceLocation(), p.label, inner));
 				}
 				return choice.newChoice(l);
@@ -888,20 +844,14 @@ public class ParserOptimizer {
 
 		@Override
 		public Expression visitChoice(Nez.Choice p, Object a) {
-			assert (p.visited == false);
+			assert (!p.visited);
 			p.visited = true;
 			UList<Expression> l = Expressions.newUList(p.size());
 			flattenAndOptimizeSubExpressions(p, l, a);
-			// for (Expression inner : p) {
-			// Expressions.addChoice(l, this.visitInner(inner, a));
-			// }
+
 			p.inners = l.compactArray();
 			if (strategy.Prediction != 0) {
-				Expression optimized = Expressions.tryConvertingByteSet(p);
-				if (optimized != p) {
-					// this.verboseOptimized("choice-to-set", p, optimized);
-					return optimized;
-				}
+				return Expressions.tryConvertingByteSet(p);
 			}
 			return p;
 		}
@@ -924,7 +874,7 @@ public class ParserOptimizer {
 					return e;
 				}
 			}
-			return this.visitInner(e, a);
+			return visitInner(e, a);
 		}
 
 		/* Choice Prediction */
@@ -1046,49 +996,14 @@ public class ParserOptimizer {
 			return p;
 		}
 
-		// private void verboseReference(String name, int ref) {
-		// if (this.verboseGrammar) {
-		// ConsoleUtils.println(name + ": ref=" + ref);
-		// }
-		// }
-
 		private void verboseFoundAlias(String name, String alias) {
-			if (this.verboseGrammar) {
+			if (verboseGrammar) {
 				ConsoleUtils.println("found alias production: " + name + ", " + alias);
 			}
 		}
-
-		// private String shorten(Expression e) {
-		// String s = e.toString();
-		// if (s.length() > 40) {
-		// return s.substring(0, 40) + " ... ";
-		// }
-		// return s;
-		// }
-		//
-		// private void verboseInline(String name, NonTerminal n, Expression e)
-		// {
-		// Verbose.println(name + ": " + n.getLocalName() + " => " + e);
-		// if (this.verboseGrammar) {
-		// ConsoleUtils.println(name + ": " + n.getLocalName() + " => " +
-		// shorten(e));
-		// }
-		// }
-		//
-		// private void verboseOptimized(String msg, Expression e, Expression
-		// e2) {
-		// Verbose.println(msg + ":=> " + e + " => " + e2);
-		// }
-		//
-		// private void verboseSequence(String msg, Expression e, Expression e2)
-		// {
-		// Verbose.println(msg + ":=> " + e + " " + e2);
-		// // if (this.verboseGrammar) {
-		// // }
-		// }
 	}
 
-	public final static Expression tryFactoringCommonLeft(Nez.Choice base, Expression e, Expression e2, boolean ignoredFirstChar) {
+	public static Expression tryFactoringCommonLeft(Nez.Choice base, Expression e, Expression e2, boolean ignoredFirstChar) {
 		UList<Expression> l = null;
 		while (e != null && e2 != null) {
 			Expression f = Expressions.first(e);
@@ -1132,7 +1047,7 @@ public class ParserOptimizer {
 
 		void perform() {
 			NonterminalReference refCounts = Productions.countNonterminalReference(grammar);
-			UList<Production> prodList = new UList<Production>(new Production[grammar.size()]);
+			UList<Production> prodList = new UList<>(new Production[grammar.size()]);
 			for (Production p : grammar) {
 				if (refCounts.count(p.getUniqueName()) > 0) {
 					if (strategy.Ostring) {
@@ -1148,17 +1063,15 @@ public class ParserOptimizer {
 		@Override
 		public Expression visitPair(Nez.Pair p, Object a) {
 			if (!fastCheck(p)) {
-				p.set(0, this.visitInner(p.get(0), a));
-				p.set(1, this.visitInner(p.get(1), a));
+				p.set(0, visitInner(p.get(0), a));
+				p.set(1, visitInner(p.get(1), a));
 				return p;
 			}
 			Expression e = Expressions.tryConvertingMultiCharSequence(p);
 			if (e instanceof Nez.Pair) {
-				e.set(1, this.visitInner(e.get(1), a));
+				e.set(1, visitInner(e.get(1), a));
 			}
-			// if (e != p) {
-			// Verbose.println("" + p + " => " + e);
-			// }
+
 			return e;
 		}
 
@@ -1179,19 +1092,19 @@ public class ParserOptimizer {
 
 	// Report
 
-	private final void reportError(Expression p, String message) {
+	private void reportError(Expression p, String message) {
 		if (p.getSourceLocation() != null) {
 			ConsoleUtils.perror(grammar, ConsoleUtils.ErrorColor, p.formatSourceMessage("error", message));
 		}
 	}
 
-	private final void reportWarning(Expression p, String message) {
+	private void reportWarning(Expression p, String message) {
 		if (p.getSourceLocation() != null) {
 			ConsoleUtils.perror(grammar, ConsoleUtils.WarningColor, p.formatSourceMessage("warning", message));
 		}
 	}
 
-	private final void reportNotice(Expression p, String message) {
+	private void reportNotice(Expression p, String message) {
 		if (p.getSourceLocation() != null) {
 			ConsoleUtils.perror(grammar, ConsoleUtils.WarningColor, p.formatSourceMessage("notice", message));
 		}

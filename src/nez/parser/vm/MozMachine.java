@@ -20,7 +20,7 @@ public final class MozMachine extends ParserRuntime {
 	}
 
 	public final int prefetch() {
-		return this.s.byteAt(pos);
+		return s.byteAt(pos);
 	}
 
 	public final boolean match(byte[] utf8) {
@@ -38,7 +38,7 @@ public final class MozMachine extends ParserRuntime {
 
 	@Override
 	public final long getPosition() {
-		return this.pos;
+		return pos;
 	}
 
 	public final void setPosition(long pos) {
@@ -47,7 +47,7 @@ public final class MozMachine extends ParserRuntime {
 
 	@Override
 	public boolean hasUnconsumed() {
-		return this.pos != s.length();
+		return pos != s.length();
 	}
 
 	public final boolean consume(int length) {
@@ -64,12 +64,12 @@ public final class MozMachine extends ParserRuntime {
 
 	// NOTE: Added by Honda
 	public int getUsedStackTopForDebugger() {
-		return this.usedStackTop;
+		return usedStackTop;
 	}
 
 	/* PEG4d : AST construction */
 
-	ASTMachine astMachine = null;
+	ASTMachine astMachine;
 
 	public final ASTMachine getAstMachine() {
 		return astMachine;
@@ -82,11 +82,11 @@ public final class MozMachine extends ParserRuntime {
 	private final SymbolTable symbolTable = new SymbolTable();
 
 	public final SymbolTable getSymbolTable() {
-		return this.symbolTable;
+		return symbolTable;
 	}
 
 	public final int getState() {
-		return this.symbolTable.getState();
+		return symbolTable.getState();
 	}
 
 	// ----------------------------------------------------------------------
@@ -96,8 +96,8 @@ public final class MozMachine extends ParserRuntime {
 		public long value;
 	}
 
-	private static int StackSize = 64;
-	private MozStackData[] stacks = null;
+	private static final int StackSize = 64;
+	private MozStackData[] stacks;
 	private int usedStackTop;
 	private int catchStackTop;
 
@@ -105,16 +105,16 @@ public final class MozMachine extends ParserRuntime {
 		this.astMachine = new ASTMachine(s, prototype);
 		this.stacks = new MozStackData[StackSize];
 		for (int i = 0; i < StackSize; i++) {
-			this.stacks[i] = new MozStackData();
+			stacks[i] = new MozStackData();
 		}
-		this.stacks[0].ref = null;
-		this.stacks[0].value = 0;
-		this.stacks[1].ref = new Moz86.Exit(false);
-		this.stacks[1].value = this.getPosition();
-		this.stacks[2].ref = astMachine.saveTransactionPoint();
-		this.stacks[2].value = symbolTable.saveSymbolPoint();
-		this.stacks[3].ref = new Moz86.Exit(true);
-		this.stacks[3].value = 0;
+		stacks[0].ref = null;
+		stacks[0].value = 0;
+		stacks[1].ref = new Moz86.Exit(false);
+		stacks[1].value = getPosition();
+		stacks[2].ref = astMachine.saveTransactionPoint();
+		stacks[2].value = symbolTable.saveSymbolPoint();
+		stacks[3].ref = new Moz86.Exit(true);
+		stacks[3].value = 0;
 		this.catchStackTop = 0;
 		this.usedStackTop = 3;
 		this.memoTable = memoTable;
@@ -132,7 +132,7 @@ public final class MozMachine extends ParserRuntime {
 		if (stacks.length == usedStackTop) {
 			MozStackData[] newstack = new MozStackData[stacks.length * 2];
 			System.arraycopy(stacks, 0, newstack, 0, stacks.length);
-			for (int i = this.stacks.length; i < newstack.length; i++) {
+			for (int i = stacks.length; i < newstack.length; i++) {
 				newstack[i] = new MozStackData();
 			}
 			stacks = newstack;
@@ -141,7 +141,7 @@ public final class MozMachine extends ParserRuntime {
 	}
 
 	public final MozStackData popStack() {
-		MozStackData s = stacks[this.usedStackTop];
+		MozStackData s = stacks[usedStackTop];
 		usedStackTop--;
 		// assert(this.catchStackTop <= this.usedStackTop);
 		return s;
@@ -154,7 +154,7 @@ public final class MozMachine extends ParserRuntime {
 		s0.value = catchStackTop;
 		catchStackTop = usedStackTop - 2;
 		s1.ref = failjump;
-		s1.value = this.pos;
+		s1.value = pos;
 		s2.ref = astMachine.saveTransactionPoint();
 		s2.value = symbolTable.saveSymbolPoint();
 	}
@@ -174,24 +174,24 @@ public final class MozMachine extends ParserRuntime {
 		MozStackData s2 = stacks[catchStackTop + 2];
 		usedStackTop = catchStackTop - 1;
 		catchStackTop = (int) s0.value;
-		if (s1.value < this.pos) {
-			if (this.lprof != null) {
-				this.lprof.statBacktrack(s1.value, this.pos);
+		if (s1.value < pos) {
+			if (lprof != null) {
+				lprof.statBacktrack(s1.value, pos);
 			}
-			this.rollback(s1.value);
+			rollback(s1.value);
 		}
-		this.astMachine.rollTransactionPoint(s2.ref);
-		this.symbolTable.backSymbolPoint((int) s2.value);
+		astMachine.rollTransactionPoint(s2.ref);
+		symbolTable.backSymbolPoint((int) s2.value);
 		assert (s1.ref != null);
 		return (MozInst) s1.ref;
 	}
 
 	public final MozInst skip(MozInst next) {
 		MozStackData s1 = stacks[catchStackTop + 1];
-		if (s1.value == this.pos) {
+		if (s1.value == pos) {
 			return xFail();
 		}
-		s1.value = this.pos;
+		s1.value = pos;
 		MozStackData s2 = stacks[catchStackTop + 2];
 		s2.ref = astMachine.saveTransactionPoint();
 		s2.value = symbolTable.saveSymbolPoint();
@@ -206,7 +206,7 @@ public final class MozMachine extends ParserRuntime {
 	}
 
 	public final MemoEntry getMemo(int memoId, boolean state) {
-		return state ? memoTable.getStateMemo(this.pos, memoId, symbolTable.getState()) : memoTable.getMemo(this.pos, memoId);
+		return state ? memoTable.getStateMemo(pos, memoId, symbolTable.getState()) : memoTable.getMemo(pos, memoId);
 	}
 
 	// Profiling ------------------------------------------------------------
@@ -218,29 +218,29 @@ public final class MozMachine extends ParserRuntime {
 			prof.setFile("I.File", s.getResourceName());
 			prof.setCount("I.Size", s.length());
 			this.lprof = new LocalProfiler();
-			this.lprof.init(this.getPosition());
+			lprof.init(getPosition());
 		}
 	}
 
 	public final void doneProfiling(ParserProfiler prof) {
 		if (prof != null) {
-			this.lprof.parsed(prof, this.getPosition());
-			this.memoTable.record(prof);
+			lprof.parsed(prof, getPosition());
+			memoTable.record(prof);
 		}
 	}
 
-	class LocalProfiler {
-		long startPosition = 0;
-		long startingNanoTime = 0;
-		long endingNanoTime = 0;
+	static class LocalProfiler {
+		long startPosition;
+		long startingNanoTime;
+		long endingNanoTime;
 
-		long FailureCount = 0;
-		long BacktrackCount = 0;
-		long BacktrackLength = 0;
+		long FailureCount;
+		long BacktrackCount;
+		long BacktrackLength;
 
-		long HeadPostion = 0;
-		long LongestBacktrack = 0;
-		int[] BacktrackHistgrams = null;
+		long HeadPostion;
+		long LongestBacktrack;
+		int[] BacktrackHistgrams;
 
 		public void init(long pos) {
 			this.startPosition = pos;
@@ -255,23 +255,23 @@ public final class MozMachine extends ParserRuntime {
 		}
 
 		void parsed(ParserProfiler rec, long consumed) {
-			consumed -= this.startPosition;
+			consumed -= startPosition;
 			this.endingNanoTime = System.nanoTime();
 			ParserProfiler.recordLatencyMS(rec, "P.Latency", startingNanoTime, endingNanoTime);
 			rec.setCount("P.Consumed", consumed);
 			ParserProfiler.recordThroughputKPS(rec, "P.Throughput", consumed, startingNanoTime, endingNanoTime);
-			rec.setRatio("P.Failure", this.FailureCount, consumed);
-			rec.setRatio("P.Backtrack", this.BacktrackCount, consumed);
-			rec.setRatio("P.BacktrackLength", this.BacktrackLength, consumed);
+			rec.setRatio("P.Failure", FailureCount, consumed);
+			rec.setRatio("P.Backtrack", BacktrackCount, consumed);
+			rec.setRatio("P.BacktrackLength", BacktrackLength, consumed);
 			rec.setCount("P.LongestBacktrack", LongestBacktrack);
 			if (Verbose.BacktrackActivity) {
 				double cf = 0;
 				for (int i = 0; i < 16; i++) {
 					int n = 1 << i;
-					double f = (double) this.BacktrackHistgrams[i] / this.BacktrackCount;
-					cf += this.BacktrackHistgrams[i];
-					ConsoleUtils.println(String.format("%d\t%d\t%2.3f\t%2.3f", n, this.BacktrackHistgrams[i], f, (cf / this.BacktrackCount)));
-					if (n > this.LongestBacktrack)
+					double f = (double) BacktrackHistgrams[i] / BacktrackCount;
+					cf += BacktrackHistgrams[i];
+					ConsoleUtils.println(String.format("%d\t%d\t%2.3f\t%2.3f", n, BacktrackHistgrams[i], f, (cf / BacktrackCount)));
+					if (n > LongestBacktrack)
 						break;
 				}
 			}
@@ -281,14 +281,14 @@ public final class MozMachine extends ParserRuntime {
 			this.FailureCount++;
 			long len = current_pos - backed_pos;
 			if (len > 0) {
-				this.BacktrackCount = this.BacktrackCount + 1;
-				this.BacktrackLength = this.BacktrackLength + len;
-				if (this.HeadPostion < current_pos) {
+				this.BacktrackCount = BacktrackCount + 1;
+				this.BacktrackLength = BacktrackLength + len;
+				if (HeadPostion < current_pos) {
 					this.HeadPostion = current_pos;
 				}
-				len = this.HeadPostion - backed_pos;
-				this.countBacktrackLength(len);
-				if (len > this.LongestBacktrack) {
+				len = HeadPostion - backed_pos;
+				countBacktrackLength(len);
+				if (len > LongestBacktrack) {
 					this.LongestBacktrack = len;
 				}
 			}

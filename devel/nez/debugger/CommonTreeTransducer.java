@@ -20,9 +20,4 @@ public class CommonTreeTransducer extends TreeTransducer {
 	public Object commit(Object node) {
 		return node;
 	}
-
-	@Override
-	public void abort(Object node) {
-	}
-
 }

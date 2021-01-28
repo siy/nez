@@ -45,15 +45,15 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 	protected boolean UniqueNumberingSymbol = true;
 	protected boolean SupportedSwitchCase = true;
 	protected boolean SupportedDoWhile = true;
-	protected boolean UsingBitmap = false;
-	protected boolean SupportedRange = false;
-	protected boolean SupportedMatch2 = false;
-	protected boolean SupportedMatch3 = false;
-	protected boolean SupportedMatch4 = false;
-	protected boolean SupportedMatch5 = false;
-	protected boolean SupportedMatch6 = false;
-	protected boolean SupportedMatch7 = false;
-	protected boolean SupportedMatch8 = false;
+	protected boolean UsingBitmap;
+	protected boolean SupportedRange;
+	protected boolean SupportedMatch2;
+	protected boolean SupportedMatch3;
+	protected boolean SupportedMatch4;
+	protected boolean SupportedMatch5;
+	protected boolean SupportedMatch6;
+	protected boolean SupportedMatch7;
+	protected boolean SupportedMatch8;
 
 	//
 	protected ParserCode<?> code;
@@ -65,19 +65,19 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 
 	@Override
 	public void generate() {
-		Grammar g = this.parser.getCompiledGrammar();
+		Grammar g = parser.getCompiledGrammar();
 		this.code = parser.getParserCode();
-		this.initLanguageSpec();
+		initLanguageSpec();
 
-		this.generateHeader(g);
+		generateHeader(g);
 		SymbolAnalysis constDecl = new SymbolAnalysis();
 		constDecl.decl(g.getStartProduction());
-		this.sortFuncList(_funcname(g.getStartProduction()));
-		this.generateSymbolTables();
-		this.generatePrototypes();
+		sortFuncList(_funcname(g.getStartProduction()));
+		generateSymbolTables();
+		generatePrototypes();
 
 		new ParserGeneratorVisitor().generate();
-		this.generateFooter(g);
+		generateFooter(g);
 		file.writeNewLine();
 		file.flush();
 	}
@@ -127,14 +127,12 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 
 	final String _set(boolean[] b) {
 		String key = StringUtils.stringfyBitmap(b);
-		String v = nameMap.get(key);
-		return v;
+		return nameMap.get(key);
 	}
 
 	final String _range(boolean[] b) {
 		String key = StringUtils.stringfyBitmap(b) + "*";
-		String v = nameMap.get(key);
-		return v;
+		return nameMap.get(key);
 	}
 
 	final void DeclSet(boolean[] b, boolean Iteration) {
@@ -151,7 +149,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 				return;
 			}
 		}
-		if (this.SupportedRange && range(b) != null) {
+		if (SupportedRange && range(b) != null) {
 			return;
 		}
 		String key = StringUtils.stringfyBitmap(b);
@@ -230,8 +228,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 			}
 		}
 		if (start < end) {
-			int[] a = { start, end };
-			return a;
+			return new int[]{ start, end };
 		}
 		return null;
 	}
@@ -240,12 +237,12 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 		if (b[0]) {
 			return null;
 		}
-		ArrayList<Integer> l = new ArrayList<Integer>();
+		ArrayList<Integer> l = new ArrayList<>();
 		for (int i = 0; i < 256; i++) {
-			if (b[i] == false) {
+			if (!b[i]) {
 				int start = i;
 				int end = start;
-				for (int j = start; j < 256 && b[j] == false; j++) {
+				for (int j = start; j < 256 && !b[j]; j++) {
 					end = j;
 				}
 				l.add(start);
@@ -284,7 +281,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 	}
 
 	final String _tag(Symbol s) {
-		if (!this.UniqueNumberingSymbol && s == null) {
+		if (!UniqueNumberingSymbol && s == null) {
 			return _Null();
 		}
 		return _tagname(s == null ? "" : s.getSymbol());
@@ -295,12 +292,12 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 			int n = tagMap.size();
 			tagMap.put(s, n);
 			tagList.add(s);
-			DeclConst(this.type("$tag"), _tagname(s), _initTag(n, s));
+			DeclConst(type("$tag"), _tagname(s), _initTag(n, s));
 		}
 	}
 
 	final String _label(Symbol s) {
-		if (!this.UniqueNumberingSymbol && s == null) {
+		if (!UniqueNumberingSymbol && s == null) {
 			return _Null();
 		}
 		return _labelname(s == null ? "" : s.getSymbol());
@@ -311,14 +308,14 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 			int n = labelMap.size();
 			labelMap.put(s, n);
 			labelList.add(s);
-			if (this.UniqueNumberingSymbol || !s.equals("_")) {
+			if (UniqueNumberingSymbol || !s.equals("_")) {
 				DeclConst(type("$label"), _labelname(s), _initLabel(n, s));
 			}
 		}
 	}
 
 	final String _table(Symbol s) {
-		if (!this.UniqueNumberingSymbol && s.equals("")) {
+		if (!UniqueNumberingSymbol && s.getSymbol().equals("")) {
 			return _Null();
 		}
 		return _tablename(s == null ? "" : s.getSymbol());
@@ -344,7 +341,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 
 	private void generateSymbolTable(String name, UList<String> l) {
 		if (l.size() > 0) {
-			DeclConst(this.type("$string"), name, l.size(), _initStringArray(l.ArrayValues, l.size()));
+			DeclConst(type("$string"), name, l.size(), _initStringArray(l.ArrayValues, l.size()));
 		}
 	}
 
@@ -360,7 +357,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 		if (s == null) {
 			return "\"\"";
 		}
-		return StringUtils.quoteString('"', s.toString(), '"');
+		return StringUtils.quoteString('"', s, '"');
 	}
 
 	protected String _initBooleanArray(boolean[] b) {
@@ -465,12 +462,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 
 	private void addEdge(String sour, String dest) {
 		if (sour != null) {
-			HashSet<String> set = nodes.get(sour);
-			if (set == null) {
-				set = new HashSet<String>();
-				nodes.put(sour, set);
-			}
-			set.add(dest);
+			nodes.computeIfAbsent(sour, k -> new HashSet<>()).add(dest);
 		}
 	}
 
@@ -479,28 +471,27 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 			private final HashMap<String, HashSet<String>> nodes;
 			private final LinkedList<String> result;
 			private final HashMap<String, Short> visited;
-			private final Short Visiting = 1;
-			private final Short Visited = 2;
 
 			TopologicalSorter(HashMap<String, HashSet<String>> nodes) {
 				this.nodes = nodes;
-				this.result = new LinkedList<String>();
-				this.visited = new HashMap<String, Short>();
+				this.result = new LinkedList<>();
+				this.visited = new HashMap<>();
 				for (Map.Entry<String, HashSet<String>> e : this.nodes.entrySet()) {
-					if (this.visited.get(e.getKey()) == null) {
+					if (visited.get(e.getKey()) == null) {
 						visit(e.getKey(), e.getValue());
 					}
 				}
 			}
 
 			private void visit(String key, HashSet<String> nextNodes) {
-				visited.put(key, Visiting);
+				short visiting = 1;
+				visited.put(key, visiting);
 				if (nextNodes != null) {
 					for (String nextNode : nextNodes) {
-						Short v = this.visited.get(nextNode);
+						var v = visited.get(nextNode);
 						if (v == null) {
 							visit(nextNode, nodes.get(nextNode));
-						} else if (v == Visiting) {
+						} else if (visiting == v) {
 							if (!key.equals(nextNode)) {
 								Verbose.println("Cyclic " + key + " => " + nextNode);
 								crossRefNames.add(nextNode);
@@ -508,12 +499,13 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 						}
 					}
 				}
-				visited.put(key, Visited);
+				Short visited1 = 2;
+				visited.put(key, visited1);
 				result.add(key);
 			}
 
 			public ArrayList<String> getResult() {
-				return new ArrayList<String>(result);
+				return new ArrayList<>(result);
 			}
 		}
 		TopologicalSorter sorter = new TopologicalSorter(nodes);
@@ -539,7 +531,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 			return null;
 		}
 
-		String cur = null; // name
+		String cur; // name
 
 		private boolean checkFuncName(Production p) {
 			String f = _funcname(p.getUniqueName());
@@ -896,14 +888,10 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 			EndFunc();
 		}
 
-		void initFunc(Expression e) {
-
-		}
-
 		int nested = -1;
 
 		private void visit(Expression e, Object a) {
-			int lnested = this.nested;
+			int lnested = nested;
 			this.nested++;
 			e.visit(this, a);
 			this.nested--;
@@ -1060,9 +1048,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 			if (SupportedRange) {
 				int[] range = range(byteMap);
 				if (range != null) {
-					String s = "(" + _Binary(_Binary(_byte(range[0]), "<=", _Func("prefetch")), _And(), _Binary(c, "<", _byte(range[1]))) + ")";
-					// System.out.println(s);
-					return s;
+					return "(" + _Binary(_Binary(_byte(range[0]), "<=", _Func("prefetch")), _And(), _Binary(c, "<", _byte(range[1]))) + ")";
 				}
 			}
 			if (UsingBitmap) {
@@ -1226,7 +1212,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 
 		@Override
 		public Object visitZeroMore(Nez.ZeroMore e, Object a) {
-			if (!this.tryRepetitionOptimization(e.get(0), false)) {
+			if (!tryRepetitionOptimization(e.get(0), false)) {
 				generateWhile(e, a);
 			}
 			return null;
@@ -1252,7 +1238,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 
 		@Override
 		public Object visitOneMore(Nez.OneMore e, Object a) {
-			if (!this.tryRepetitionOptimization(e.get(0), true)) {
+			if (!tryRepetitionOptimization(e.get(0), true)) {
 				String f = _eval(e.get(0));
 				if (f != null) {
 					If(_Not(f));
@@ -1281,7 +1267,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 		@Override
 		public Object visitAnd(Nez.And e, Object a) {
 			Expression sub = e.get(0);
-			if (!this.tryAndOptimization(sub)) {
+			if (!tryAndOptimization(sub)) {
 				String f = _eval(sub);
 				BeginScope();
 				String n = SavePos();
@@ -1300,7 +1286,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 		@Override
 		public Object visitNot(Nez.Not e, Object a) {
 			Expression sub = e.get(0);
-			if (!this.tryNotOptimization(sub)) {
+			if (!tryNotOptimization(sub)) {
 				String f = _eval(sub);
 				BeginScope();
 				String[] n = SaveState(sub);
@@ -1397,6 +1383,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 						String name = _range(e.byteset);
 						if (name != null) {
 							byte[] r = rangeSEE(e.byteset);
+							assert r != null;
 							Verbose.println("range: " + name + " " + e);
 							if (OneMore) {
 								If(_Not(_Func("checkOneMoreRange", name, _int(r.length))));
@@ -1464,7 +1451,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 						Fail();
 					}
 					EndIf();
-					this.checkBinaryEOF(e.byteChar == 0);
+					checkBinaryEOF(e.byteChar == 0);
 					return true;
 				}
 				if (inner instanceof Nez.ByteSet) {
@@ -1474,7 +1461,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 						Fail();
 					}
 					EndIf();
-					this.checkBinaryEOF(e.byteset[0]);
+					checkBinaryEOF(e.byteset[0]);
 					return true;
 				}
 				if (inner instanceof Nez.MultiByte) {
@@ -1508,7 +1495,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 						Fail();
 					}
 					EndIf();
-					this.checkBinaryEOF(e.byteChar != 0);
+					checkBinaryEOF(e.byteChar != 0);
 					return true;
 				}
 				if (inner instanceof Nez.ByteSet) {
@@ -1518,7 +1505,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 						Fail();
 					}
 					EndIf();
-					this.checkBinaryEOF(!e.byteset[0]);
+					checkBinaryEOF(!e.byteset[0]);
 					return true;
 				}
 				if (inner instanceof Nez.MultiByte) {
@@ -1804,9 +1791,6 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 	}
 
 	protected String _byte(int ch) {
-		// if (ch < 128 && (!Character.isISOControl(ch))) {
-		// return "'" + (char) ch + "'";
-		// }
 		return "" + (ch & 0xff);
 	}
 
@@ -2021,7 +2005,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 	}
 
 	protected void VarDecl(String name, String expr) {
-		VarDecl(this.type(name), name, expr);
+		VarDecl(type(name), name, expr);
 	}
 
 	protected void VarDecl(String type, String name, String expr) {
@@ -2054,12 +2038,6 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 		} else {
 			DeclConst(type, name, val);
 		}
-	}
-
-	protected void GCinc(String expr) {
-	}
-
-	protected void GCdec(String expr) {
 	}
 
 	/* Variables */
@@ -2107,10 +2085,6 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 	protected String _text() {
 		return "_text";
 	}
-
-	// protected String _arity(String name) {
-	// return name + "_len";
-	// }
 
 	protected void InitMemoPoint() {
 		if (code.getMemoPointSize() > 0) {

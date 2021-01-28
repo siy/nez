@@ -12,7 +12,7 @@ public class Module {
 	ParserGrammar g;
 
 	public Module() {
-		this.funcList = new ArrayList<Function>();
+		this.funcList = new ArrayList<>();
 	}
 
 	public void setGrammar(ParserGrammar g) {
@@ -20,8 +20,8 @@ public class Module {
 	}
 
 	public DebugVMInstruction getStartPoint() {
-		Production start = this.g.getStartProduction();
-		for (Function func : this.funcList) {
+		Production start = g.getStartProduction();
+		for (Function func : funcList) {
 			if (func.funcName.equals(start.getLocalName())) {
 				Inop nop = new Inop(start);
 				BasicBlock bb = func.get(0);
@@ -37,11 +37,11 @@ public class Module {
 	}
 
 	public Function get(int index) {
-		return this.funcList.get(index);
+		return funcList.get(index);
 	}
 
 	public Function get(String name) {
-		for (Function func : this.funcList) {
+		for (Function func : funcList) {
 			if (func.funcName.equals(name)) {
 				return func;
 			}
@@ -51,7 +51,7 @@ public class Module {
 	}
 
 	public void append(Function func) {
-		this.funcList.add(func);
+		funcList.add(func);
 	}
 
 	public int size() {
@@ -60,7 +60,7 @@ public class Module {
 
 	public String stringfy(StringBuilder sb) {
 		for (int i = 0; i < size(); i++) {
-			this.get(i).stringfy(sb);
+			get(i).stringfy(sb);
 		}
 		return sb.toString();
 	}

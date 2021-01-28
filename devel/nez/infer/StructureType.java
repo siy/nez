@@ -8,13 +8,13 @@ import nez.lang.Grammar;
 import nez.util.UList;
 
 public abstract class StructureType {
-	protected int maxTokenCount = 0;
+	protected int maxTokenCount;
 
-	abstract public Expression getExpression(Grammar g);
+	public abstract Expression getExpression(Grammar g);
 }
 
 class BaseType extends StructureType {
-	private Token baseToken;
+	private final Token baseToken;
 
 	public BaseType(Token singleToken) {
 		this.baseToken = singleToken;
@@ -22,17 +22,17 @@ class BaseType extends StructureType {
 
 	@Override
 	public String toString() {
-		return this.baseToken.toString();
+		return baseToken.toString();
 	}
 
 	@Override
 	public Expression getExpression(Grammar g) {
-		return this.baseToken.getExpression(g);
+		return baseToken.getExpression(g);
 	}
 }
 
 class MetaTokenType extends StructureType {
-	private Token metaToken;
+	private final Token metaToken;
 
 	public MetaTokenType(Token singleToken) {
 		this.metaToken = singleToken;
@@ -40,12 +40,12 @@ class MetaTokenType extends StructureType {
 
 	@Override
 	public String toString() {
-		return this.metaToken.toString();
+		return metaToken.toString();
 	}
 
 	@Override
 	public Expression getExpression(Grammar g) {
-		return this.metaToken.getExpression(g);
+		return metaToken.getExpression(g);
 	}
 
 }
@@ -63,7 +63,7 @@ class Struct extends StructureType {
 
 	@Override
 	public Expression getExpression(Grammar g) {
-		UList<Expression> l = new UList<Expression>(new Expression[5]);
+		UList<Expression> l = new UList<>(new Expression[5]);
 		for (StructureType element : inner) {
 			l.add(element.getExpression(g));
 		}
@@ -82,15 +82,15 @@ class Sequence extends StructureType {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		for (Token token : this.tokenList) {
-			builder.append(token.toString()).append(" ");
+		for (Token token : tokenList) {
+			builder.append(token).append(" ");
 		}
 		return builder.toString();
 	}
 
 	@Override
 	public Expression getExpression(Grammar g) {
-		Expression[] l = new Expression[this.maxTokenCount];
+		Expression[] l = new Expression[maxTokenCount];
 
 		for (Token element : tokenList) {
 			for (int index : element.getHistogram().getOrderIdList()) {
@@ -112,8 +112,8 @@ class Choice extends StructureType {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		for (Token token : this.tokenList) {
-			builder.append(token.toString()).append(" / ");
+		for (Token token : tokenList) {
+			builder.append(token).append(" / ");
 		}
 		builder.deleteCharAt(builder.lastIndexOf("/"));
 		return builder.toString();
@@ -121,7 +121,7 @@ class Choice extends StructureType {
 
 	@Override
 	public Expression getExpression(Grammar g) {
-		UList<Expression> l = new UList<Expression>(new Expression[this.maxTokenCount]);
+		UList<Expression> l = new UList<>(new Expression[maxTokenCount]);
 
 		for (Token element : tokenList) {
 			for (int index : element.getHistogram().getOrderIdList()) {
@@ -149,7 +149,7 @@ class Union extends Struct {
 
 	@Override
 	public Expression getExpression(Grammar g) {
-		UList<Expression> l = new UList<Expression>(new Expression[5]);
+		UList<Expression> l = new UList<>(new Expression[5]);
 		for (StructureType element : inner) {
 			l.add(element.getExpression(g));
 		}

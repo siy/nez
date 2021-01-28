@@ -70,7 +70,7 @@ import nez.util.Verbose;
 
 public class MozWriter extends InstructionVisitor {
 
-	class SetEntry {
+	static class SetEntry {
 		int id;
 		boolean[] data;
 
@@ -80,7 +80,7 @@ public class MozWriter extends InstructionVisitor {
 		}
 	}
 
-	class StrEntry {
+	static class StrEntry {
 		int id;
 		byte[] data;
 
@@ -90,7 +90,7 @@ public class MozWriter extends InstructionVisitor {
 		}
 	}
 
-	class TagEntry {
+	static class TagEntry {
 		int id;
 		Symbol data;
 
@@ -100,7 +100,7 @@ public class MozWriter extends InstructionVisitor {
 		}
 	}
 
-	class SymEntry {
+	static class SymEntry {
 		int id;
 		int tabid;
 		byte[] symbol;
@@ -166,20 +166,20 @@ public class MozWriter extends InstructionVisitor {
 
 	public void write_u16(int num) {
 		stream.write(0xff & (num >> 8));
-		stream.write(0xff & (num >> 0));
+		stream.write(0xff & (num));
 	}
 
 	public void write_u24(int num) {
 		stream.write(0xff & (num >> 16));
 		stream.write(0xff & (num >> 8));
-		stream.write(0xff & (num >> 0));
+		stream.write(0xff & (num));
 	}
 
 	public void write_u32(int num) {
 		stream.write(0xff & (num >> 24));
 		stream.write(0xff & (num >> 16));
 		stream.write(0xff & (num >> 8));
-		stream.write(0xff & (num >> 0));
+		stream.write(0xff & (num));
 	}
 
 	private void encodeData(boolean[] byteMap) {
@@ -238,7 +238,7 @@ public class MozWriter extends InstructionVisitor {
 	}
 
 	public void encodeMemoPoint(int id) {
-		this.write_u32(id);
+		write_u32(id);
 	}
 
 	public void encodeShift(int shift) {
@@ -302,9 +302,9 @@ public class MozWriter extends InstructionVisitor {
 
 	public void encodeLabel(Symbol label) {
 		if (label == null) {
-			this.encodeTag(Symbol.Null);
+			encodeTag(Symbol.Null);
 		} else {
-			this.encodeTag(label);
+			encodeTag(label);
 		}
 	}
 
@@ -369,34 +369,34 @@ public class MozWriter extends InstructionVisitor {
 
 	private void encode(MozInst inst) {
 		if (inst.isIncrementedNext()) {
-			this.encodeOpcode(inst.opcode);
+			encodeOpcode(inst.opcode);
 			inst.visit(this);
 		} else {
-			this.encodeOpcode((byte) (inst.opcode | 128)); // opcode | 10000000
+			encodeOpcode((byte) (inst.opcode | 128)); // opcode | 10000000
 			inst.visit(this);
-			this.encodeJump(inst.next);
+			encodeJump(inst.next);
 		}
 	}
 
 	@Override
 	public void visitNop(Nop inst) {
-		this.encodeNonTerminal(inst.name);
+		encodeNonTerminal(inst.name);
 	}
 
 	@Override
 	public void visitExit(Exit inst) {
-		this.write_b(inst.status);
+		write_b(inst.status);
 	}
 
 	@Override
 	public void visitCov(Cov inst) {
-		this.write_u16(inst.uid);
-		this.write_b(inst.state);
+		write_u16(inst.uid);
+		write_b(inst.state);
 	}
 
 	@Override
 	public void visitTrap(Trap inst) {
-		this.write_u16(inst.uid);
+		write_u16(inst.uid);
 	}
 
 	@Override
@@ -411,18 +411,18 @@ public class MozWriter extends InstructionVisitor {
 
 	@Override
 	public void visitMove(Move inst) {
-		this.encodeShift(inst.shift);
+		encodeShift(inst.shift);
 	}
 
 	@Override
 	public void visitJump(Jump inst) {
-		this.encodeJump(inst.jump);
+		encodeJump(inst.jump);
 	}
 
 	@Override
 	public void visitCall(Call inst) {
-		this.encodeJump(inst.jump);
-		this.encodeNonTerminal(inst.name); // debug information
+		encodeJump(inst.jump);
+		encodeNonTerminal(inst.name); // debug information
 	}
 
 	@Override
@@ -431,7 +431,7 @@ public class MozWriter extends InstructionVisitor {
 
 	@Override
 	public void visitAlt(Alt inst) {
-		this.encodeJump(inst.jump);
+		encodeJump(inst.jump);
 	}
 
 	@Override
@@ -452,7 +452,7 @@ public class MozWriter extends InstructionVisitor {
 
 	@Override
 	public void visitByte(Byte inst) {
-		this.encodeByte(inst.byteChar);
+		encodeByte(inst.byteChar);
 	}
 
 	@Override
@@ -461,17 +461,17 @@ public class MozWriter extends InstructionVisitor {
 
 	@Override
 	public void visitStr(Str inst) {
-		this.encodeBstr(inst.utf8);
+		encodeBstr(inst.utf8);
 	}
 
 	@Override
 	public void visitSet(Set inst) {
-		this.encodeBset(inst.byteSet);
+		encodeBset(inst.byteSet);
 	}
 
 	@Override
 	public void visitNByte(NByte inst) {
-		this.encodeByte(inst.byteChar);
+		encodeByte(inst.byteChar);
 	}
 
 	@Override
@@ -480,57 +480,57 @@ public class MozWriter extends InstructionVisitor {
 
 	@Override
 	public void visitNStr(NStr inst) {
-		this.encodeBstr(inst.utf8);
+		encodeBstr(inst.utf8);
 	}
 
 	@Override
 	public void visitNSet(NSet inst) {
-		this.encodeBset(inst.byteSet);
+		encodeBset(inst.byteSet);
 	}
 
 	@Override
 	public void visitOByte(OByte inst) {
-		this.encodeByte(inst.byteChar);
+		encodeByte(inst.byteChar);
 	}
 
 	@Override
 	public void visitOStr(OStr inst) {
-		this.encodeBstr(inst.utf8);
+		encodeBstr(inst.utf8);
 	}
 
 	@Override
 	public void visitOSet(OSet inst) {
-		this.encodeBset(inst.byteSet);
+		encodeBset(inst.byteSet);
 	}
 
 	@Override
 	public void visitRByte(RByte inst) {
-		this.encodeByte(inst.byteChar);
+		encodeByte(inst.byteChar);
 	}
 
 	@Override
 	public void visitRStr(RStr inst) {
-		this.encodeBstr(inst.utf8);
+		encodeBstr(inst.utf8);
 	}
 
 	@Override
 	public void visitRSet(RSet inst) {
-		this.encodeBset(inst.byteSet);
+		encodeBset(inst.byteSet);
 	}
 
 	@Override
 	public void visitDispatch(Dispatch inst) {
-		this.encodeJumpTable();
+		encodeJumpTable();
 		for (int i = 0; i < inst.jumpTable.length; i++) {
-			this.encodeJump(inst.jumpTable[i]);
+			encodeJump(inst.jumpTable[i]);
 		}
 	}
 
 	@Override
 	public void visitDDispatch(DDispatch inst) {
-		this.encodeJumpTable();
+		encodeJumpTable();
 		for (int i = 0; i < inst.jumpTable.length; i++) {
-			this.encodeJump(inst.jumpTable[i]);
+			encodeJump(inst.jumpTable[i]);
 		}
 	}
 
@@ -544,33 +544,33 @@ public class MozWriter extends InstructionVisitor {
 
 	@Override
 	public void visitTBegin(TBegin inst) {
-		this.encodeShift(inst.shift);
+		encodeShift(inst.shift);
 	}
 
 	@Override
 	public void visitTEnd(TEnd inst) {
-		this.encodeShift(inst.shift);
+		encodeShift(inst.shift);
 	}
 
 	@Override
 	public void visitTTag(TTag inst) {
-		this.encodeTag(inst.tag);
+		encodeTag(inst.tag);
 	}
 
 	@Override
 	public void visitTReplace(TReplace inst) {
-		this.encodeBstr(inst.value.getBytes());
+		encodeBstr(inst.value.getBytes());
 	}
 
 	@Override
 	public void visitTLink(TLink inst) {
-		this.encodeLabel(inst.label);
+		encodeLabel(inst.label);
 	}
 
 	@Override
 	public void visitTFold(TFold inst) {
-		this.encodeShift(inst.shift);
-		this.encodeLabel(inst.label);
+		encodeShift(inst.shift);
+		encodeLabel(inst.label);
 	}
 
 	@Override
@@ -579,7 +579,7 @@ public class MozWriter extends InstructionVisitor {
 
 	@Override
 	public void visitTEmit(TEmit inst) {
-		this.encodeLabel(inst.label);
+		encodeLabel(inst.label);
 	}
 
 	@Override
@@ -592,38 +592,38 @@ public class MozWriter extends InstructionVisitor {
 
 	@Override
 	public void visitSMask(SMask inst) {
-		this.encodeTable(inst.table);
+		encodeTable(inst.table);
 	}
 
 	@Override
 	public void visitSDef(SDef inst) {
-		this.encodeTable(inst.table);
+		encodeTable(inst.table);
 	}
 
 	@Override
 	public void visitSExists(SExists inst) {
-		this.encodeTable(inst.table);
+		encodeTable(inst.table);
 	}
 
 	@Override
 	public void visitSIsDef(SIsDef inst) {
-		this.encodeTable(inst.table);
-		this.encodeBstr(inst.utf8);
+		encodeTable(inst.table);
+		encodeBstr(inst.utf8);
 	}
 
 	@Override
 	public void visitSMatch(SMatch inst) {
-		this.encodeTable(inst.table);
+		encodeTable(inst.table);
 	}
 
 	@Override
 	public void visitSIs(SIs inst) {
-		this.encodeTable(inst.table);
+		encodeTable(inst.table);
 	}
 
 	@Override
 	public void visitSIsa(SIsa inst) {
-		this.encodeTable(inst.table);
+		encodeTable(inst.table);
 	}
 
 	@Override
@@ -640,35 +640,35 @@ public class MozWriter extends InstructionVisitor {
 
 	@Override
 	public void visitLookup(Lookup inst) {
-		this.write_b(inst.state);
-		this.write_u32(inst.uid);
-		this.encodeJump(inst.jump);
+		write_b(inst.state);
+		write_u32(inst.uid);
+		encodeJump(inst.jump);
 	}
 
 	@Override
 	public void visitMemo(Memo inst) {
-		this.write_b(inst.state);
-		this.write_u32(inst.uid);
+		write_b(inst.state);
+		write_u32(inst.uid);
 	}
 
 	@Override
 	public void visitMemoFail(MemoFail inst) {
-		this.write_b(inst.state);
-		this.write_u32(inst.uid);
+		write_b(inst.state);
+		write_u32(inst.uid);
 	}
 
 	@Override
 	public void visitTLookup(TLookup inst) {
-		this.write_b(inst.state);
-		this.write_u32(inst.uid);
-		this.encodeJump(inst.jump);
-		this.encodeLabel(inst.label);
+		write_b(inst.state);
+		write_u32(inst.uid);
+		encodeJump(inst.jump);
+		encodeLabel(inst.label);
 	}
 
 	@Override
 	public void visitTMemo(TMemo inst) {
-		this.write_b(inst.state);
-		this.write_u32(inst.uid);
+		write_b(inst.state);
+		write_u32(inst.uid);
 	}
 
 }

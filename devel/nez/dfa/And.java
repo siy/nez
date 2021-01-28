@@ -17,8 +17,8 @@ public class And extends BooleanExpression {
 	@Override
 	public int traverse() {
 		// System.out.println("And");
-		int F = this.left.traverse();
-		int G = this.right.traverse();
+		int F = left.traverse();
+		int G = right.traverse();
 		return BDD.apply('&', F, G);
 	}
 
@@ -37,42 +37,35 @@ public class And extends BooleanExpression {
 		BooleanExpression tmp_left = left.assignBooleanValueToLogicVariable(booleanValue, logicVariable);
 		BooleanExpression tmp_right = right.assignBooleanValueToLogicVariable(booleanValue, logicVariable);
 		if ((tmp_left instanceof LogicVariable) && (tmp_right instanceof LogicVariable)) {
-			boolean leftHasValue = ((LogicVariable) tmp_left).hasValue();
-			boolean rightHasValue = ((LogicVariable) tmp_right).hasValue();
+			LogicVariable logic_left = (LogicVariable) tmp_left;
+			LogicVariable logic_right = (LogicVariable) tmp_right;
+
+			boolean leftHasValue = logic_left.hasValue();
+			boolean rightHasValue = logic_right.hasValue();
+			boolean left_value = logic_left.getValue();
+			boolean right_value = logic_right.getValue();
+
 			if (leftHasValue && rightHasValue) {
-				return new LogicVariable(-1, ((LogicVariable) tmp_left).getValue() && ((LogicVariable) tmp_right).getValue());
+				return new LogicVariable(-1, left_value && right_value);
 			} else if (leftHasValue) {
-				if (!((LogicVariable) tmp_left).getValue()) {
-					return new LogicVariable(-1, false);
-				} else {
-					return tmp_right;
-				}
+				return left_value ? tmp_right : new LogicVariable(-1, false);
 			} else if (rightHasValue) {
-				if (!((LogicVariable) tmp_right).getValue()) {
-					return new LogicVariable(-1, false);
-				} else {
-					return tmp_left;
-				}
+				return right_value ? tmp_left : new LogicVariable(-1, false);
 			} else {
 				return new And(tmp_left, tmp_right);
 			}
 		} else if (tmp_left instanceof LogicVariable) {
-			if (((LogicVariable) tmp_left).hasValue()) {
-				if (!((LogicVariable) tmp_left).getValue()) {
-					return new LogicVariable(-1, false);
-				} else {
-					return tmp_right;
-				}
+			LogicVariable logic_left = (LogicVariable) tmp_left;
+
+			if (logic_left.hasValue()) {
+				return logic_left.getValue() ? tmp_right : new LogicVariable(-1, false);
 			} else {
 				return new And(tmp_left, tmp_right);
 			}
 		} else if (tmp_right instanceof LogicVariable) {
-			if (((LogicVariable) tmp_right).hasValue()) {
-				if (!((LogicVariable) tmp_right).getValue()) {
-					return new LogicVariable(-1, false);
-				} else {
-					return tmp_left;
-				}
+			LogicVariable logic_right = (LogicVariable) tmp_right;
+			if (logic_right.hasValue()) {
+				return logic_right.getValue() ? tmp_left : new LogicVariable(-1, false);
 			} else {
 				return new And(tmp_left, tmp_right);
 			}

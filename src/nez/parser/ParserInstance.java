@@ -12,35 +12,35 @@ public final class ParserInstance {
 	}
 
 	public final Source getSource() {
-		return this.source;
+		return source;
 	}
 
 	public final ParserRuntime getRuntime() {
-		return this.runtime;
+		return runtime;
 	}
 
 	public boolean hasUnconsumed() {
-		return this.runtime.hasUnconsumed();
+		return runtime.hasUnconsumed();
 	}
 
 	public final long getPosition() {
-		return this.runtime.getPosition();
+		return runtime.getPosition();
 	}
 
 	public final long getMaximumPosition() {
-		return this.runtime.getMaximumPosition();
+		return runtime.getMaximumPosition();
 	}
 
 	public final String getErrorMessage(String errorType, String message) {
-		return source.formatPositionLine(errorType, this.runtime.getMaximumPosition(), message);
+		return source.formatPositionLine(errorType, runtime.getMaximumPosition(), message);
 	}
 
 	public final String getSyntaxErrorMessage() {
-		return source.formatPositionLine("error", this.getMaximumPosition(), "syntax error");
+		return source.formatPositionLine("error", getMaximumPosition(), "syntax error");
 	}
 
 	public final String getUnconsumedMessage() {
-		return source.formatPositionLine("unconsumed", this.getPosition(), "");
+		return source.formatPositionLine("unconsumed", getPosition(), "");
 	}
 
 	public String getResourceName() {

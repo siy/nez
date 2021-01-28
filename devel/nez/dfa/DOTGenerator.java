@@ -15,7 +15,7 @@ public class DOTGenerator {
 	}
 
 	private static final String dotFileName = "__graph";
-	private static int fileID = 0;
+	private static int fileID;
 	private static final String fColor = "#4169E1"; // royalblue
 	private static final String FColor = "#7fffd4"; // aquamarine
 	private static final String LColor = "#ff6347"; // tomato
@@ -28,8 +28,12 @@ public class DOTGenerator {
 			Process pr = rt.exec(command);
 			pr.waitFor();
 		} catch (Exception e) {
-			System.out.println(e);
+			logError(e);
 		}
+	}
+
+	private static void logError(final Exception e) {
+		e.printStackTrace(System.out);
 	}
 
 	public static int getFileID() {
@@ -48,7 +52,7 @@ public class DOTGenerator {
 			pw.println("\ndigraph g {");
 			pw.println("\"" + afa.getf().getID() + "\"[style=filled,fillcolor=\"" + fColor + "\"];");
 
-			HashSet<State> FandL = new HashSet<State>();
+			HashSet<State> FandL = new HashSet<>();
 			for (State state : afa.getS()) {
 				if (afa.getF().contains(state) && afa.getL().contains(state)) {
 					FandL.add(new State(state.getID()));
@@ -92,12 +96,9 @@ public class DOTGenerator {
 			pw.println("}");
 			pw.close();
 		} catch (IOException e) {
-			System.out.println(e);
+			logError(e);
 		}
 		execCommandLine("dot -Kdot -Tpng " + dotFileName + fileID + ".dot -o " + dotFileName + ".png");
-		// execCommandLine("open " + dotFileName + ".png &");
-		// execCommandLine("rm " + dotFileName + ".dot");
-		// execCommandLine("rm " + dotFileName + ".png");
 
 		fileID++;
 	}
@@ -113,20 +114,20 @@ public class DOTGenerator {
 		}
 		try {
 
-			ArrayList<ArrayList<ArrayList<Integer>>> tau = new ArrayList<ArrayList<ArrayList<Integer>>>();
+			ArrayList<ArrayList<ArrayList<Integer>>> tau = new ArrayList<>();
 			for (int i = 0; i < dfa.getS().size(); i++) {
-				tau.add(new ArrayList<ArrayList<Integer>>());
+				tau.add(new ArrayList<>());
 			}
 			for (int i = 0; i < dfa.getS().size(); i++) {
 				for (int j = 0; j < dfa.getS().size(); j++) {
-					tau.get(i).add(new ArrayList<Integer>());
+					tau.get(i).add(new ArrayList<>());
 				}
 			}
 			for (Transition transition : dfa.getTau()) {
 				int src = transition.getSrc();
 				int dst = transition.getDst();
 				int label = transition.getLabel();
-				tau.get(src).get(dst).add(new Integer(label));
+				tau.get(src).get(dst).add(label);
 			}
 
 			File file = new File(dotFileName + fileID + ".dot");
@@ -155,38 +156,35 @@ public class DOTGenerator {
 						continue;
 					}
 					StringBuilder labels = new StringBuilder();
-					Set<Integer> exists = new HashSet<Integer>();
+					Set<Integer> exists = new HashSet<>();
 					for (int i = 0; i < tau.get(src).get(dst).size(); i++) {
-						if (i > 0) {
-
-						}
 						int v = tau.get(src).get(dst).get(i);
 						exists.add(v);
 						if (isVisible(v)) {
 							if ((char) v == '"') {
-								labels.append("\\" + new StringBuilder(String.valueOf((char) v)));
+								labels.append("\\").append((char) v);
 							} else {
-								labels.append(new StringBuilder(String.valueOf((char) v)));
+								labels.append((char) v);
 							}
 						} else {
-							labels.append("(" + new StringBuilder(String.valueOf(v)) + ")");
+							labels.append("(").append(v).append(")");
 						}
 					}
 
 					if (size > 128) {
-						StringBuilder tmp = new StringBuilder("");
+						StringBuilder tmp = new StringBuilder();
 						for (int j = 0; j < 256; j++) {
-							if (exists.contains(new Integer(j))) {
+							if (exists.contains(j)) {
 								continue;
 							}
 							if (isVisible(j)) {
 								if ((char) j == '"') {
-									tmp.append("\\" + new StringBuilder(String.valueOf((char) j)));
+									tmp.append("\\").append((char) j);
 								} else {
-									tmp.append(new StringBuilder(String.valueOf((char) j)));
+									tmp.append((char) j);
 								}
 							} else {
-								tmp.append("(" + new StringBuilder(String.valueOf(j)) + ")");
+								tmp.append("(").append(j).append(")");
 							}
 						}
 						labels = tmp;
@@ -198,36 +196,13 @@ public class DOTGenerator {
 
 				}
 			}
-			// for (Transition transition : dfa.getTau()) {
-			// int label = transition.getLabel();
-			// int predicate = transition.getPredicate();
-			// pw.print(" \"" + transition.getSrc() + "\"->\"" +
-			// transition.getDst() + "\"[label=\"");
-			// if (predicate == 0) {
-			// pw.print("&predicate");
-			// } else if (predicate == 1) {
-			// pw.print("!predicate");
-			// } else if (label != AFA.epsilon) {
-			// if (Character.isLetterOrDigit((char) label) || (char) label ==
-			// '.') {
-			// pw.print((char) label);
-			// } else {
-			// pw.print(label);
-			// }
-			// } else {
-			// pw.print("ε");
-			// }
-			// pw.println("\"];");
-			// }
+
 			pw.println("}");
 			pw.close();
 		} catch (IOException e) {
-			System.out.println(e);
+			logError(e);
 		}
 		execCommandLine("dot -Kdot -Tpng " + dotFileName + fileID + ".dot -o " + dotFileName + fileID + ".png");
-		// execCommandLine("open " + dotFileName + ".png &");
-		// execCommandLine("rm " + dotFileName + ".dot");
-		// execCommandLine("rm " + dotFileName + ".png");
 
 		fileID++;
 	}
@@ -244,7 +219,7 @@ public class DOTGenerator {
 			pw.println("\ndigraph g {");
 			pw.println("\"" + afa.getf().getID() + "\"[style=filled,fillcolor=\"" + fColor + "\"];");
 
-			HashSet<State> FandL = new HashSet<State>();
+			HashSet<State> FandL = new HashSet<>();
 			for (State state : afa.getS()) {
 				if (afa.getF().contains(state) && afa.getL().contains(state)) {
 					FandL.add(new State(state.getID()));
@@ -288,12 +263,9 @@ public class DOTGenerator {
 			pw.println("}");
 			pw.close();
 		} catch (IOException e) {
-			System.out.println(e);
+			logError(e);
 		}
 		execCommandLine("dot -Kdot -Tpng /tmp/" + file_name + fileID + ".dot -o /tmp/" + file_name + ".png");
-		// execCommandLine("open " + dotFileName + ".png &");
-		// execCommandLine("rm " + dotFileName + ".dot");
-		// execCommandLine("rm " + dotFileName + ".png");
 
 		fileID++;
 	}
@@ -307,20 +279,20 @@ public class DOTGenerator {
 		}
 		try {
 
-			ArrayList<ArrayList<ArrayList<Integer>>> tau = new ArrayList<ArrayList<ArrayList<Integer>>>();
+			ArrayList<ArrayList<ArrayList<Integer>>> tau = new ArrayList<>();
 			for (int i = 0; i < dfa.getS().size(); i++) {
-				tau.add(new ArrayList<ArrayList<Integer>>());
+				tau.add(new ArrayList<>());
 			}
 			for (int i = 0; i < dfa.getS().size(); i++) {
 				for (int j = 0; j < dfa.getS().size(); j++) {
-					tau.get(i).add(new ArrayList<Integer>());
+					tau.get(i).add(new ArrayList<>());
 				}
 			}
 			for (Transition transition : dfa.getTau()) {
 				int src = transition.getSrc();
 				int dst = transition.getDst();
 				int label = transition.getLabel();
-				tau.get(src).get(dst).add(new Integer(label));
+				tau.get(src).get(dst).add(label);
 			}
 
 			File file = new File("/tmp/" + file_name + ".dot");
@@ -350,43 +322,40 @@ public class DOTGenerator {
 						continue;
 					}
 					StringBuilder labels = new StringBuilder();
-					Set<Integer> exists = new HashSet<Integer>();
+					Set<Integer> exists = new HashSet<>();
 					for (int i = 0; i < tau.get(src).get(dst).size(); i++) {
-						if (i > 0) {
-
-						}
 						int v = tau.get(src).get(dst).get(i);
-						boolean hasTheOthers = ((v >= 0) ? false : true);
+						boolean hasTheOthers = (v < 0);
 						if (hasTheOthers) {
 							v *= -1;
 						}
 						exists.add(v);
 						if (isVisible(v)) {
 							if ((char) v == '"') {
-								labels.append("\\" + new StringBuilder(String.valueOf((char) v)));
+								labels.append("\\").append((char) v);
 							} else {
-								labels.append(new StringBuilder(String.valueOf((char) v)));
+								labels.append((char) v);
 							}
 						} else {
-							labels.append("(" + new StringBuilder(String.valueOf(v)) + ")");
+							labels.append("(").append(v).append(")");
 						}
 
 					}
 
 					if (size > 128) {
-						StringBuilder tmp = new StringBuilder("");
+						StringBuilder tmp = new StringBuilder();
 						for (int j = 0; j < 256; j++) {
-							if (exists.contains(new Integer(j))) {
+							if (exists.contains(j)) {
 								continue;
 							}
 							if (isVisible(j)) {
 								if ((char) j == '"') {
-									tmp.append("\\" + new StringBuilder(String.valueOf((char) j)));
+									tmp.append("\\").append((char) j);
 								} else {
-									tmp.append(new StringBuilder(String.valueOf((char) j)));
+									tmp.append((char) j);
 								}
 							} else {
-								tmp.append("(" + new StringBuilder(String.valueOf(j)) + ")");
+								tmp.append("(").append(j).append(")");
 							}
 						}
 						labels = tmp;
@@ -402,13 +371,10 @@ public class DOTGenerator {
 			pw.println("}");
 			pw.close();
 		} catch (IOException e) {
-			System.out.println(e);
+			logError(e);
 		}
 
 		execCommandLine("dot -Kdot -Tpng /tmp/" + file_name + ".dot -o /tmp/" + file_name + ".png");
-		// execCommandLine("open " + dotFileName + ".png &");
-		// execCommandLine("rm " + dotFileName + ".dot");
-		// execCommandLine("rm " + dotFileName + ".png");
 
 		fileID++;
 	}
@@ -420,20 +386,20 @@ public class DOTGenerator {
 		}
 		try {
 
-			ArrayList<ArrayList<ArrayList<Integer>>> tau = new ArrayList<ArrayList<ArrayList<Integer>>>();
+			ArrayList<ArrayList<ArrayList<Integer>>> tau = new ArrayList<>();
 			for (int i = 0; i < nfa.getAllStates().size(); i++) {
-				tau.add(new ArrayList<ArrayList<Integer>>());
+				tau.add(new ArrayList<>());
 			}
 			for (int i = 0; i < nfa.getAllStates().size(); i++) {
 				for (int j = 0; j < nfa.getAllStates().size(); j++) {
-					tau.get(i).add(new ArrayList<Integer>());
+					tau.get(i).add(new ArrayList<>());
 				}
 			}
 			for (Transition transition : nfa.getStateTransitionFunction()) {
 				int src = transition.getSrc();
 				int dst = transition.getDst();
 				int label = transition.getLabel();
-				tau.get(src).get(dst).add(new Integer(label));
+				tau.get(src).get(dst).add(label);
 			}
 
 			File file = new File(dotFileName + fileID + ".dot");
@@ -466,38 +432,35 @@ public class DOTGenerator {
 						continue;
 					}
 					StringBuilder labels = new StringBuilder();
-					Set<Integer> exists = new HashSet<Integer>();
+					Set<Integer> exists = new HashSet<>();
 					for (int i = 0; i < tau.get(src).get(dst).size(); i++) {
-						if (i > 0) {
-
-						}
 						int v = tau.get(src).get(dst).get(i);
 						exists.add(v);
 						if (isVisible(v)) {
 							if ((char) v == '"') {
-								labels.append("\\" + new StringBuilder(String.valueOf((char) v)));
+								labels.append("\\").append((char) v);
 							} else {
-								labels.append(new StringBuilder(String.valueOf((char) v)));
+								labels.append((char) v);
 							}
 						} else {
-							labels.append("(" + new StringBuilder(String.valueOf(v)) + ")");
+							labels.append("(").append(v).append(")");
 						}
 					}
 
 					if (size > 128) {
-						StringBuilder tmp = new StringBuilder("");
+						StringBuilder tmp = new StringBuilder();
 						for (int j = 0; j < 256; j++) {
-							if (exists.contains(new Integer(j))) {
+							if (exists.contains(j)) {
 								continue;
 							}
 							if (isVisible(j)) {
 								if ((char) j == '"') {
-									tmp.append("\\" + new StringBuilder(String.valueOf((char) j)));
+									tmp.append("\\").append((char) j);
 								} else {
-									tmp.append(new StringBuilder(String.valueOf((char) j)));
+									tmp.append((char) j);
 								}
 							} else {
-								tmp.append("(" + new StringBuilder(String.valueOf(j)) + ")");
+								tmp.append("(").append(j).append(")");
 							}
 						}
 						labels = tmp;
@@ -509,36 +472,13 @@ public class DOTGenerator {
 
 				}
 			}
-			// for (Transition transition : dfa.getTau()) {
-			// int label = transition.getLabel();
-			// int predicate = transition.getPredicate();
-			// pw.print(" \"" + transition.getSrc() + "\"->\"" +
-			// transition.getDst() + "\"[label=\"");
-			// if (predicate == 0) {
-			// pw.print("&predicate");
-			// } else if (predicate == 1) {
-			// pw.print("!predicate");
-			// } else if (label != AFA.epsilon) {
-			// if (Character.isLetterOrDigit((char) label) || (char) label ==
-			// '.') {
-			// pw.print((char) label);
-			// } else {
-			// pw.print(label);
-			// }
-			// } else {
-			// pw.print("ε");
-			// }
-			// pw.println("\"];");
-			// }
+
 			pw.println("}");
 			pw.close();
 		} catch (IOException e) {
-			System.out.println(e);
+			logError(e);
 		}
 		execCommandLine("dot -Kdot -Tpng " + dotFileName + fileID + ".dot -o " + dotFileName + fileID + ".png");
-		// execCommandLine("open " + dotFileName + ".png &");
-		// execCommandLine("rm " + dotFileName + ".dot");
-		// execCommandLine("rm " + dotFileName + ".png");
 
 		fileID++;
 	}

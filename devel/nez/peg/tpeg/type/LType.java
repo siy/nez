@@ -61,7 +61,7 @@ public class LType implements Comparable<LType> {
 	}
 
 	public final String getSimpleName() {
-		return Mangler.demangle(this.uniqueName);
+		return Mangler.demangle(uniqueName);
 	}
 
 	public LType getSuperType() {
@@ -76,31 +76,31 @@ public class LType implements Comparable<LType> {
 	 * @return
 	 */
 	public boolean isSameOrBaseOf(LType type) {
-		return this.equals(Objects.requireNonNull(type)) || (type.superType != null && this.isSameOrBaseOf(type.superType));
+		return equals(Objects.requireNonNull(type)) || (type.superType != null && isSameOrBaseOf(type.superType));
 	}
 
 	public final boolean isVoid() {
-		return this.equals(voidType);
+		return equals(voidType);
 	}
 
 	@Override
 	public String toString() {
-		return this.getSimpleName();
+		return getSimpleName();
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		return obj instanceof LType && this.uniqueName.equals(((LType) obj).uniqueName);
+		return obj instanceof LType && uniqueName.equals(((LType) obj).uniqueName);
 	}
 
 	@Override
 	public int hashCode() {
-		return this.uniqueName.hashCode();
+		return uniqueName.hashCode();
 	}
 
 	@Override
 	public int compareTo(LType o) {
-		return this.uniqueName.compareTo(o.uniqueName);
+		return uniqueName.compareTo(o.uniqueName);
 	}
 
 	public static LType voidType = new LType(void.class, null);
@@ -121,9 +121,9 @@ public class LType implements Comparable<LType> {
 		@Override
 		public boolean isSameOrBaseOf(LType type) {
 			if (type instanceof ArrayType) {
-				return this.elementType.isSameOrBaseOf(((ArrayType) type).elementType);
+				return elementType.isSameOrBaseOf(((ArrayType) type).elementType);
 			}
-			return this.superType != null && this.superType.isSameOrBaseOf(type);
+			return superType != null && superType.isSameOrBaseOf(type);
 		}
 	}
 
@@ -142,9 +142,9 @@ public class LType implements Comparable<LType> {
 		@Override
 		public boolean isSameOrBaseOf(LType type) {
 			if (type instanceof OptionalType) {
-				return this.elementType.isSameOrBaseOf(((OptionalType) type).elementType);
+				return elementType.isSameOrBaseOf(((OptionalType) type).elementType);
 			}
-			return type.superType != null && this.isSameOrBaseOf(type.superType);
+			return type.superType != null && isSameOrBaseOf(type.superType);
 		}
 	}
 
@@ -153,7 +153,7 @@ public class LType implements Comparable<LType> {
 
 		TupleType(String uniqueName, LType[] types) {
 			super(uniqueName, List.class.getCanonicalName(), anyType);
-			this.elementTypes = Collections.unmodifiableList(Arrays.asList(types));
+			this.elementTypes = List.of(types);
 		}
 
 		public List<LType> getElementTypes() {
@@ -163,9 +163,9 @@ public class LType implements Comparable<LType> {
 		@Override
 		public boolean isSameOrBaseOf(LType type) {
 			if (type instanceof TupleType) {
-				return this.elementTypes.equals(((TupleType) type).elementTypes);
+				return elementTypes.equals(((TupleType) type).elementTypes);
 			}
-			return type.superType != null && this.isSameOrBaseOf(type.superType);
+			return type.superType != null && isSameOrBaseOf(type.superType);
 		}
 	}
 
@@ -186,7 +186,7 @@ public class LType implements Comparable<LType> {
 			super(uniqueName, List.class.getCanonicalName(), anyType); // FIXME:
 																		// internal
 																		// name
-			this.elementTypes = Collections.unmodifiableList(Arrays.asList(types));
+			this.elementTypes = List.of(types);
 		}
 
 		public List<LType> getElementTypes() {
@@ -198,7 +198,7 @@ public class LType implements Comparable<LType> {
 			if (type instanceof UnionType) {
 				boolean match = true;
 				for (LType t : ((UnionType) type).elementTypes) {
-					if (!this.isSameOrBaseOf(t)) {
+					if (!isSameOrBaseOf(t)) {
 						match = false;
 						break;
 					}
@@ -207,17 +207,17 @@ public class LType implements Comparable<LType> {
 					return true;
 				}
 			} else {
-				for (LType e : this.elementTypes) {
+				for (LType e : elementTypes) {
 					if (e.isSameOrBaseOf(type)) {
 						return true;
 					}
 				}
 			}
-			return type.superType != null && this.isSameOrBaseOf(type.superType);
+			return type.superType != null && isSameOrBaseOf(type.superType);
 		}
 	}
 
-	public static abstract class AbstractStructureType extends LType {
+	public abstract static class AbstractStructureType extends LType {
 		protected final Map<String, LType> fieldMap = new LinkedHashMap<>();
 
 		AbstractStructureType(String uniqueName, String internalName, LType superType) {
@@ -228,10 +228,10 @@ public class LType implements Comparable<LType> {
 			Objects.requireNonNull(fieldName);
 			Objects.requireNonNull(fieldType);
 
-			if (this.fieldMap.containsKey(fieldName)) {
+			if (fieldMap.containsKey(fieldName)) {
 				return false;
 			}
-			this.fieldMap.put(fieldName, fieldType);
+			fieldMap.put(fieldName, fieldType);
 			return true;
 		}
 
@@ -240,7 +240,7 @@ public class LType implements Comparable<LType> {
 		 * @return read only map. the map maintains added order.
 		 */
 		public Map<String, LType> getFieldMap() {
-			return Collections.unmodifiableMap(this.fieldMap);
+			return Collections.unmodifiableMap(fieldMap);
 		}
 	}
 

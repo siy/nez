@@ -20,16 +20,18 @@ public class TreeJSONWriter extends TreeWriter {
 			String text = node.toText();
 			if (dataOption) {
 				try {
-					Double v = Double.parseDouble(text);
-					file.write(v.toString());
+					double v = Double.parseDouble(text);
+					file.write(Double.toString(v));
 					return;
 				} catch (NumberFormatException e) {
+					//Ignored
 				}
 				try {
-					Long v = Long.parseLong(text);
-					file.write(v.toString());
+					long v = Long.parseLong(text);
+					file.write(Long.toString(v));
 					return;
 				} catch (NumberFormatException e) {
+					//Ignored
 				}
 				file.write(StringUtils.quoteString('"', text, '"'));
 			} else {

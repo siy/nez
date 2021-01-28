@@ -14,9 +14,9 @@ import nez.util.ConsoleUtils;
 import nez.util.UList;
 
 public final class Parser {
-	private Grammar grammar;
-	private ParserStrategy strategy;
-	private String start;
+	private final Grammar grammar;
+	private final ParserStrategy strategy;
+	private final String start;
 
 	public Parser(Grammar grammar, String start, ParserStrategy strategy) {
 		this.grammar = grammar;
@@ -29,11 +29,11 @@ public final class Parser {
 	}
 
 	public final ParserStrategy getParserStrategy() {
-		return this.strategy;
+		return strategy;
 	}
 
-	private Grammar compiledGrammar = null;
-	private ParserCode<?> pcode = null;
+	private Grammar compiledGrammar;
+	private ParserCode<?> pcode;
 
 	public final Grammar getCompiledGrammar() {
 		if (compiledGrammar == null) {
@@ -43,26 +43,26 @@ public final class Parser {
 	}
 
 	public final ParserCode<?> getParserCode() {
-		if (this.pcode == null) {
-			pcode = this.strategy.newParserCode(getCompiledGrammar());
+		if (pcode == null) {
+			pcode = strategy.newParserCode(getCompiledGrammar());
 		}
 		return pcode;
 	}
 
 	public final ParserCode<?> compile() {
-		this.pcode = this.strategy.newParserCode(getCompiledGrammar());
+		this.pcode = strategy.newParserCode(getCompiledGrammar());
 		return pcode;
 	}
 
 	public final ParserInstance newParserContext(Source source, Tree<?> prototype) {
-		ParserCode<?> pcode = this.getParserCode();
-		return this.strategy.newParserContext(source, pcode.getMemoPointSize(), prototype);
+		ParserCode<?> pcode = getParserCode();
+		return strategy.newParserContext(source, pcode.getMemoPointSize(), prototype);
 	}
 
 	/* -------------------------------------------------------------------- */
 
 	public final Object perform(ParserInstance context) {
-		ParserCode<?> code = this.getParserCode();
+		ParserCode<?> code = getParserCode();
 		// context.init(newMemoTable(context), prototype);
 		if (prof != null) {
 			context.startProfiling(prof);
@@ -75,7 +75,7 @@ public final class Parser {
 			perror(context.getSource(), context.getMaximumPosition(), "syntax error");
 			return null;
 		}
-		if (this.disabledUncosumed && context.hasUnconsumed()) {
+		if (disabledUncosumed && context.hasUnconsumed()) {
 			perror(context.getSource(), context.getPosition(), "unconsumed");
 		}
 		return matched;
@@ -84,45 +84,40 @@ public final class Parser {
 	@SuppressWarnings("unchecked")
 	public final <T extends Tree<T>> T perform(Source s, T proto) {
 		if (strategy.Moz) {
-			// Verbose.println("ClassicMoz");
-			return (T) perform(this.newParserContext(s, proto));
+			return (T) perform(newParserContext(s, proto));
 		}
-		// Verbose.println("FT86");
-		ParserMachineContext<T> ctx = new ParserMachineContext<T>(s, proto);
-		ParserCode<?> code = this.getParserCode();
+
+		ParserMachineContext<T> ctx = new ParserMachineContext<>(s, proto);
+		ParserCode<?> code = getParserCode();
 		ctx.initMemoTable(strategy.SlidingWindow, code.getMemoPointSize());
-		// if (prof != null) {
-		// context.startProfiling(prof);
-		// }
+
 		T matched = code.exec(ctx);
-		// if (prof != null) {
-		// context.doneProfiling(prof);
-		// }
+
 		if (matched == null) {
 			perror(s, ctx.getMaximumPosition(), "syntax error");
 			return null;
 		}
-		if (this.disabledUncosumed && !ctx.eof()) {
+		if (disabledUncosumed && !ctx.eof()) {
 			perror(s, ctx.getPosition(), "unconsumed");
 		}
 		return matched;
 	}
 
-	protected ParserProfiler prof = null;
+	protected ParserProfiler prof;
 
 	public void setProfiler(ParserProfiler prof) {
 		this.prof = prof;
 		if (prof != null) {
-			this.compile();
+			compile();
 			// prof.setFile("G.File", this.start.getGrammarFile().getURN());
-			prof.setCount("G.Production", this.grammar.size());
-			prof.setCount("G.Instruction", this.pcode.getInstructionSize());
-			prof.setCount("G.MemoPoint", this.pcode.getMemoPointSize());
+			prof.setCount("G.Production", grammar.size());
+			prof.setCount("G.Instruction", pcode.getInstructionSize());
+			prof.setCount("G.MemoPoint", pcode.getMemoPointSize());
 		}
 	}
 
 	public ParserProfiler getProfiler() {
-		return this.prof;
+		return prof;
 	}
 
 	public void logProfiler() {
@@ -134,7 +129,7 @@ public final class Parser {
 	/* --------------------------------------------------------------------- */
 
 	public final boolean match(Source s) {
-		return perform(this.newParserContext(s, null)) != null;
+		return perform(newParserContext(s, null)) != null;
 	}
 
 	public final boolean match(String str) {
@@ -142,30 +137,30 @@ public final class Parser {
 	}
 
 	public <T extends Tree<T>> T parse(Source source, T proto) {
-		return this.perform(source, proto);
+		return perform(source, proto);
 	}
 
 	public final CommonTree parse(Source sc) {
-		return this.parse(sc, new CommonTree());
+		return parse(sc, new CommonTree());
 	}
 
 	public final CommonTree parse(String str) {
 		Source sc = CommonSource.newStringSource(str);
-		return this.parse(sc, new CommonTree());
+		return parse(sc, new CommonTree());
 	}
 
 	/* Errors */
 
-	private boolean disabledUncosumed = false;
-	private UList<SourceError> errors = null;
+	private boolean disabledUncosumed;
+	private UList<SourceError> errors;
 
 	public final void setDisabledUnconsumed(boolean disabled) {
 		this.disabledUncosumed = disabled;
 	}
 
 	private void perror(Source source, long pos, String message) {
-		if (this.errors == null) {
-			this.errors = new UList<SourceError>(new SourceError[4]);
+		if (errors == null) {
+			this.errors = new UList<>(new SourceError[4]);
 		}
 		errors.add(new SourceError(source, pos, message));
 	}
@@ -179,7 +174,7 @@ public final class Parser {
 	}
 
 	public final List<SourceError> getErrors() {
-		return errors == null ? new ArrayList<SourceError>() : this.errors;
+		return errors == null ? new ArrayList<>() : errors;
 	}
 
 	public final boolean showErrors() {
@@ -187,7 +182,7 @@ public final class Parser {
 			for (SourceError e : errors) {
 				ConsoleUtils.println(e.toString());
 			}
-			this.clearErrors();
+			clearErrors();
 			return true;
 		}
 		return false;

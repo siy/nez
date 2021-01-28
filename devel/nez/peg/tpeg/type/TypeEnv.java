@@ -26,10 +26,10 @@ public class TypeEnv {
 	 */
 	private final Map<String, LType> typeMap = new HashMap<>();
 
-	private LType intType;
-	private LType floatType;
-	private LType boolType;
-	private LType stringType;
+	private final LType intType;
+	private final LType floatType;
+	private final LType boolType;
+	private final LType stringType;
 
 	TypeEnv() { // not call it directory
 
@@ -41,22 +41,22 @@ public class TypeEnv {
 		this.packageName = "loglang/generated" + num;
 
 		// register type
-		this.typeMap.put(LType.voidType.getUniqueName(), LType.voidType);
-		this.typeMap.put(LType.anyType.getUniqueName(), LType.anyType);
+		typeMap.put(LType.voidType.getUniqueName(), LType.voidType);
+		typeMap.put(LType.anyType.getUniqueName(), LType.anyType);
 
 		try {
 			// add basic type
-			this.intType = this.newBasicType("int", int.class);
-			this.floatType = this.newBasicType("float", float.class);
-			this.boolType = this.newBasicType("bool", boolean.class);
-			this.stringType = this.newBasicType("string", String.class);
+			this.intType = newBasicType("int", int.class);
+			this.floatType = newBasicType("float", float.class);
+			this.boolType = newBasicType("bool", boolean.class);
+			this.stringType = newBasicType("string", String.class);
 		} catch (TypeException e) {
 			throw new RuntimeException(e.getMessage());
 		}
 	}
 
 	private static final class Holder {
-		private final static TypeEnv INSTANCE = new TypeEnv();
+		private static final TypeEnv INSTANCE = new TypeEnv();
 	}
 
 	public static TypeEnv getInstance() {
@@ -64,7 +64,7 @@ public class TypeEnv {
 	}
 
 	public String getPackageName() {
-		return this.packageName;
+		return packageName;
 	}
 
 	/**
@@ -77,7 +77,7 @@ public class TypeEnv {
 	private LType newBasicType(String simpleName, Class<?> clazz) throws TypeException {
 		String mangledName = Mangler.mangleBasicType(simpleName);
 		LType type = new LType(mangledName, clazz.getCanonicalName(), LType.anyType);
-		return this.registerType(mangledName, type);
+		return registerType(mangledName, type);
 	}
 
 	/**
@@ -88,7 +88,7 @@ public class TypeEnv {
 	 * @throws TypeException
 	 */
 	private LType registerType(String mangledName, LType type) throws TypeException {
-		if (this.typeMap.put(mangledName, type) != null) {
+		if (typeMap.put(mangledName, type) != null) {
 			typeError("already defined type: " + type.getSimpleName());
 		}
 		return type;
@@ -101,7 +101,7 @@ public class TypeEnv {
 	 * @return if not found, return null
 	 */
 	public LType getTypeByMangledName(String mangledName) {
-		return this.typeMap.get(mangledName);
+		return typeMap.get(mangledName);
 	}
 
 	/**
@@ -111,7 +111,7 @@ public class TypeEnv {
 	 * @throws TypeException
 	 */
 	public LType getBasicType(String simpleName) throws TypeException {
-		LType type = this.getTypeByMangledName(Mangler.mangleBasicType(simpleName));
+		LType type = getTypeByMangledName(Mangler.mangleBasicType(simpleName));
 		if (type == null) {
 			typeError("undefined type: " + simpleName);
 		}
@@ -144,8 +144,8 @@ public class TypeEnv {
 
 	public boolean isPrimaryType(String simpleName) {
 		String mangledName = Mangler.mangleBasicType(simpleName);
-		LType type = this.getTypeByMangledName(mangledName);
-		return type != null && this.isPrimaryType(type);
+		LType type = getTypeByMangledName(mangledName);
+		return type != null && isPrimaryType(type);
 	}
 
 	/**
@@ -154,7 +154,7 @@ public class TypeEnv {
 	 * @return if type is int, float or string, return true.
 	 */
 	public boolean isPrimaryType(LType type) {
-		return this.intType.equals(type) || this.floatType.equals(type) || this.stringType.equals(type);
+		return intType.equals(type) || floatType.equals(type) || stringType.equals(type);
 	}
 
 	/**
@@ -172,9 +172,9 @@ public class TypeEnv {
 			throw new TypeException(e.getMessage());
 		}
 
-		LType type = this.getTypeByMangledName(mangledName);
+		LType type = getTypeByMangledName(mangledName);
 		if (type == null) { // create array type
-			type = this.registerType(mangledName, new ArrayType(mangledName, elementType));
+			type = registerType(mangledName, new ArrayType(mangledName, elementType));
 		}
 		return (ArrayType) type;
 	}
@@ -193,9 +193,9 @@ public class TypeEnv {
 		} catch (IllegalArgumentException e) {
 			throw new TypeException(e.getMessage());
 		}
-		LType type = this.getTypeByMangledName(mangledName);
+		LType type = getTypeByMangledName(mangledName);
 		if (type == null) {
-			type = this.registerType(mangledName, new OptionalType(mangledName, elementType));
+			type = registerType(mangledName, new OptionalType(mangledName, elementType));
 		}
 		return (OptionalType) type;
 	}
@@ -207,9 +207,9 @@ public class TypeEnv {
 		} catch (IllegalArgumentException e) {
 			throw new TypeException(e.getMessage());
 		}
-		LType type = this.getTypeByMangledName(mangledName);
+		LType type = getTypeByMangledName(mangledName);
 		if (type == null) {
-			type = this.registerType(mangledName, new TupleType(mangledName, elementTypes));
+			type = registerType(mangledName, new TupleType(mangledName, elementTypes));
 		}
 		return (TupleType) type;
 	}
@@ -221,9 +221,9 @@ public class TypeEnv {
 			throw new TypeException(e.getMessage());
 		}
 		String mangledName = Mangler.mangleUnionTypeUnsafe(elementTypes);
-		LType type = this.getTypeByMangledName(mangledName);
+		LType type = getTypeByMangledName(mangledName);
 		if (type == null) {
-			type = this.registerType(mangledName, new UnionType(mangledName, elementTypes));
+			type = registerType(mangledName, new UnionType(mangledName, elementTypes));
 		}
 		return (UnionType) type;
 	}
@@ -238,7 +238,7 @@ public class TypeEnv {
 	 */
 	public StructureType newStructureType(String name) throws TypeException {
 		String mangledName = Mangler.mangleBasicType(Objects.requireNonNull(name));
-		return (StructureType) this.registerType(mangledName, new StructureType(mangledName));
+		return (StructureType) registerType(mangledName, new StructureType(mangledName));
 	}
 
 	/**
@@ -275,6 +275,6 @@ public class TypeEnv {
 	public CaseContextType newCaseContextType(int index) throws TypeException {
 		String simpleName = "CaseContextImpl" + index;
 		String mangledName = Mangler.mangleBasicType(simpleName);
-		return (CaseContextType) this.registerType(mangledName, new CaseContextType(mangledName, this.packageName + "/" + simpleName));
+		return (CaseContextType) registerType(mangledName, new CaseContextType(mangledName, packageName + "/" + simpleName));
 	}
 }

@@ -9,6 +9,4 @@ public abstract class TreeTransducer {
 	public abstract void link(Object node, int index, Symbol label, Object child);
 
 	public abstract Object commit(Object node);
-
-	public abstract void abort(Object node);
 }

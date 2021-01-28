@@ -7,7 +7,7 @@ import java.util.HashMap;
 import nez.util.Verbose;
 
 public class TreeVisitorMap<V> {
-	private static boolean OnWhenDebugging = false;
+	private static final boolean OnWhenDebugging = false;
 
 	protected V defaultAcceptor;
 	protected HashMap<String, V> visitors;
@@ -60,7 +60,7 @@ public class TreeVisitorMap<V> {
 
 	protected final void undefined(Tree<?> node) {
 		Verbose.println("undefined: " + node);
-		throw new UndefinedException(node, this.getClass().getName() + ": undefined " + node);
+		throw new UndefinedException(node, getClass().getName() + ": undefined " + node);
 	}
 
 	@SuppressWarnings("serial")

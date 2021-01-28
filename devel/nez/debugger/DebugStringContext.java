@@ -5,7 +5,7 @@ import java.io.UnsupportedEncodingException;
 import nez.util.StringUtils;
 
 public class DebugStringContext extends DebugSourceContext {
-	private byte[] utf8;
+	private final byte[] utf8;
 	long textLength;
 
 	public DebugStringContext(String sourceText) {
@@ -20,7 +20,7 @@ public class DebugStringContext extends DebugSourceContext {
 		this.textLength = utf8.length - 1;
 	}
 
-	private final byte[] toZeroTerminalByteSequence(String s) {
+	private byte[] toZeroTerminalByteSequence(String s) {
 		byte[] b = StringUtils.utf8(s);
 		byte[] b2 = new byte[b.length + 1];
 		System.arraycopy(b, 0, b2, 0, b.length);
@@ -29,30 +29,30 @@ public class DebugStringContext extends DebugSourceContext {
 
 	@Override
 	public final long length() {
-		return this.textLength;
+		return textLength;
 	}
 
 	@Override
 	public final int byteAt(long pos) {
-		return this.utf8[(int) pos] & 0xff;
+		return utf8[(int) pos] & 0xff;
 	}
 
 	@Override
 	public final boolean eof(long pos) {
-		return pos >= this.textLength;
+		return pos >= textLength;
 	}
 
 	@Override
 	public final byte[] subByte(long startIndex, long endIndex) {
 		byte[] b = new byte[(int) (endIndex - startIndex)];
-		System.arraycopy(this.utf8, (int) (startIndex), b, 0, b.length);
+		System.arraycopy(utf8, (int) (startIndex), b, 0, b.length);
 		return b;
 	}
 
 	@Override
 	public final String subString(long startIndex, long endIndex) {
 		try {
-			return new String(this.utf8, (int) (startIndex), (int) (endIndex - startIndex), StringUtils.DefaultEncoding);
+			return new String(utf8, (int) (startIndex), (int) (endIndex - startIndex), StringUtils.DefaultEncoding);
 		} catch (UnsupportedEncodingException e) {
 		}
 		return null;
@@ -60,13 +60,13 @@ public class DebugStringContext extends DebugSourceContext {
 
 	@Override
 	public final long linenum(long pos) {
-		long count = this.startLineNum;
+		long count = startLineNum;
 		int end = (int) pos;
-		if (end >= this.utf8.length) {
-			end = this.utf8.length;
+		if (end >= utf8.length) {
+			end = utf8.length;
 		}
 		for (int i = 0; i < end; i++) {
-			if (this.utf8[i] == '\n') {
+			if (utf8[i] == '\n') {
 				count++;
 			}
 		}
@@ -75,11 +75,11 @@ public class DebugStringContext extends DebugSourceContext {
 
 	@Override
 	public final boolean match(long pos, byte[] text) {
-		if (pos + text.length > this.textLength) {
+		if (pos + text.length > textLength) {
 			return false;
 		}
 		for (int i = 0; i < text.length; i++) {
-			if (text[i] != this.utf8[(int) pos + i]) {
+			if (text[i] != utf8[(int) pos + i]) {
 				return false;
 			}
 		}

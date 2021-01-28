@@ -7,10 +7,10 @@ import java.util.Scanner;
 
 public class ReadLine {
 
-	public final static Object getConsoleReader() {
+	public static Object getConsoleReader() {
 		if (ReadLine.console == null) {
 			try {
-				ReadLine.console = Class.forName("jline.ConsoleReader").newInstance();
+				ReadLine.console = Class.forName("jline.ConsoleReader").getDeclaredConstructor().newInstance();
 			} catch (Exception e) {
 				System.err.println("CHECK: " + e);
 			}
@@ -18,10 +18,9 @@ public class ReadLine {
 		return ReadLine.console;
 	}
 
-	public static Object console = null;
+	public static Object console;
 
-	@SuppressWarnings("resource")
-	public final static String readSingleLine(Object console, String prompt) {
+	public static String readSingleLine(Object console, String prompt) {
 		if (!(console instanceof Scanner)) {
 			try {
 				Method m = console.getClass().getMethod("readLine", String.class);
@@ -35,7 +34,7 @@ public class ReadLine {
 		return new Scanner(System.in).nextLine();
 	}
 
-	public final static void addHistory(Object console, String text) {
+	public static void addHistory(Object console, String text) {
 		if (console != null) {
 			try {
 				Method m = console.getClass().getMethod("getHistory");
@@ -48,33 +47,10 @@ public class ReadLine {
 		}
 	}
 
-	public final static void addCompleter(List<String> list) {
-		// Object con = getConsoleReader();
-		// if (con != null) {
-		// try {
-		// Class<?> c =
-		// Class.forName("jline.console.completer.StringsCompleter");
-		// Constructor<?> nc = c.getConstructor(Collection.class);
-		// Method m = con.getClass().getMethod("addCompletor");
-		// m.invoke(con, nc.newInstance(list));
-		// return;
-		// } catch (Exception e) {
-		// }
-		// try {
-		// // Class<?> c = Class.forName("jline.SimpleCompletor");
-		// // Constructor<?> nc = c.getConstructor(String[].class);
-		// // Method m = console.getClass().getMethod("addCompletor",
-		// // jline.Completor.class);
-		// String[] s = list.toArray(new String[list.size()]);
-		// ((ConsoleReader) con).addCompletor(new jline.SimpleCompletor(s));
-		// // m.invoke(console, nc.newInstance((Object[])s));
-		// } catch (Exception e) {
-		// e.printStackTrace();
-		// }
-		// }
+	public static void addCompleter(List<String> list) {
 	}
 
-	public final static String readMultiLine(String prompt, String prompt2) {
+	public static String readMultiLine(String prompt, String prompt2) {
 		Object console = getConsoleReader();
 		StringBuilder sb = new StringBuilder();
 		String line;
@@ -94,5 +70,4 @@ public class ReadLine {
 		addHistory(console, line);
 		return line;
 	}
-
 }

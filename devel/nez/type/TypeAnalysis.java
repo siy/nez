@@ -68,7 +68,7 @@ public class TypeAnalysis {
 		return visitor.typing(p);
 	}
 
-	public final static String nname(Production p) {
+	public static String nname(Production p) {
 		return p.getLocalName();
 	}
 
@@ -77,7 +77,7 @@ public class TypeAnalysis {
 		boolean inOption;
 		boolean inZeroMore;
 		boolean inOneMore;
-		Type left = null;
+		Type left;
 		ArrayList<String> tags = new ArrayList<>();
 		UList<Property> fields = new UList<>(new Property[4]);
 
@@ -86,7 +86,7 @@ public class TypeAnalysis {
 		}
 
 		void addTag(Symbol tag) {
-			if (!tags.contains(tag)) {
+			if (!tags.contains(tag.getSymbol())) {
 				tags.add(tag.toString());
 			}
 		}
@@ -139,7 +139,7 @@ public class TypeAnalysis {
 		}
 
 		Type newObjectType() {
-			if (this.left == null && tags.size() == 1) {
+			if (left == null && tags.size() == 1) {
 				return new Schema.ObjectType(tags.get(0), fields.compactArray());
 			}
 			UList<Type> unionList = new UList<>(new Type[tags.size()]);
@@ -160,7 +160,7 @@ public class TypeAnalysis {
 
 	class TypingVisitor extends Expression.Visitor {
 
-		Type leftType = null;
+		Type leftType;
 		Production typingProduction;
 		TreeState state = new TreeState(null);
 
@@ -169,9 +169,9 @@ public class TypeAnalysis {
 				this.leftType = null;
 				this.typingProduction = p;
 				typing(p.getExpression());
-				schema.add(p.getUniqueName(), this.leftType);
-				System.out.println(p.getUniqueName() + ": " + this.leftType);
-				return this.leftType;
+				schema.add(p.getUniqueName(), leftType);
+				System.out.println(p.getUniqueName() + ": " + leftType);
+				return leftType;
 			}
 			return null;
 		}
@@ -251,10 +251,10 @@ public class TypeAnalysis {
 			if (typeState.isTree(e)) {
 				UList<Type> unionList = new UList<>(new Type[e.size()]);
 				for (Expression sub : e) {
-					Type t = this.leftType;
+					Type t = leftType;
 					typing(sub);
-					if (t != this.leftType) {
-						unionList.add(this.leftType);
+					if (t != leftType) {
+						unionList.add(leftType);
 						this.leftType = t;
 					}
 				}
@@ -282,10 +282,10 @@ public class TypeAnalysis {
 				UList<Type> unionList = new UList<>(new Type[e.size()]);
 				for (int i = 1; i < e.size(); i++) {
 					Expression sub = e.get(i);
-					Type t = this.leftType;
+					Type t = leftType;
 					typing(sub);
-					if (t != this.leftType) {
-						unionList.add(this.leftType);
+					if (t != leftType) {
+						unionList.add(leftType);
 						this.leftType = t;
 					}
 				}
@@ -313,7 +313,7 @@ public class TypeAnalysis {
 			return o;
 		}
 
-		boolean inRepetition = false;
+		boolean inRepetition;
 
 		@Override
 		public Object visitZeroMore(ZeroMore e, Object a) {
@@ -374,8 +374,8 @@ public class TypeAnalysis {
 		@Override
 		public Object visitFoldTree(FoldTree e, Object a) {
 			state = new TreeState(state);
-			state.left = this.leftType;
-			state.addProperty(e.label, this.inRepetition ? new Schema.ReferenceType(schema, nname(this.typingProduction)) : leftType);
+			state.left = leftType;
+			state.addProperty(e.label, inRepetition ? new Schema.ReferenceType(schema, nname(typingProduction)) : leftType);
 			return null;
 		}
 

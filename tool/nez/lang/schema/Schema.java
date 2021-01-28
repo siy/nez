@@ -16,7 +16,7 @@ public class Schema {
 	}
 
 	public Expression getSchemaExpression() {
-		return this.schemaExpression;
+		return schemaExpression;
 	}
 
 	public void setSchemaExpression(Expression e) {
@@ -24,6 +24,6 @@ public class Schema {
 	}
 
 	public Schema next() {
-		return this.next;
+		return next;
 	}
 }

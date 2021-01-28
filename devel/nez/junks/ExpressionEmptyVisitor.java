@@ -22,13 +22,9 @@ public class ExpressionEmptyVisitor extends TreeVisitorMap<DefaultVisitor> {
 	 * }
 	 */
 
-	public class DefaultVisitor {
+	public static class DefaultVisitor {
 		public void accept(Expression e) {
-			/* undefined node */
 		}
-		/**
-		 * public boolean accept(Expression e, String a) { return false; }
-		 **/
 	}
 
 	public class NonTerminal extends DefaultVisitor {

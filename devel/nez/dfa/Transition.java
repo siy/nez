@@ -6,7 +6,7 @@ public class Transition implements Comparable<Transition> {
 	private int label; // any character -> -2 empty -> ε(-1), otherwise ->
 						// alphabet
 	private int predicate; // and predicate : 0, not predicate : 1
-	private boolean theOthers = false;
+	private boolean theOthers;
 
 	public Transition() {
 
@@ -49,7 +49,7 @@ public class Transition implements Comparable<Transition> {
 	}
 
 	public void setSrc(int ID) {
-		this.src.setID(ID);
+		src.setID(ID);
 	}
 
 	public int getSrc() {
@@ -57,7 +57,7 @@ public class Transition implements Comparable<Transition> {
 	}
 
 	public void setDst(int ID) {
-		this.dst.setID(ID);
+		dst.setID(ID);
 	}
 
 	public int getDst() {
@@ -69,7 +69,7 @@ public class Transition implements Comparable<Transition> {
 	}
 
 	public int getLabel() {
-		return this.label;
+		return label;
 	}
 
 	public void setPredicate(int predicate) {
@@ -77,16 +77,16 @@ public class Transition implements Comparable<Transition> {
 	}
 
 	public int getPredicate() {
-		return this.predicate;
+		return predicate;
 	}
 
 	public boolean getTheOthers() {
-		return this.theOthers;
+		return theOthers;
 	}
 
 	@Override
 	public String toString() {
-		if (this.label == AFA.epsilon) {
+		if (label == AFA.epsilon) {
 			if (predicate != -1) {
 				return "((" + src + ",[predicate]" + ((predicate == 0) ? "&" : "!") + ")," + dst + ")";
 			} else {
@@ -94,29 +94,29 @@ public class Transition implements Comparable<Transition> {
 			}
 		} else {
 			StringBuilder sb = new StringBuilder("((" + src + ",");
-			if (this.label == AFA.anyCharacter) {
-				sb.append(new StringBuilder("any"));
-			} else if (this.label == AFA.theOthers) {
-				sb.append(new StringBuilder("other"));
+			if (label == AFA.anyCharacter) {
+				sb.append("any");
+			} else if (label == AFA.theOthers) {
+				sb.append("other");
 			} else {
-				sb.append(new StringBuilder((char) this.label));
+				sb.append((char) label);
 			}
-			sb.append(new StringBuilder(")," + dst + ")"));
+			sb.append("),").append(dst).append(")");
 			return sb.toString();
 		}
 	}
 
 	@Override
 	public int compareTo(Transition transition) {
-		if (this.src.getID() != transition.getSrc()) {
-			return new Integer(this.src.getID()).compareTo(transition.getSrc());
+		if (src.getID() != transition.getSrc()) {
+			return Integer.compare(src.getID(), transition.getSrc());
 		}
-		if (this.dst.getID() != transition.getDst()) {
-			return new Integer(this.dst.getID()).compareTo(transition.getDst());
+		if (dst.getID() != transition.getDst()) {
+			return Integer.compare(dst.getID(), transition.getDst());
 		}
-		if (this.label != transition.getLabel()) {
-			return new Integer(this.label).compareTo(transition.getLabel());
+		if (label != transition.getLabel()) {
+			return Integer.compare(label, transition.getLabel());
 		}
-		return new Integer(this.predicate).compareTo(transition.getPredicate());
+		return Integer.compare(predicate, transition.getPredicate());
 	}
 }

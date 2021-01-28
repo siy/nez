@@ -19,7 +19,7 @@ import nez.peg.tpeg.TypedPEG.TypedRuleExpr;
  */
 public abstract class ExpressionVisitor<T, P> {
 	public T visit(TypedPEG expr) {
-		return this.visit(expr, null);
+		return visit(expr, null);
 	}
 
 	public T visit(TypedPEG expr, P param) {

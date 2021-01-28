@@ -25,7 +25,7 @@ public abstract class GrammarTranslatorVisitor extends Expression.Visitor {
 	}
 
 	public void generate() {
-		generate(this.parser.getGrammar());
+		generate(parser.getGrammar());
 	}
 
 	public void generate(Grammar g) {
@@ -52,7 +52,7 @@ public abstract class GrammarTranslatorVisitor extends Expression.Visitor {
 
 	/* Name */
 
-	HashMap<String, String> m = new HashMap<String, String>();
+	HashMap<String, String> m = new HashMap<>();
 
 	protected String name(String s) {
 		String name = m.get(s);
@@ -74,7 +74,7 @@ public abstract class GrammarTranslatorVisitor extends Expression.Visitor {
 	}
 
 	protected String unique(Expression e) {
-		String key = e.toString() + " ";
+		String key = e + " ";
 		String unique = m.get(key);
 		if (unique == null) {
 			unique = "e" + m.size();
@@ -176,8 +176,7 @@ public abstract class GrammarTranslatorVisitor extends Expression.Visitor {
 	}
 
 	protected GrammarTranslatorVisitor C(String name, String arg) {
-		if (arg.length() > 1 && arg.startsWith("\"") && arg.endsWith("\"")) {
-		} else {
+		if (arg.length() <= 1 || !arg.startsWith("\"") || !arg.endsWith("\"")) {
 			arg = StringUtils.quoteString('"', arg, '"');
 		}
 		W(name);
@@ -287,67 +286,67 @@ public abstract class GrammarTranslatorVisitor extends Expression.Visitor {
 
 	@Override
 	public final Object visitAny(Nez.Any p, Object a) {
-		this.visitAny(p);
+		visitAny(p);
 		return null;
 	}
 
 	@Override
 	public final Object visitByte(Nez.Byte p, Object a) {
-		this.visitByte(p);
+		visitByte(p);
 		return null;
 	}
 
 	@Override
 	public final Object visitByteSet(Nez.ByteSet p, Object a) {
-		this.visitByteSet(p);
+		visitByteSet(p);
 		return null;
 	}
 
 	@Override
 	public final Object visitMultiByte(Nez.MultiByte p, Object a) {
-		this.visitString(p);
+		visitString(p);
 		return null;
 	}
 
 	@Override
 	public final Object visitFail(Nez.Fail p, Object a) {
-		this.visitFail(p);
+		visitFail(p);
 		return null;
 	}
 
 	@Override
 	public final Object visitOption(Nez.Option p, Object next) {
-		this.visitOption(p);
+		visitOption(p);
 		return null;
 	}
 
 	@Override
 	public final Object visitZeroMore(Nez.ZeroMore p, Object next) {
-		this.visitZeroMore(p);
+		visitZeroMore(p);
 		return null;
 	}
 
 	@Override
 	public final Object visitOneMore(Nez.OneMore p, Object a) {
-		this.visitOneMore(p);
+		visitOneMore(p);
 		return null;
 	}
 
 	@Override
 	public final Object visitAnd(Nez.And p, Object a) {
-		this.visitAnd(p);
+		visitAnd(p);
 		return null;
 	}
 
 	@Override
 	public final Object visitNot(Nez.Not p, Object a) {
-		this.visitNot(p);
+		visitNot(p);
 		return null;
 	}
 
 	@Override
 	public final Object visitPair(Nez.Pair p, Object a) {
-		this.visitPair(p);
+		visitPair(p);
 		return null;
 	}
 
@@ -359,7 +358,7 @@ public abstract class GrammarTranslatorVisitor extends Expression.Visitor {
 
 	@Override
 	public final Object visitChoice(Nez.Choice p, Object a) {
-		this.visitChoice(p);
+		visitChoice(p);
 		return null;
 	}
 
@@ -370,7 +369,7 @@ public abstract class GrammarTranslatorVisitor extends Expression.Visitor {
 
 	@Override
 	public final Object visitNonTerminal(NonTerminal p, Object a) {
-		this.visitNonTerminal(p);
+		visitNonTerminal(p);
 		return null;
 	}
 
@@ -379,9 +378,9 @@ public abstract class GrammarTranslatorVisitor extends Expression.Visitor {
 	@Override
 	public final Object visitDetree(Nez.Detree p, Object a) {
 		if (strategy.TreeConstruction) {
-			this.visitDetree(p);
+			visitDetree(p);
 		} else {
-			this.visitExpression(p.get(0));
+			visitExpression(p.get(0));
 		}
 		return null;
 	}
@@ -389,9 +388,9 @@ public abstract class GrammarTranslatorVisitor extends Expression.Visitor {
 	@Override
 	public final Object visitLinkTree(Nez.LinkTree p, Object a) {
 		if (strategy.TreeConstruction) {
-			this.visitLink(p);
+			visitLink(p);
 		} else {
-			this.visitExpression(p.get(0));
+			visitExpression(p.get(0));
 		}
 		return null;
 	}
@@ -399,7 +398,7 @@ public abstract class GrammarTranslatorVisitor extends Expression.Visitor {
 	@Override
 	public final Object visitBeginTree(Nez.BeginTree p, Object next) {
 		if (strategy.TreeConstruction) {
-			this.visitPreNew(p);
+			visitPreNew(p);
 		}
 		return null;
 	}
@@ -407,7 +406,7 @@ public abstract class GrammarTranslatorVisitor extends Expression.Visitor {
 	@Override
 	public final Object visitFoldTree(Nez.FoldTree p, Object next) {
 		if (strategy.TreeConstruction) {
-			this.visitLeftFold(p);
+			visitLeftFold(p);
 		}
 		return null;
 	}
@@ -415,7 +414,7 @@ public abstract class GrammarTranslatorVisitor extends Expression.Visitor {
 	@Override
 	public final Object visitEndTree(Nez.EndTree p, Object next) {
 		if (strategy.TreeConstruction) {
-			this.visitNew(p);
+			visitNew(p);
 		}
 		return null;
 	}
@@ -423,7 +422,7 @@ public abstract class GrammarTranslatorVisitor extends Expression.Visitor {
 	@Override
 	public final Object visitTag(Nez.Tag p, Object next) {
 		if (strategy.TreeConstruction) {
-			this.visitTag(p);
+			visitTag(p);
 		}
 		return null;
 	}
@@ -431,44 +430,44 @@ public abstract class GrammarTranslatorVisitor extends Expression.Visitor {
 	@Override
 	public final Object visitReplace(Nez.Replace p, Object next) {
 		if (strategy.TreeConstruction) {
-			this.visitReplace(p);
+			visitReplace(p);
 		}
 		return null;
 	}
 
 	@Override
 	public final Object visitBlockScope(Nez.BlockScope p, Object a) {
-		this.visitBlockScope(p);
+		visitBlockScope(p);
 		return null;
 	}
 
 	@Override
 	public final Object visitLocalScope(Nez.LocalScope p, Object a) {
-		this.visitLocalScope(p);
+		visitLocalScope(p);
 		return null;
 	}
 
 	@Override
 	public final Object visitSymbolAction(Nez.SymbolAction p, Object a) {
-		this.visitSymbolAction(p);
+		visitSymbolAction(p);
 		return null;
 	}
 
 	@Override
 	public final Object visitSymbolExists(Nez.SymbolExists p, Object a) {
-		this.visitSymbolExists(p);
+		visitSymbolExists(p);
 		return null;
 	}
 
 	@Override
 	public final Object visitSymbolMatch(Nez.SymbolMatch p, Object a) {
-		this.visitSymbolMatch(p);
+		visitSymbolMatch(p);
 		return null;
 	}
 
 	@Override
 	public final Object visitSymbolPredicate(Nez.SymbolPredicate p, Object a) {
-		this.visitSymbolPredicate(p);
+		visitSymbolPredicate(p);
 		return null;
 	}
 
@@ -492,19 +491,19 @@ public abstract class GrammarTranslatorVisitor extends Expression.Visitor {
 
 	@Override
 	public final Object visitEmpty(Nez.Empty p, Object a) {
-		this.visitEmpty(p);
+		visitEmpty(p);
 		return null;
 	}
 
 	@Override
 	public final Object visitOn(Nez.OnCondition p, Object a) {
-		this.visitOn(p);
+		visitOn(p);
 		return null;
 	}
 
 	@Override
 	public final Object visitIf(Nez.IfCondition p, Object a) {
-		this.visitIf(p);
+		visitIf(p);
 		return null;
 	}
 

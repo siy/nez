@@ -15,13 +15,13 @@ import nez.util.UList;
 import nez.util.Verbose;
 
 public class Grammar extends AbstractList<Production> {
-	private static int serialNumbering = 0;
+	private static int serialNumbering;
 
-	private int id;
+	private final int id;
 	private final String ns;
-	private Grammar parent;
+	private final Grammar parent;
 	protected UList<Production> prodList;
-	protected HashMap<String, Production> prodMap = null;
+	protected HashMap<String, Production> prodMap;
 
 	public Grammar() {
 		this(null, null);
@@ -35,68 +35,68 @@ public class Grammar extends AbstractList<Production> {
 		this.id = serialNumbering++;
 		this.parent = parent;
 		this.ns = ns != null ? ns : "g";
-		this.prodList = new UList<Production>(new Production[1]);
+		this.prodList = new UList<>(new Production[1]);
 	}
 
 	final String uniqueName(String name) {
 		if (name.indexOf(':') == -1) {
 			return name; // already prefixed;
 		}
-		return this.ns + this.id + ":" + name;
+		return ns + id + ":" + name;
 	}
 
 	@Override
 	public final int size() {
-		return this.prodList.size();
+		return prodList.size();
 	}
 
 	@Override
 	public final Production get(int index) {
-		return this.prodList.ArrayValues[index];
+		return prodList.ArrayValues[index];
 	}
 
 	public final Production getStartProduction() {
 		if (size() > 0) {
-			return this.prodList.get(0);
+			return prodList.get(0);
 		}
-		return this.addProduction("EMPTY", Expressions.newEmpty(null));
+		return addProduction("EMPTY", Expressions.newEmpty(null));
 	}
 
 	public final void setStartProduction(String name) {
-		Production p = this.getProduction(name);
+		Production p = getProduction(name);
 		int index = 0;
-		for (int i = 0; i < this.size(); i++) {
-			if (this.prodList.get(i) == p) {
+		for (int i = 0; i < size(); i++) {
+			if (prodList.get(i) == p) {
 				index = i;
 				break;
 			}
 		}
 		if (index != 0) {
-			this.prodList.set(index, this.prodList.get(0));
-			this.prodList.set(0, p);
+			prodList.set(index, prodList.get(0));
+			prodList.set(0, p);
 		}
 	}
 
 	public final boolean hasProduction(String name) {
-		return this.getLocalProduction(name) != null;
+		return getLocalProduction(name) != null;
 	}
 
 	public final Production getProduction(String name) {
 		if (name == null) {
-			return this.getStartProduction();
+			return getStartProduction();
 		}
-		Production p = this.getLocalProduction(name);
-		if (p == null && this.parent != null) {
-			return this.parent.getProduction(name);
+		Production p = getLocalProduction(name);
+		if (p == null && parent != null) {
+			return parent.getProduction(name);
 		}
 		return p;
 	}
 
 	private Production getLocalProduction(String name) {
 		if (prodMap != null) {
-			return this.prodMap.get(name);
+			return prodMap.get(name);
 		}
-		for (Production p : this.prodList) {
+		for (Production p : prodList) {
 			if (name.equals(p.getLocalName())) {
 				return p;
 			}
@@ -115,32 +115,32 @@ public class Grammar extends AbstractList<Production> {
 	}
 
 	private void addProduction(Production p) {
-		Production p2 = this.getLocalProduction(p.getLocalName());
+		Production p2 = getLocalProduction(p.getLocalName());
 		if (p2 == null) {
-			this.prodList.add(p);
-			if (this.prodMap != null) {
-				this.prodMap.put(p.getLocalName(), p);
-			} else if (this.prodList.size() > 4) {
-				this.prodMap = new HashMap<String, Production>();
-				for (Production p3 : this.prodList) {
-					this.prodMap.put(p3.getLocalName(), p3);
+			prodList.add(p);
+			if (prodMap != null) {
+				prodMap.put(p.getLocalName(), p);
+			} else if (prodList.size() > 4) {
+				this.prodMap = new HashMap<>();
+				for (Production p3 : prodList) {
+					prodMap.put(p3.getLocalName(), p3);
 				}
 			}
 		} else {
 			String name = p.getLocalName();
-			for (int i = 0; i < this.prodList.size(); i++) {
-				p2 = this.prodList.ArrayValues[i];
+			for (int i = 0; i < prodList.size(); i++) {
+				p2 = prodList.ArrayValues[i];
 				if (name.equals(p2.getLocalName())) {
-					this.prodList.ArrayValues[i] = p;
-					if (this.prodMap != null) {
-						this.prodMap.put(name, p);
+					prodList.ArrayValues[i] = p;
+					if (prodMap != null) {
+						prodMap.put(name, p);
 					}
 					break;
 				}
 			}
 		}
-		if (p.isPublic() && this.parent != null) {
-			this.parent.addProduction(p2);
+		if (p.isPublic() && parent != null) {
+			parent.addProduction(p2);
 		}
 	}
 
@@ -148,7 +148,7 @@ public class Grammar extends AbstractList<Production> {
 		this.prodList = prodList;
 		this.prodMap = new HashMap<>();
 		for (Production p : prodList) {
-			this.prodMap.put(p.getLocalName(), p);
+			prodMap.put(p.getLocalName(), p);
 		}
 	}
 
@@ -158,37 +158,37 @@ public class Grammar extends AbstractList<Production> {
 		}
 	}
 
-	public final static String nameTerminalProduction(String t) {
+	public static String nameTerminalProduction(String t) {
 		return "\"" + t + "\"";
 	}
 
 	// ----------------------------------------------------------------------
 	/* MetaData */
 
-	protected HashMap<String, Object> metaMap = null;
+	protected HashMap<String, Object> metaMap;
 
 	public Object getMetaData(String key) {
-		if (this.metaMap != null) {
-			Object v = this.metaMap.get(key);
+		if (metaMap != null) {
+			Object v = metaMap.get(key);
 			if (v != null) {
 				return v;
 			}
 		}
-		if (this.parent != null) {
+		if (parent != null) {
 			return parent.getMetaData(key);
 		}
 		return null;
 	}
 
 	public void setMetaData(String key, Object value) {
-		if (this.metaMap == null) {
+		if (metaMap == null) {
 			this.metaMap = new HashMap<>();
 		}
-		this.metaMap.put(key, value);
+		metaMap.put(key, value);
 	}
 
 	public String getDesc() {
-		String desc = (String) this.getMetaData("desc");
+		String desc = (String) getMetaData("desc");
 		if (desc != null) {
 			desc = getURN();
 			if (desc != null) {
@@ -199,15 +199,15 @@ public class Grammar extends AbstractList<Production> {
 	}
 
 	public void setDesc(String desc) {
-		this.setMetaData("desc", desc);
+		setMetaData("desc", desc);
 	}
 
 	public String getURN() {
-		return (String) this.getMetaData("urn");
+		return (String) getMetaData("urn");
 	}
 
 	public void setURN(String urn) {
-		this.setMetaData("urn", urn);
+		setMetaData("urn", urn);
 	}
 
 	// ----------------------------------------------------------------------
@@ -216,10 +216,10 @@ public class Grammar extends AbstractList<Production> {
 		if (getMetaData("_parser") != null) {
 			Grammar grammar = new Grammar("nez");
 			ParserStrategy strategy = ParserStrategy.newSafeStrategy();
-			this.setMetaData("_parser", new NezGrammarCombinator().load(grammar, "Expression").newParser(strategy));
-			this.setMetaData("_constructor", new NezExpressionConstructor(this, strategy));
+			setMetaData("_parser", new NezGrammarCombinator().load(grammar, "Expression").newParser(strategy));
+			setMetaData("_constructor", new NezExpressionConstructor(this, strategy));
 		}
-		return (Parser) this.getMetaData("_parser");
+		return (Parser) getMetaData("_parser");
 	}
 
 	/**
@@ -247,7 +247,7 @@ public class Grammar extends AbstractList<Production> {
 	 */
 
 	public final Parser newParser(ParserStrategy strategy) {
-		return new Parser(this, this.getStartProduction().getLocalName(), strategy);
+		return new Parser(this, getStartProduction().getLocalName(), strategy);
 	}
 
 	public final Parser newParser(String name) {
@@ -256,7 +256,7 @@ public class Grammar extends AbstractList<Production> {
 
 	public final Parser newParser(String name, ParserStrategy strategy) {
 		if (name != null) {
-			Production p = this.getProduction(name);
+			Production p = getProduction(name);
 			if (p != null) {
 				return new Parser(this, name, strategy);
 			}

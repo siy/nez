@@ -6,7 +6,7 @@ import nez.parser.TerminationException;
 
 public abstract class MozInst implements Instruction {
 	public int id;
-	public boolean joinPoint = false;
+	public boolean joinPoint;
 	public final byte opcode;
 	// protected Expression e;
 	public MozInst next;
@@ -19,8 +19,8 @@ public abstract class MozInst implements Instruction {
 	}
 
 	public final boolean isIncrementedNext() {
-		if (this.next != null) {
-			return this.next.id == this.id + 1;
+		if (next != null) {
+			return next.id == id + 1;
 		}
 		return true; // RET or instructions that are unnecessary to go next
 	}
@@ -38,7 +38,7 @@ public abstract class MozInst implements Instruction {
 	}
 
 	public final String getName() {
-		return this.getClass().getSimpleName();
+		return getClass().getSimpleName();
 	}
 
 	public Expression getExpression() {

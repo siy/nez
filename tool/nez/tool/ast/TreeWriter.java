@@ -8,7 +8,7 @@ import nez.util.StringUtils;
 public abstract class TreeWriter {
 	protected String fileExtension;
 	protected FileBuilder file = new FileBuilder();
-	protected boolean dataOption = false;
+	protected boolean dataOption;
 
 	public TreeWriter(String ext) {
 		this.fileExtension = ext;
@@ -62,7 +62,7 @@ public abstract class TreeWriter {
 				return;
 			}
 			if (label == null) {
-				file.writeIndent("#" + node.getTag().toString() + "[");
+				file.writeIndent("#" + node.getTag() + "[");
 			} else {
 				file.writeIndent("$" + label + "=#" + node.getTag() + "[");
 			}
@@ -72,7 +72,7 @@ public abstract class TreeWriter {
 			} else {
 				file.incIndent();
 				for (int i = 0; i < node.size(); i++) {
-					this.writeTree(node.getLabel(i), node.get(i));
+					writeTree(node.getLabel(i), node.get(i));
 				}
 				file.decIndent();
 				file.writeIndent("]");

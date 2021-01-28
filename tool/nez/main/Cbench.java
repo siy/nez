@@ -48,6 +48,6 @@ public class Cbench extends Command {
 			total += dsum;
 		}
 		double s = (total / 1000);
-		ConsoleUtils.println("Throughput %.2f [B/s] %.2f [KiB/s] %.2f [MiB/s]", (len / s), (len / 1024 / s), (len / 1024 / 1024 / s));
+		ConsoleUtils.println("Throughput %.2f [B/s] %.2f [KiB/s] %.2f [MiB/s]", (len / s), (len / 1024 / s), (len / (1024 * 1024) / s));
 	}
 }

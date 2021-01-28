@@ -5,7 +5,7 @@ import java.util.HashMap;
 import nez.util.FileBuilder;
 
 public class MozSpec {
-	public final static String[][] InstructionSet = { //
+	public static final String[][] InstructionSet = { //
 	{ "Nop" }, //
 			{ "Fail" }, //
 			{ "Alt", "Jump" }, //
@@ -77,26 +77,9 @@ public class MozSpec {
 			{ "DFirst", "JumpTable" }, //
 
 			{ "Label", "NonTerminal" }, //
-
-	// { "Cov", "Id" }, //
-	// { "Covx", "Id" }, //
 	};
 
-	// public static String[][] Arguments = { //
-	// { "NonTerminal", "u16", "@NonTerminalConstPools" }, //
-	// { "Jump", "u24" }, //
-	// { "JumpTable", "u24*257" }, //
-	// { "Byte", "u8" }, //
-	// { "Bset", "u16", "@SetConstPools" }, //
-	// { "Bstr", "u16", "@StrConstPools" }, //
-	// { "Shift", "i8" }, //
-	// { "MemoPoint", "u16" }, //
-	// { "Label", "u16" }, //
-	// { "Tag", "u16", "@TagConstPools" }, //
-	// { "Table", "u16", "@TableConstPools" } //
-	// };
-
-	static HashMap<String, String> javaMap = new HashMap<String, String>();
+	static HashMap<String, String> javaMap = new HashMap<>();
 	static {
 		// type
 		javaMap.put("tNonTerminal", "String");
@@ -128,7 +111,7 @@ public class MozSpec {
 
 	}
 
-	public final static void genOpcode() {
+	public static void genOpcode() {
 		FileBuilder fb = new FileBuilder();
 		int c = 0;
 		for (String[] data : InstructionSet) {
@@ -138,13 +121,13 @@ public class MozSpec {
 
 	}
 
-	public final static void genInstructionStruct() {
+	public static void genInstructionStruct() {
 		for (String[] instData : InstructionSet) {
 			genInstruction(instData);
 		}
 	}
 
-	public final static void genInstruction(String[] data) {
+	public static void genInstruction(String[] data) {
 		FileBuilder fb = new FileBuilder();
 		String name = data[0];
 		fb.write("// " + name);
@@ -191,7 +174,6 @@ public class MozSpec {
 		fb.decIndent();
 		fb.writeIndent("}");
 		fb.writeNewLine();
-		;
 
 		fb.close();
 	}
@@ -204,7 +186,7 @@ public class MozSpec {
 		return javaMap.get("n" + n);
 	}
 
-	public final static void genLoader() {
+	public static void genLoader() {
 		FileBuilder fb = new FileBuilder();
 		fb.incIndent();
 		for (String[] data : InstructionSet) {
@@ -214,7 +196,7 @@ public class MozSpec {
 
 	}
 
-	public final static void genLoader(FileBuilder fb, String[] data) {
+	public static void genLoader(FileBuilder fb, String[] data) {
 		String name = data[0];
 		fb.writeIndent("case Moz.%s: {", name);
 		fb.incIndent();

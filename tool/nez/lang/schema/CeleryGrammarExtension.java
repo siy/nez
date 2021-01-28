@@ -11,11 +11,6 @@ public class CeleryGrammarExtension extends ParserGenerator.GrammarExtension {
 		super("celery.nez");
 	}
 
-	// @Override
-	// public GrammarExtension newState() {
-	// return new CeleryGrammarExtension(); // in case of statefull
-	// }
-
 	@Override
 	public String getExtension() {
 		return "celery";

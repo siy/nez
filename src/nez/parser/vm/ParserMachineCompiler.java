@@ -17,7 +17,7 @@ import nez.util.Verbose;
 
 public class ParserMachineCompiler implements ParserCompiler {
 
-	public final static ParserMachineCompiler newCompiler(ParserStrategy strategy) {
+	public static ParserMachineCompiler newCompiler(ParserStrategy strategy) {
 		return new ParserMachineCompiler(strategy);
 	}
 
@@ -50,13 +50,13 @@ public class ParserMachineCompiler implements ParserCompiler {
 			this.code = code;
 			this.grammar = grammar;
 			for (Production p : grammar) {
-				code.setProductionCode(p, new ProductionCode<MozInst>(null));
+				code.setProductionCode(p, new ProductionCode<>(null));
 			}
 		}
 
 		private MozCode compile() {
 			for (Production p : grammar) {
-				this.visitProduction(code.codeList(), p, new Moz86.Ret(p));
+				visitProduction(code.codeList(), p, new Moz86.Ret(p));
 			}
 			for (MozInst inst : code.codeList()) {
 				if (inst instanceof Moz86.Call) {
@@ -70,7 +70,7 @@ public class ParserMachineCompiler implements ParserCompiler {
 		private Production encodingProduction;
 
 		protected final Production getEncodingProduction() {
-			return this.encodingProduction;
+			return encodingProduction;
 		}
 
 		protected void visitProduction(UList<MozInst> codeList, Production p, MozInst next) {
@@ -80,12 +80,11 @@ public class ParserMachineCompiler implements ParserCompiler {
 				// next = Coverage.visitExitCoverage(p, next);
 				next = compile(p.getExpression(), next, null/* failjump */);
 				// next = Coverage.visitEnterCoverage(p, next);
-				f.setCompiled(next);
 			} else {
 				MemoPoint memoPoint = code.getMemoPoint(p.getUniqueName());
 				next = compile(memoPoint, p.getExpression(), next);
-				f.setCompiled(next);
 			}
+			f.setCompiled(next);
 			MozInst block = new Moz86.Nop(p.getLocalName(), next);
 			code.layoutCode(block);
 		}
@@ -131,12 +130,12 @@ public class ParserMachineCompiler implements ParserCompiler {
 		protected final MozInst commonFailure = new Moz86.Fail(null);
 
 		public MozInst fail(Expression e) {
-			return this.commonFailure;
+			return commonFailure;
 		}
 
 		@Override
 		public MozInst visitFail(Nez.Fail p, Object next) {
-			return this.commonFailure;
+			return commonFailure;
 		}
 
 		@Override
@@ -174,13 +173,13 @@ public class ParserMachineCompiler implements ParserCompiler {
 				if (m != null) {
 					if (!strategy.TreeConstruction || m.getTypestate() == Typestate.Unit) {
 						if (Verbose.PackratParsing) {
-							Verbose.println("memoize: " + n.getLocalName() + " at " + this.getEncodingProduction().getLocalName());
+							Verbose.println("memoize: " + n.getLocalName() + " at " + getEncodingProduction().getLocalName());
 						}
 						return memoize(n, f, m, (MozInst) next);
 					}
 				}
 			}
-			return this.compileNonTerminal(n, next);
+			return compileNonTerminal(n, next);
 		}
 
 		private MozInst compileNonTerminal(NonTerminal n, Object next) {
@@ -222,12 +221,12 @@ public class ParserMachineCompiler implements ParserCompiler {
 
 		@Override
 		public final MozInst visitZeroMore(Nez.ZeroMore p, Object next) {
-			return this.visitRepetition(p, next);
+			return visitRepetition(p, next);
 		}
 
 		@Override
 		public MozInst visitOneMore(Nez.OneMore p, Object next) {
-			return compile(p.get(0), this.visitRepetition(p, next));
+			return compile(p.get(0), visitRepetition(p, next));
 		}
 
 		private MozInst visitRepetition(Nez.Repetition p, Object next) {
@@ -317,7 +316,7 @@ public class ParserMachineCompiler implements ParserCompiler {
 			return visitUnoptimizedChoice(p, next);
 		}
 
-		private final MozInst visitPredictedChoice(Nez.Choice choice, Nez.ChoicePrediction p, Object next) {
+		private MozInst visitPredictedChoice(Nez.Choice choice, Nez.ChoicePrediction p, Object next) {
 			Moz86.Dispatch dispatch = new Moz86.Dispatch(choice, commonFailure);
 			MozInst[] compiled = new MozInst[choice.size()];
 			for (int i = 0; i < choice.size(); i++) {
@@ -425,7 +424,7 @@ public class ParserMachineCompiler implements ParserCompiler {
 				MemoPoint m = code.getMemoPoint(n.getUniqueName());
 				if (m != null) {
 					if (Verbose.PackratParsing) {
-						Verbose.println("memoize: @" + n.getLocalName() + " at " + this.getEncodingProduction().getLocalName());
+						Verbose.println("memoize: @" + n.getLocalName() + " at " + getEncodingProduction().getLocalName());
 					}
 					return memoize(p, n, m, (MozInst) next);
 				}
@@ -513,8 +512,7 @@ public class ParserMachineCompiler implements ParserCompiler {
 		@Override
 		public MozInst visitRepeat(Nez.Repeat p, Object next) {
 			MozInst check = new Moz86.NDec((MozInst) next, null);
-			MozInst repeated = compile(p.get(0), check);
-			check.next = repeated;
+			check.next = compile(p.get(0), check);
 			return check;
 		}
 

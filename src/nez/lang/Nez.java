@@ -13,13 +13,13 @@ public class Nez {
 	 *
 	 */
 
-	public static interface SingleCharacter {
+	public interface SingleCharacter {
 	}
 
-	public abstract static interface TreeConstruction {
+	public interface TreeConstruction {
 	}
 
-	static abstract class Terminal extends Expression {
+	abstract static class Terminal extends Expression {
 		@Override
 		public final int size() {
 			return 0;
@@ -31,7 +31,7 @@ public class Nez {
 		}
 	}
 
-	public static abstract class Unary extends Expression {
+	public abstract static class Unary extends Expression {
 		public Expression inner;
 
 		protected Unary(Expression e) {
@@ -45,12 +45,12 @@ public class Nez {
 
 		@Override
 		public final Expression get(int index) {
-			return this.inner;
+			return inner;
 		}
 
 		@Override
 		public final Expression set(int index, Expression e) {
-			Expression old = this.inner;
+			Expression old = inner;
 			this.inner = e;
 			return old;
 		}
@@ -121,7 +121,7 @@ public class Nez {
 		@Override
 		public final boolean equals(Object o) {
 			if (o instanceof Nez.Byte) {
-				return this.byteChar == ((Nez.Byte) o).byteChar;
+				return byteChar == ((Nez.Byte) o).byteChar;
 			}
 			return false;
 		}
@@ -176,8 +176,8 @@ public class Nez {
 		public final boolean equals(Object o) {
 			if (o instanceof ByteSet) {
 				ByteSet e = (ByteSet) o;
-				for (int i = 0; i < this.byteset.length; i++) {
-					if (this.byteset[i] != e.byteset[i]) {
+				for (int i = 0; i < byteset.length; i++) {
+					if (byteset[i] != e.byteset[i]) {
 						return false;
 					}
 				}
@@ -211,8 +211,8 @@ public class Nez {
 		public final boolean equals(Object o) {
 			if (o instanceof Nez.MultiByte) {
 				Nez.MultiByte mb = (Nez.MultiByte) o;
-				if (mb.byteseq.length == this.byteseq.length) {
-					for (int i = 0; i < this.byteseq.length; i++) {
+				if (mb.byteseq.length == byteseq.length) {
+					for (int i = 0; i < byteseq.length; i++) {
 						if (byteseq[i] != mb.byteseq[i]) {
 							return false;
 						}
@@ -246,7 +246,7 @@ public class Nez {
 		@Override
 		public final boolean equals(Object o) {
 			if (o instanceof Nez.Option) {
-				return this.get(0).equals(((Expression) o).get(0));
+				return get(0).equals(((Expression) o).get(0));
 			}
 			return false;
 		}
@@ -266,7 +266,7 @@ public class Nez {
 	 *
 	 */
 
-	public static interface Repetition {
+	public interface Repetition {
 		Expression get(int index);
 	}
 
@@ -285,7 +285,7 @@ public class Nez {
 		@Override
 		public boolean equals(Object o) {
 			if (o instanceof Nez.ZeroMore) {
-				return this.get(0).equals(((Expression) o).get(0));
+				return get(0).equals(((Expression) o).get(0));
 			}
 			return false;
 		}
@@ -312,7 +312,7 @@ public class Nez {
 		@Override
 		public final boolean equals(Object o) {
 			if (o instanceof Nez.OneMore) {
-				return this.get(0).equals(((Expression) o).get(0));
+				return get(0).equals(((Expression) o).get(0));
 			}
 			return false;
 		}
@@ -338,7 +338,7 @@ public class Nez {
 		@Override
 		public final boolean equals(Object o) {
 			if (o instanceof Nez.And) {
-				return this.get(0).equals(((Expression) o).get(0));
+				return get(0).equals(((Expression) o).get(0));
 			}
 			return false;
 		}
@@ -364,7 +364,7 @@ public class Nez {
 		@Override
 		public final boolean equals(Object o) {
 			if (o instanceof Nez.Not) {
-				return this.get(0).equals(((Expression) o).get(0));
+				return get(0).equals(((Expression) o).get(0));
 			}
 			return false;
 		}
@@ -399,27 +399,27 @@ public class Nez {
 		@Override
 		public final Expression get(int index) {
 			assert (index < 2);
-			return index == 0 ? this.first : this.next;
+			return index == 0 ? first : next;
 		}
 
 		@Override
 		public final Expression set(int index, Expression e) {
 			assert (index < 2);
+			Expression p;
 			if (index == 0) {
-				Expression p = this.first;
+				p = first;
 				this.first = e;
-				return p;
 			} else {
-				Expression p = this.next;
+				p = next;
 				this.next = e;
-				return p;
 			}
+			return p;
 		}
 
 		@Override
 		public final boolean equals(Object o) {
 			if (o instanceof Nez.Pair) {
-				return this.get(0).equals(((Expression) o).get(0)) && this.get(1).equals(((Expression) o).get(1));
+				return get(0).equals(((Expression) o).get(0)) && get(1).equals(((Expression) o).get(1));
 			}
 			return false;
 		}
@@ -440,25 +440,25 @@ public class Nez {
 
 		@Override
 		public final int size() {
-			return this.inners.length;
+			return inners.length;
 		}
 
 		@Override
 		public final Expression get(int index) {
-			return this.inners[index];
+			return inners[index];
 		}
 
 		@Override
 		public Expression set(int index, Expression e) {
-			Expression oldExpresion = this.inners[index];
-			this.inners[index] = e;
+			Expression oldExpresion = inners[index];
+			inners[index] = e;
 			return oldExpresion;
 		}
 
 		protected final boolean equalsList(Nez.List l) {
-			if (this.size() == l.size()) {
-				for (int i = 0; i < this.size(); i++) {
-					if (!this.get(i).equals(l.get(i))) {
+			if (size() == l.size()) {
+				for (int i = 0; i < size(); i++) {
+					if (!get(i).equals(l.get(i))) {
 						return false;
 					}
 				}
@@ -479,13 +479,13 @@ public class Nez {
 
 		Sequence(Expression[] inners) {
 			super(inners);
-			this.setSourceLocation(inners[0].getSourceLocation());
+			setSourceLocation(inners[0].getSourceLocation());
 		}
 
 		@Override
 		public final boolean equals(Object o) {
 			if (o instanceof Nez.Sequence) {
-				return this.equalsList((Nez.List) o);
+				return equalsList((Nez.List) o);
 			}
 			return false;
 		}
@@ -504,8 +504,8 @@ public class Nez {
 	 */
 
 	public static class Choice extends List {
-		public boolean visited = false;
-		public ChoicePrediction predicted = null;
+		public boolean visited;
+		public ChoicePrediction predicted;
 
 		Choice(Expression[] inners) {
 			super(inners);
@@ -514,7 +514,7 @@ public class Nez {
 		@Override
 		public final boolean equals(Object o) {
 			if (o instanceof Nez.Choice) {
-				return this.equalsList((Nez.List) o);
+				return equalsList((Nez.List) o);
 			}
 			return false;
 		}
@@ -527,7 +527,7 @@ public class Nez {
 
 	public static class ChoicePrediction {
 		public byte[] indexMap;
-		public boolean isTrieTree = false;
+		public boolean isTrieTree;
 		public boolean[] striped;
 		public float reduced;
 	}
@@ -544,15 +544,15 @@ public class Nez {
 		public final boolean equals(Object o) {
 			if (o instanceof Nez.Dispatch) {
 				Nez.Dispatch d = (Nez.Dispatch) o;
-				if (d.indexMap.length != this.indexMap.length) {
+				if (d.indexMap.length != indexMap.length) {
 					return false;
 				}
-				for (int i = 0; i < this.indexMap.length; i++) {
-					if (this.indexMap[i] != d.indexMap[i]) {
+				for (int i = 0; i < indexMap.length; i++) {
+					if (indexMap[i] != d.indexMap[i]) {
 						return false;
 					}
 				}
-				return this.equalsList((Nez.List) o);
+				return equalsList((Nez.List) o);
 			}
 			return false;
 		}
@@ -567,7 +567,7 @@ public class Nez {
 	/* AST */
 
 	public static class BeginTree extends Terminal implements TreeConstruction {
-		public int shift = 0;
+		public int shift;
 
 		public BeginTree(int shift) {
 			this.shift = shift;
@@ -575,7 +575,7 @@ public class Nez {
 
 		@Override
 		public final boolean equals(Object o) {
-			return (o instanceof Nez.BeginTree && this.shift == ((Nez.BeginTree) o).shift);
+			return (o instanceof Nez.BeginTree && shift == ((Nez.BeginTree) o).shift);
 		}
 
 		@Override
@@ -585,9 +585,9 @@ public class Nez {
 	}
 
 	public static class EndTree extends Terminal implements TreeConstruction {
-		public int shift = 0; // optimization parameter
-		public Symbol tag = null; // optimization parameter
-		public String value = null; // optimization parameter
+		public int shift; // optimization parameter
+		public Symbol tag; // optimization parameter
+		public String value; // optimization parameter
 
 		public EndTree(int shift) {
 			this.shift = shift;
@@ -598,9 +598,9 @@ public class Nez {
 		@Override
 		public final boolean equals(Object o) {
 			return o instanceof Nez.EndTree //
-					&& this.shift == ((Nez.EndTree) o).shift //
-					&& this.tag == ((Nez.EndTree) o).tag //
-					&& Objects.equals(this.value, ((Nez.EndTree) o).value);
+					&& shift == ((Nez.EndTree) o).shift //
+					&& tag == ((Nez.EndTree) o).tag //
+					&& Objects.equals(value, ((Nez.EndTree) o).value);
 		}
 
 		@Override
@@ -622,7 +622,7 @@ public class Nez {
 		public final boolean equals(Object o) {
 			if (o instanceof Nez.FoldTree) {
 				Nez.FoldTree s = (Nez.FoldTree) o;
-				return (this.label == s.label && this.shift == s.shift);
+				return (label == s.label && shift == s.shift);
 			}
 			return false;
 		}
@@ -647,7 +647,7 @@ public class Nez {
 		@Override
 		public final boolean equals(Object o) {
 			if (o instanceof Nez.Tag) {
-				return this.tag == ((Nez.Tag) o).tag;
+				return tag == ((Nez.Tag) o).tag;
 			}
 			return false;
 		}
@@ -668,7 +668,7 @@ public class Nez {
 		@Override
 		public final boolean equals(Object o) {
 			if (o instanceof Nez.Replace) {
-				return this.value.equals(((Nez.Replace) o).value);
+				return value.equals(((Nez.Replace) o).value);
 			}
 			return false;
 		}
@@ -679,7 +679,7 @@ public class Nez {
 		}
 	}
 
-	public static abstract class Action extends Terminal implements TreeConstruction {
+	public abstract static class Action extends Terminal implements TreeConstruction {
 		Object value;
 	}
 
@@ -693,8 +693,8 @@ public class Nez {
 
 		@Override
 		public final boolean equals(Object o) {
-			if (o instanceof Nez.LinkTree && this.label == ((Nez.LinkTree) o).label) {
-				return this.get(0).equals(((Expression) o).get(0));
+			if (o instanceof Nez.LinkTree && label == ((Nez.LinkTree) o).label) {
+				return get(0).equals(((Expression) o).get(0));
 			}
 			return false;
 		}
@@ -713,7 +713,7 @@ public class Nez {
 		@Override
 		public final boolean equals(Object o) {
 			if (o instanceof Nez.Detree) {
-				return this.get(0).equals(((Expression) o).get(0));
+				return get(0).equals(((Expression) o).get(0));
 			}
 			return false;
 		}
@@ -726,9 +726,9 @@ public class Nez {
 	}
 
 	/* Symbol */
-	private static Expression empty = Expressions.newEmpty(null);
+	private static final Expression empty = Expressions.newEmpty(null);
 
-	public static abstract class Function extends Unary {
+	public abstract static class Function extends Unary {
 		public final FunctionName op;
 
 		protected Function(FunctionName op, Expression e) {
@@ -737,7 +737,7 @@ public class Nez {
 		}
 
 		public boolean hasInnerExpression() {
-			return this.get(0) != empty;
+			return get(0) != empty;
 		}
 	}
 
@@ -750,7 +750,7 @@ public class Nez {
 		}
 	}
 
-	final static Symbol TableName(NonTerminal n, Symbol table) {
+	static Symbol TableName(NonTerminal n, Symbol table) {
 		if (table == null) {
 			String u = n.getLocalName().replace("~", "");
 			return Symbol.unique(u);
@@ -767,8 +767,8 @@ public class Nez {
 		public final boolean equals(Object o) {
 			if (o instanceof SymbolAction) {
 				SymbolAction e = (SymbolAction) o;
-				if (this.tableName == e.tableName) {
-					return this.get(0).equals(e.get(0));
+				if (tableName == e.tableName) {
+					return get(0).equals(e.get(0));
 				}
 			}
 			return false;
@@ -790,7 +790,7 @@ public class Nez {
 		public final boolean equals(Object o) {
 			if (o instanceof SymbolPredicate) {
 				SymbolPredicate e = (SymbolPredicate) o;
-				return e.op == this.op && this.tableName == e.tableName;
+				return e.op == op && tableName == e.tableName;
 			}
 			return false;
 		}
@@ -811,7 +811,7 @@ public class Nez {
 		public final boolean equals(Object o) {
 			if (o instanceof SymbolMatch) {
 				SymbolMatch e = (SymbolMatch) o;
-				return e.op == this.op && this.tableName == e.tableName;
+				return e.op == op && tableName == e.tableName;
 			}
 			return false;
 		}
@@ -835,16 +835,13 @@ public class Nez {
 		public final boolean equals(Object o) {
 			if (o instanceof SymbolExists) {
 				SymbolExists s = (SymbolExists) o;
-				return this.tableName == s.tableName && equals(this.symbol, s.symbol);
+				return tableName == s.tableName && equals(symbol, s.symbol);
 			}
 			return false;
 		}
 
 		private boolean equals(String s, String s2) {
-			if (s != null && s2 != null) {
-				return s.equals(s2);
-			}
-			return s == s2;
+			return Objects.equals(s, s2);
 		}
 
 		@Override
@@ -862,7 +859,7 @@ public class Nez {
 		@Override
 		public final boolean equals(Object o) {
 			if (o instanceof BlockScope) {
-				return this.get(0).equals(((Expression) o).get(0));
+				return get(0).equals(((Expression) o).get(0));
 			}
 			return false;
 		}
@@ -884,8 +881,8 @@ public class Nez {
 		public final boolean equals(Object o) {
 			if (o instanceof LocalScope) {
 				LocalScope s = (LocalScope) o;
-				if (this.tableName == s.tableName) {
-					return this.get(0).equals(s.get(0));
+				if (tableName == s.tableName) {
+					return get(0).equals(s.get(0));
 				}
 			}
 			return false;
@@ -898,7 +895,7 @@ public class Nez {
 
 	}
 
-	public static interface Conditional {
+	public interface Conditional {
 
 	}
 
@@ -920,8 +917,8 @@ public class Nez {
 		public final boolean equals(Object o) {
 			if (o instanceof Nez.OnCondition) {
 				Nez.OnCondition e = (Nez.OnCondition) o;
-				if (this.predicate == e.predicate && this.flagName.equals(e.flagName)) {
-					return this.get(0).equals(e.get(0));
+				if (predicate == e.predicate && flagName.equals(e.flagName)) {
+					return get(0).equals(e.get(0));
 				}
 			}
 			return false;
@@ -947,7 +944,7 @@ public class Nez {
 		public final boolean equals(Object o) {
 			if (o instanceof Nez.IfCondition) {
 				Nez.IfCondition e = (Nez.IfCondition) o;
-				return this.predicate == e.predicate && this.flagName.equals(e.flagName);
+				return predicate == e.predicate && flagName.equals(e.flagName);
 			}
 			return false;
 		}
@@ -972,7 +969,7 @@ public class Nez {
 		public final boolean equals(Object o) {
 			if (o instanceof Nez.Scan) {
 				Nez.Scan e = (Nez.Scan) o;
-				return this.mask == e.mask && this.shift == e.shift && this.get(0).equals(e.get(0));
+				return mask == e.mask && shift == e.shift && get(0).equals(e.get(0));
 			}
 			return false;
 		}
@@ -992,7 +989,7 @@ public class Nez {
 		@Override
 		public final boolean equals(Object o) {
 			if (o instanceof Nez.Repeat) {
-				return this.get(0).equals(((Expression) o).get(0));
+				return get(0).equals(((Expression) o).get(0));
 			}
 			return false;
 		}
@@ -1008,7 +1005,6 @@ public class Nez {
 		public final boolean start;
 
 		Label(String label, boolean start) {
-			super();
 			this.label = label;
 			this.start = start;
 		}
@@ -1017,7 +1013,7 @@ public class Nez {
 		public final boolean equals(Object o) {
 			if (o instanceof Nez.Label) {
 				Nez.Label l = (Nez.Label) o;
-				return this.label.equals(l.label) && this.start == l.start;
+				return label.equals(l.label) && start == l.start;
 			}
 			return false;
 		}

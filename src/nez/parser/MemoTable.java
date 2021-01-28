@@ -31,10 +31,10 @@ public abstract class MemoTable {
 	}
 
 	public void record(ParserProfiler rec) {
-		rec.setText("M.TableType", this.getClass().getSimpleName());
-		rec.setCount("M.MemoStored", this.CountStored);
-		rec.setRatio("M.MemoHit", this.CountUsed, this.CountStored);
-		rec.setCount("M.Invalidated", this.CountInvalidated);
+		rec.setText("M.TableType", getClass().getSimpleName());
+		rec.setCount("M.MemoStored", CountStored);
+		rec.setRatio("M.MemoHit", CountUsed, CountStored);
+		rec.setCount("M.Invalidated", CountInvalidated);
 	}
 
 }
@@ -42,7 +42,7 @@ public abstract class MemoTable {
 class NullTable extends MemoTable {
 
 	NullTable(int w, int n) {
-		this.initStat();
+		initStat();
 	}
 
 	@Override
@@ -62,17 +62,17 @@ class NullTable extends MemoTable {
 }
 
 class ElasticTable extends MemoTable {
-	private MemoEntryKey[] memoArray;
+	private final MemoEntryKey[] memoArray;
 	private final int shift;
 
 	ElasticTable(int w, int n) {
 		this.memoArray = new MemoEntryKey[w * n + 1];
-		for (int i = 0; i < this.memoArray.length; i++) {
-			this.memoArray[i] = new MemoEntryKey();
-			this.memoArray[i].key = -1;
+		for (int i = 0; i < memoArray.length; i++) {
+			memoArray[i] = new MemoEntryKey();
+			memoArray[i].key = -1;
 		}
 		this.shift = (int) (Math.log(n) / Math.log(2.0)) + 1;
-		this.initStat();
+		initStat();
 	}
 
 	final long longkey(long pos, int memoPoint, int shift) {
@@ -83,7 +83,7 @@ class ElasticTable extends MemoTable {
 	public void setMemo(long pos, int memoPoint, boolean failed, Object result, int consumed, int stateValue) {
 		long key = longkey(pos, memoPoint, shift);
 		int hash = (int) (key % memoArray.length);
-		MemoEntryKey m = this.memoArray[hash];
+		MemoEntryKey m = memoArray[hash];
 		m.key = key;
 		m.failed = failed;
 		m.result = result;
@@ -96,7 +96,7 @@ class ElasticTable extends MemoTable {
 	public final MemoEntry getMemo(long pos, int memoPoint) {
 		long key = longkey(pos, memoPoint, shift);
 		int hash = (int) (key % memoArray.length);
-		MemoEntryKey m = this.memoArray[hash];
+		MemoEntryKey m = memoArray[hash];
 		if (m.key == key) {
 			this.CountUsed += 1;
 			return m;
@@ -108,7 +108,7 @@ class ElasticTable extends MemoTable {
 	public final MemoEntry getStateMemo(long pos, int memoPoint, int stateValue) {
 		long key = longkey(pos, memoPoint, shift);
 		int hash = (int) (key % memoArray.length);
-		MemoEntryKey m = this.memoArray[hash];
+		MemoEntryKey m = memoArray[hash];
 		if (m.key == key) {
 			if (m.stateValue == stateValue) {
 				this.CountUsed += 1;
@@ -123,15 +123,15 @@ class ElasticTable extends MemoTable {
 
 class PackratHashTable extends MemoTable {
 	HashMap<Long, MemoEntryList> memoMap;
-	private MemoEntryList UnusedMemo = null;
+	private MemoEntryList UnusedMemo;
 
 	PackratHashTable(int w, int n) {
-		this.memoMap = new HashMap<Long, MemoEntryList>(w * n);
+		this.memoMap = new HashMap<>(w * n);
 	}
 
-	private final MemoEntryList newMemo() {
+	private MemoEntryList newMemo() {
 		if (UnusedMemo != null) {
-			MemoEntryList m = this.UnusedMemo;
+			MemoEntryList m = UnusedMemo;
 			this.UnusedMemo = m.next;
 			return m;
 		} else {
@@ -144,13 +144,13 @@ class PackratHashTable extends MemoTable {
 		while (m.next != null) {
 			m = m.next;
 		}
-		m.next = this.UnusedMemo;
+		m.next = UnusedMemo;
 		UnusedMemo = s;
 	}
 
 	@Override
 	public MemoEntry getMemo(long pos, int memoPoint) {
-		MemoEntryList m = this.memoMap.get(pos);
+		MemoEntryList m = memoMap.get(pos);
 		while (m != null) {
 			if (m.memoPoint == memoPoint) {
 				this.CountUsed += 1;
@@ -163,7 +163,7 @@ class PackratHashTable extends MemoTable {
 
 	@Override
 	public MemoEntry getStateMemo(long pos, int memoPoint, int stateValue) {
-		MemoEntryList m = this.memoMap.get(pos);
+		MemoEntryList m = memoMap.get(pos);
 		while (m != null) {
 			if (m.memoPoint == memoPoint) {
 				if (m.stateValue == stateValue) {
@@ -186,8 +186,8 @@ class PackratHashTable extends MemoTable {
 		m.result = result;
 		m.consumed = consumed;
 		Long key = pos;
-		m.next = this.memoMap.get(key);
-		this.memoMap.put(key, m);
+		m.next = memoMap.get(key);
+		memoMap.put(key, m);
 		this.CountStored += 1;
 	}
 

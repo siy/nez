@@ -1,7 +1,6 @@
 package nez.parser;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,7 +32,7 @@ public abstract class ParserCode<T extends Instruction> {
 	}
 
 	public final Grammar getCompiledGrammar() {
-		return this.grammar;
+		return grammar;
 	}
 
 	public abstract void layoutCode(T inst);
@@ -67,7 +66,7 @@ public abstract class ParserCode<T extends Instruction> {
 
 	public final <E extends Tree<E>> E exec(ParserMachineContext<E> ctx) {
 		int ppos = (int) ctx.getPosition();
-		MozInst code = (MozInst) this.getStartInstruction();
+		MozInst code = (MozInst) getStartInstruction();
 		boolean result = exec(ctx, code);
 		if (RecognitionMode && result) {
 			ctx.left = ctx.newTree(null, ppos, (int) ctx.getPosition(), 0, null);
@@ -79,11 +78,7 @@ public abstract class ParserCode<T extends Instruction> {
 		MozInst cur = inst;
 		try {
 			while (true) {
-				MozInst next = cur.exec(ctx);
-				// if (next == null) {
-				// System.out.println("null " + cur);
-				// }
-				cur = next;
+				cur = cur.exec(ctx);
 			}
 		} catch (TerminationException e) {
 			return e.status;
@@ -108,7 +103,7 @@ public abstract class ParserCode<T extends Instruction> {
 		}
 
 		public final T getCompiled() {
-			return this.compiled;
+			return compiled;
 		}
 	}
 
@@ -126,7 +121,7 @@ public abstract class ParserCode<T extends Instruction> {
 
 	/* MemoPoint */
 
-	protected Map<String, MemoPoint> memoPointMap = null;
+	protected Map<String, MemoPoint> memoPointMap;
 
 	private static class Score {
 		Production p;
@@ -141,10 +136,10 @@ public abstract class ParserCode<T extends Instruction> {
 	}
 
 	public void initMemoPoint(ParserStrategy strategy) {
-		final TypestateAnalyzer typestate = Typestate.newAnalyzer();
+		TypestateAnalyzer typestate = Typestate.newAnalyzer();
 		memoPointMap = new HashMap<>();
 		NonterminalReference refs = Productions.countNonterminalReference(grammar);
-		ArrayList<Score> l = new ArrayList<Score>();
+		ArrayList<Score> l = new ArrayList<>();
 		for (Production p : grammar) {
 			String uname = p.getUniqueName();
 			Typestate ts = typestate.inferTypestate(p);
@@ -154,14 +149,14 @@ public abstract class ParserCode<T extends Instruction> {
 		}
 		int c = 0;
 		int limits = (int) (l.size() * strategy.MemoLimit);
-		Collections.sort(l, (s, s2) -> (int) (s2.score - s.score));
+		l.sort((s, s2) -> (int) (s2.score - s.score));
 		for (Score s : l) {
 			c++;
 			if (c < limits && s.score >= 3 * strategy.TreeFactor) {
 				Production p = s.p;
 				String uname = p.getUniqueName();
-				MemoPoint memoPoint = new MemoPoint(this.memoPointMap.size(), uname, p.getExpression(), s.ts, false);
-				this.memoPointMap.put(uname, memoPoint);
+				MemoPoint memoPoint = new MemoPoint(memoPointMap.size(), uname, p.getExpression(), s.ts, false);
+				memoPointMap.put(uname, memoPoint);
 				Verbose.println("MomoPoint(%d): %s score=%f", memoPoint.id, uname, s.score);
 			}
 		}
@@ -170,20 +165,20 @@ public abstract class ParserCode<T extends Instruction> {
 
 	public final MemoPoint getMemoPoint(String uname) {
 		if (memoPointMap != null) {
-			return this.memoPointMap.get(uname);
+			return memoPointMap.get(uname);
 		}
 		return null;
 	}
 
 	public final int getMemoPointSize() {
-		return this.memoPointMap != null ? this.memoPointMap.size() : 0;
+		return memoPointMap != null ? memoPointMap.size() : 0;
 	}
 
 	public final void dumpMemoPoints() {
-		if (this.memoPointMap != null) {
+		if (memoPointMap != null) {
 			Verbose.println("ID\tPEG\tCount\tHit\tFail\tMean");
-			for (String key : this.memoPointMap.keySet()) {
-				MemoPoint p = this.memoPointMap.get(key);
+			for (String key : memoPointMap.keySet()) {
+				MemoPoint p = memoPointMap.get(key);
 				String s = String.format("%d\t%s\t%d\t%f\t%f\t%f", p.id, p.label, p.count(), p.hitRatio(), p.failHitRatio(), p.meanLength());
 				Verbose.println(s);
 			}
@@ -192,10 +187,10 @@ public abstract class ParserCode<T extends Instruction> {
 	}
 
 	/* Coverage */
-	private CoverageProfiler prof = null;
+	private CoverageProfiler prof;
 
 	public void initCoverage(ParserStrategy strategy) {
-		prof = strategy.getCoverageProfier();
+		prof = strategy.getCoverageProfiler();
 	}
 
 	public MozInst compileCoverage(String label, boolean start, MozInst next) {

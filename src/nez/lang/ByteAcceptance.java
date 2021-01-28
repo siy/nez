@@ -36,24 +36,11 @@ public enum ByteAcceptance {
 
 	static Analyzer analyzer = new Analyzer();
 
-	public final static ByteAcceptance acc(Expression e, int ch) {
+	public static ByteAcceptance acc(Expression e, int ch) {
 		return analyzer.accept(e, ch);
 	}
 
-	public final static boolean isDisjoint(Expression e, Expression e2) {
-		for (int ch = 0; ch < 256; ch++) {
-			if (acc(e, ch) == Reject) {
-				continue;
-			}
-			if (acc(e2, ch) == Reject) {
-				continue;
-			}
-			return false;
-		}
-		return true;
-	}
-
-	public final static class Analyzer extends Expression.Visitor {
+	public static final class Analyzer extends Expression.Visitor {
 
 		public ByteAcceptance accept(Expression e, Object ch) {
 			return (ByteAcceptance) e.visit(this, ch);
@@ -111,8 +98,8 @@ public enum ByteAcceptance {
 
 		@Override
 		public ByteAcceptance visitSequence(Sequence e, Object ch) {
-			for (int i = 0; i < e.size(); i++) {
-				ByteAcceptance r = accept(e.get(i), ch);
+			for (Expression expression : e) {
+				ByteAcceptance r = accept(expression, ch);
 				if (r != Unconsumed) {
 					return r;
 				}
@@ -123,10 +110,10 @@ public enum ByteAcceptance {
 		@Override
 		public ByteAcceptance visitChoice(Choice e, Object ch) {
 			boolean hasUnconsumed = false;
-			for (int i = 0; i < e.size(); i++) {
-				ByteAcceptance r = accept(e.get(i), ch);
+			for (Expression expression : e) {
+				ByteAcceptance r = accept(expression, ch);
 				if (r == Accept) {
-					return r;
+					return Accept;
 				}
 				if (r == Unconsumed) {
 					hasUnconsumed = true;

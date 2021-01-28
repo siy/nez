@@ -16,21 +16,21 @@ public class Token implements InferenceTokenSymbol {
 	}
 
 	public Histogram getHistogram() {
-		return this.histogram;
+		return histogram;
 	}
 
 	// return similarity of histogram against a specified token's one
 	public double calcHistogramSimilarity(Token target) {
-		return Histogram.calcSimilarity(this.histogram, target.getHistogram());
+		return Histogram.calcSimilarity(histogram, target.getHistogram());
 	}
 
 	public Expression getExpression(Grammar g) {
-		return Expressions.newNonTerminal(null, g, this.label);
+		return Expressions.newNonTerminal(null, g, label);
 	}
 
 	@Override
 	public String toString() {
-		return this.label;
+		return label;
 	}
 }
 
@@ -42,12 +42,12 @@ class DelimToken extends Token {
 
 	@Override
 	public Expression getExpression(Grammar g) {
-		return Expressions.newExpression(null, this.label);
+		return Expressions.newExpression(null, label);
 	}
 
 	@Override
 	public String toString() {
-		return String.format("\"%s\"", this.label);
+		return String.format("\"%s\"", label);
 	}
 }
 
@@ -61,13 +61,13 @@ class MetaToken extends Token {
 
 	@Override
 	public Expression getExpression(Grammar g) {
-		return this.getExpression(innerNode, g);
+		return getExpression(innerNode, g);
 	}
 
 	// FIXME
 	// assume that there is no nested MetaToken
 	public Expression getExpression(Tree<?> node, Grammar g) {
-		UList<Expression> l = new UList<Expression>(new Expression[3]);
+		UList<Expression> l = new UList<>(new Expression[3]);
 		l.add(Expressions.newExpression(null, node.getText(_open, "")));
 		l.add(Expressions.newNonTerminal(null, g, node.get(_value).getTag().toString()));
 		l.add(Expressions.newExpression(null, node.getText(_close, "")));

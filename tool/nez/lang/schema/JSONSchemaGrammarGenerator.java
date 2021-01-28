@@ -81,19 +81,19 @@ public class JSONSchemaGrammarGenerator extends AbstractSchemaGrammarGenerator i
 		}
 	}
 
-	private final Expression _OpenSquare() {
+	private Expression _OpenSquare() {
 		return _Char('[');
 	}
 
-	private final Expression _CloseSquare() {
+	private Expression _CloseSquare() {
 		return _Char(']');
 	}
 
-	private final Expression _OpenWave() {
+	private Expression _OpenWave() {
 		return _Char('{');
 	}
 
-	private final Expression _CloseWave() {
+	private Expression _CloseWave() {
 		return _Char('}');
 	}
 

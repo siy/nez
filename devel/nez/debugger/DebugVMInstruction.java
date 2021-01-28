@@ -17,7 +17,7 @@ public abstract class DebugVMInstruction {
 	}
 
 	public Expression getExpression() {
-		return this.expr;
+		return expr;
 	}
 
 	public void setNextInstruction(DebugVMInstruction next) {
@@ -75,7 +75,7 @@ class Inop extends DebugVMInstruction {
 
 	@Override
 	public DebugVMInstruction exec(Context ctx) throws MachineExitException {
-		return this.next;
+		return next;
 	}
 }
 
@@ -89,7 +89,7 @@ abstract class JumpInstruction extends DebugVMInstruction {
 	}
 
 	public BasicBlock getJumpBB() {
-		return this.jumpBB;
+		return jumpBB;
 	}
 }
 
@@ -112,12 +112,12 @@ class Icall extends JumpInstruction {
 
 	@Override
 	public void stringfy(StringBuilder sb) {
-		sb.append("Icall " + ne.getLocalName() + " jmp:" + this.jumpBB.name + " fail:" + this.failBB.name);
+		sb.append("Icall ").append(ne.getLocalName()).append(" jmp:").append(jumpBB.name).append(" fail:").append(failBB.name);
 	}
 
 	@Override
 	public String toString() {
-		return "Icall " + ne.getLocalName() + " (" + this.jumpPoint + ", " + this.failBB.codePoint + ")";
+		return "Icall " + ne.getLocalName() + " (" + jumpPoint + ", " + failBB.codePoint + ")";
 	}
 
 	@Override
@@ -160,12 +160,12 @@ class Ijump extends JumpInstruction {
 
 	@Override
 	public void stringfy(StringBuilder sb) {
-		sb.append("Ijump (").append(this.jumpBB.getName()).append(")");
+		sb.append("Ijump (").append(jumpBB.getName()).append(")");
 	}
 
 	@Override
 	public String toString() {
-		return "Ijump (" + this.jumpBB.codePoint + ")";
+		return "Ijump (" + jumpBB.codePoint + ")";
 	}
 
 	@Override
@@ -182,12 +182,12 @@ class Iiffail extends JumpInstruction {
 
 	@Override
 	public void stringfy(StringBuilder sb) {
-		sb.append("Iiffail (").append(this.jumpBB.getName()).append(")");
+		sb.append("Iiffail (").append(jumpBB.getName()).append(")");
 	}
 
 	@Override
 	public String toString() {
-		return "Iiffail (" + this.jumpBB.codePoint + ")";
+		return "Iiffail (" + jumpBB.codePoint + ")";
 	}
 
 	@Override
@@ -317,12 +317,12 @@ class Ichar extends JumpInstruction {
 
 	@Override
 	public void stringfy(StringBuilder sb) {
-		sb.append("Ichar ").append(StringUtils.stringfyByte(this.byteChar)).append(" ").append(this.jumpBB.getName());
+		sb.append("Ichar ").append(StringUtils.stringfyByte(byteChar)).append(" ").append(jumpBB.getName());
 	}
 
 	@Override
 	public String toString() {
-		return "Ichar " + StringUtils.stringfyByte(this.byteChar) + " (" + this.jumpBB.codePoint + ")";
+		return "Ichar " + StringUtils.stringfyByte(byteChar) + " (" + jumpBB.codePoint + ")";
 	}
 
 	@Override
@@ -342,12 +342,12 @@ class Istr extends JumpInstruction {
 
 	@Override
 	public void stringfy(StringBuilder sb) {
-		sb.append("Istr ").append(this.jumpBB.getName());
+		sb.append("Istr ").append(jumpBB.getName());
 	}
 
 	@Override
 	public String toString() {
-		return "Istr " + " (" + this.jumpBB.codePoint + ")";
+		return "Istr " + " (" + jumpBB.codePoint + ")";
 	}
 
 	@Override
@@ -373,12 +373,12 @@ class Icharclass extends JumpInstruction {
 
 	@Override
 	public void stringfy(StringBuilder sb) {
-		sb.append("Icharclass ").append(StringUtils.stringfyByteSet(this.byteMap)).append(" ").append(this.jumpBB.getName());
+		sb.append("Icharclass ").append(StringUtils.stringfyByteSet(byteMap)).append(" ").append(jumpBB.getName());
 	}
 
 	@Override
 	public String toString() {
-		return "Icharclass " + StringUtils.stringfyByteSet(this.byteMap) + " (" + this.jumpBB.codePoint + ")";
+		return "Icharclass " + StringUtils.stringfyByteSet(byteMap) + " (" + jumpBB.codePoint + ")";
 	}
 
 	@Override
@@ -395,12 +395,12 @@ class Iany extends JumpInstruction {
 
 	@Override
 	public void stringfy(StringBuilder sb) {
-		sb.append("Iany ").append(this.jumpBB.getName());
+		sb.append("Iany ").append(jumpBB.getName());
 	}
 
 	@Override
 	public String toString() {
-		return "Iany (" + this.jumpBB.codePoint + ")";
+		return "Iany (" + jumpBB.codePoint + ")";
 	}
 
 	@Override
@@ -442,12 +442,12 @@ class Ileftnew extends DebugVMInstruction {
 
 	@Override
 	public void stringfy(StringBuilder sb) {
-		sb.append("Ileftnew ").append(this.index);
+		sb.append("Ileftnew ").append(index);
 	}
 
 	@Override
 	public String toString() {
-		return "Ileftnew " + this.index;
+		return "Ileftnew " + index;
 	}
 
 	@Override
@@ -511,12 +511,12 @@ class Itag extends DebugVMInstruction {
 
 	@Override
 	public void stringfy(StringBuilder sb) {
-		sb.append("Itag " + tag.toString());
+		sb.append("Itag ").append(tag);
 	}
 
 	@Override
 	public String toString() {
-		return "Itag " + tag.toString();
+		return "Itag " + tag;
 	}
 
 	@Override
@@ -536,12 +536,12 @@ class Ireplace extends DebugVMInstruction {
 
 	@Override
 	public void stringfy(StringBuilder sb) {
-		sb.append("Ireplace ").append(this.value);
+		sb.append("Ireplace ").append(value);
 	}
 
 	@Override
 	public String toString() {
-		return "Ireplace " + this.value;
+		return "Ireplace " + value;
 	}
 
 	@Override
@@ -561,12 +561,12 @@ class Icommit extends DebugVMInstruction {
 
 	@Override
 	public void stringfy(StringBuilder sb) {
-		sb.append("Icommit ").append(this.index);
+		sb.append("Icommit ").append(index);
 	}
 
 	@Override
 	public String toString() {
-		return "Icommit " + this.index;
+		return "Icommit " + index;
 	}
 
 	@Override
@@ -608,12 +608,12 @@ class Idef extends DebugVMInstruction {
 
 	@Override
 	public void stringfy(StringBuilder sb) {
-		sb.append("Idef ").append(this.tableName.toString());
+		sb.append("Idef ").append(tableName);
 	}
 
 	@Override
 	public String toString() {
-		return "Idef " + this.tableName.toString();
+		return "Idef " + tableName;
 	}
 
 	@Override
@@ -633,12 +633,12 @@ class Iis extends JumpInstruction {
 
 	@Override
 	public void stringfy(StringBuilder sb) {
-		sb.append("Iis ").append(this.tableName.toString()).append(" ").append(this.jumpBB.getName());
+		sb.append("Iis ").append(tableName).append(" ").append(jumpBB.getName());
 	}
 
 	@Override
 	public String toString() {
-		return "Iis " + this.tableName.toString() + " (" + this.jumpBB.codePoint + ")";
+		return "Iis " + tableName + " (" + jumpBB.codePoint + ")";
 	}
 
 	@Override
@@ -658,12 +658,12 @@ class Iisa extends JumpInstruction {
 
 	@Override
 	public void stringfy(StringBuilder sb) {
-		sb.append("Iisa ").append(this.tableName.toString()).append(" ").append(this.jumpBB.getName());
+		sb.append("Iisa ").append(tableName).append(" ").append(jumpBB.getName());
 	}
 
 	@Override
 	public String toString() {
-		return "Iisa " + this.tableName.toString() + " (" + this.jumpBB.codePoint + ")";
+		return "Iisa " + tableName + " (" + jumpBB.codePoint + ")";
 	}
 
 	@Override
@@ -683,12 +683,12 @@ class Iexists extends JumpInstruction {
 
 	@Override
 	public void stringfy(StringBuilder sb) {
-		sb.append("Iexists ").append(this.tableName.toString());
+		sb.append("Iexists ").append(tableName);
 	}
 
 	@Override
 	public String toString() {
-		return "Iexists " + this.tableName.toString();
+		return "Iexists " + tableName;
 	}
 
 	@Override
@@ -730,12 +730,12 @@ class Ibeginlocalscope extends DebugVMInstruction {
 
 	@Override
 	public void stringfy(StringBuilder sb) {
-		sb.append("Ibeginlocalscope ").append(this.tableName.toString());
+		sb.append("Ibeginlocalscope ").append(tableName);
 	}
 
 	@Override
 	public String toString() {
-		return "Ibeginlocalscope " + this.tableName.toString();
+		return "Ibeginlocalscope " + tableName;
 	}
 
 	@Override

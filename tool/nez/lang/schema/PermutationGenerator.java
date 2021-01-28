@@ -1,21 +1,20 @@
 package nez.lang.schema;
 
 public class PermutationGenerator {
-	private int number, list_size;
-	private int[] perm, target;
-	private boolean[] flag;
-	private int[][] perm_list;
+	private final int number;
+	private final int[] perm;
+	private final boolean[] flag;
+	private final int[][] perm_list;
 	private int perm_list_index;
 
 	public PermutationGenerator(int[] target) {
-		this.target = target;
 		this.number = target.length;
-		this.list_size = this.fact(this.number);
-		this.perm = new int[this.number];
-		this.flag = new boolean[this.number + 1];
-		this.perm_list = new int[this.list_size][this.number];
+		int list_size = fact(number);
+		this.perm = new int[number];
+		this.flag = new boolean[number + 1];
+		this.perm_list = new int[list_size][number];
 		this.perm_list_index = 0;
-		this.genPermutation(0, this.target);
+		genPermutation(0, target);
 	}
 
 	public PermutationGenerator(int listLength) {
@@ -31,7 +30,7 @@ public class PermutationGenerator {
 	}
 
 	public int[][] getPermList() {
-		return this.perm_list;
+		return perm_list;
 	}
 
 	private int fact(int n) {
@@ -48,9 +47,9 @@ public class PermutationGenerator {
 	}
 
 	public void genPermutation(int n, int[] target) {
-		if (n == this.number) {
-			for (int i = 0; i < n; i++) {
-				perm_list[perm_list_index][i] = perm[i];
+		if (n == number) {
+			if (n >= 0) {
+				System.arraycopy(perm, 0, perm_list[perm_list_index], 0, n);
 			}
 			perm_list_index++;
 		} else {

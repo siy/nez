@@ -11,24 +11,24 @@ public class JavaParserGenerator extends CommonParserGenerator {
 	@Override
 	protected void initLanguageSpec() {
 		// this.UniqueNumberingSymbol = false;
-		this.addType("$parse", "boolean");
-		this.addType("$tag", "int");
-		this.addType("$label", "int");
-		this.addType("$table", "int");
-		this.addType("$text", "byte[]");
-		this.addType("$index", "byte[]");
-		this.addType("$set", "boolean[]");
-		this.addType("$string", "String[]");
+		addType("$parse", "boolean");
+		addType("$tag", "int");
+		addType("$label", "int");
+		addType("$table", "int");
+		addType("$text", "byte[]");
+		addType("$index", "byte[]");
+		addType("$set", "boolean[]");
+		addType("$string", "String[]");
 
-		this.addType("memo", "int");
-		this.addType(_set(), "boolean[]");
-		this.addType(_index(), "byte[]");
-		this.addType(_temp(), "boolean");
-		this.addType(_pos(), "int");
-		this.addType(_tree(), "T");
-		this.addType(_log(), "int");
-		this.addType(_table(), "int");
-		this.addType(_state(), "ParserContext<T>");
+		addType("memo", "int");
+		addType(_set(), "boolean[]");
+		addType(_index(), "byte[]");
+		addType(_temp(), "boolean");
+		addType(_pos(), "int");
+		addType(_tree(), "T");
+		addType(_log(), "int");
+		addType(_table(), "int");
+		addType(_state(), "ParserContext<T>");
 	}
 
 	@Override

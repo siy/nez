@@ -5,7 +5,7 @@ public class MemoEntry {
 	public int consumed;
 	public Object result;
 	// int memoPoint;
-	public int stateValue = 0;
+	public int stateValue;
 }
 
 class MemoEntryKey extends MemoEntry {

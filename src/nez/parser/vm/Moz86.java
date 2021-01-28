@@ -19,7 +19,7 @@ import nez.parser.vm.MozMachine.MozStackData;
 import nez.util.StringUtils;
 
 public class Moz86 {
-	public final static String[][] Specification = { //
+	public static final String[][] Specification = { //
 	//
 			{ "Nop", "name" }, // name is for debug symbol
 			{ "Exit", "state" }, //
@@ -144,7 +144,7 @@ public class Moz86 {
 					sb.append("null");
 					break;
 				}
-				sb.append("L" + ((MozInst) value).id);
+				sb.append("L").append(((MozInst) value).id);
 				break;
 			case "utf8":
 				StringUtils.formatUTF8(sb, (byte[]) value);
@@ -177,7 +177,7 @@ public class Moz86 {
 		return inst;
 	}
 
-	public final static class Nop extends MozInst {
+	public static final class Nop extends MozInst {
 		public final String name;
 
 		public Nop(String name, MozInst next) {
@@ -192,17 +192,17 @@ public class Moz86 {
 
 		@Override
 		public MozInst execMoz(MozMachine sc) throws TerminationException {
-			return this.next;
+			return next;
 		}
 
 		@Override
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
-			return this.next;
+			return next;
 		}
 
 	}
 
-	public final static class Exit extends MozInst {
+	public static final class Exit extends MozInst {
 		public final boolean status;
 
 		public Exit(boolean status) {
@@ -226,7 +226,7 @@ public class Moz86 {
 		}
 	}
 
-	public final static class Cov extends MozInst {
+	public static final class Cov extends MozInst {
 		final CoverageProfiler prof;
 		public final int uid;
 		public final boolean state; /* isStart */
@@ -253,17 +253,17 @@ public class Moz86 {
 		@Override
 		public MozInst execMoz(MozMachine sc) throws TerminationException {
 			// Coverage.enter(this.id);
-			return this.next;
+			return next;
 		}
 
 		@Override
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
-			prof.countCoverage(this.uid, state);
-			return this.next;
+			prof.countCoverage(uid, state);
+			return next;
 		}
 	}
 
-	public final static class Trap extends MozInst {
+	public static final class Trap extends MozInst {
 		public final int uid;
 
 		public Trap(int uid, MozInst next) {
@@ -278,17 +278,17 @@ public class Moz86 {
 
 		@Override
 		public MozInst execMoz(MozMachine sc) throws TerminationException {
-			return this.next;
+			return next;
 		}
 
 		@Override
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
 			sc.trap(uid);
-			return this.next;
+			return next;
 		}
 	}
 
-	public final static class Pos extends MozInst {
+	public static final class Pos extends MozInst {
 		public Pos(Expression e, MozInst next) {
 			super(MozSet.Pos, e, next);
 		}
@@ -306,18 +306,18 @@ public class Moz86 {
 		public MozInst execMoz(MozMachine sc) throws TerminationException {
 			MozStackData s = sc.newUnusedStack();
 			s.value = sc.getPosition();
-			return this.next;
+			return next;
 		}
 
 		@Override
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
 			sc.xPos();
-			return this.next;
+			return next;
 		}
 
 	}
 
-	public final static class Back extends MozInst {
+	public static final class Back extends MozInst {
 		public Back(Expression e, MozInst next) {
 			super(MozSet.Back, e, next);
 		}
@@ -335,18 +335,18 @@ public class Moz86 {
 		public MozInst execMoz(MozMachine sc) throws TerminationException {
 			MozStackData s = sc.popStack();
 			sc.setPosition(s.value);
-			return this.next;
+			return next;
 		}
 
 		@Override
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
 			sc.xBack();
-			return this.next;
+			return next;
 		}
 
 	}
 
-	public final static class Move extends MozInst {
+	public static final class Move extends MozInst {
 		public final int shift;
 
 		public Move(Expression e, int shift, MozInst next) {
@@ -366,20 +366,20 @@ public class Moz86 {
 
 		@Override
 		public MozInst execMoz(MozMachine sc) throws TerminationException {
-			sc.consume(this.shift);
-			return this.next;
+			sc.consume(shift);
+			return next;
 		}
 
 		@Override
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
-			sc.move(this.shift);
-			return this.next;
+			sc.move(shift);
+			return next;
 		}
 
 	}
 
-	public final static class Jump extends MozInst {
-		public MozInst jump = null;
+	public static final class Jump extends MozInst {
+		public MozInst jump;
 
 		public Jump(MozInst jump) {
 			super(MozSet.Call, null, null);
@@ -393,19 +393,19 @@ public class Moz86 {
 
 		@Override
 		public MozInst execMoz(MozMachine sc) throws TerminationException {
-			return this.jump;
+			return jump;
 		}
 
 		@Override
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
-			return this.jump;
+			return jump;
 		}
 
 	}
 
-	public final static class Call extends MozInst {
+	public static final class Call extends MozInst {
 		ProductionCode<MozInst> f;
-		public MozInst jump = null;
+		public MozInst jump;
 		public String name;
 
 		public Call(ProductionCode<MozInst> f, String name, MozInst next) {
@@ -427,15 +427,15 @@ public class Moz86 {
 		}
 
 		void sync() {
-			if (this.jump == null) {
-				this.jump = joinPoint(this.next);
+			if (jump == null) {
+				this.jump = joinPoint(next);
 				this.next = joinPoint(f.getCompiled());
 			}
 			this.f = null;
 		}
 
 		public final String getNonTerminalName() {
-			return this.name;
+			return name;
 		}
 
 		@Override
@@ -446,19 +446,19 @@ public class Moz86 {
 		@Override
 		public MozInst execMoz(MozMachine sc) throws TerminationException {
 			MozStackData s = sc.newUnusedStack();
-			s.ref = this.jump;
-			return this.next;
+			s.ref = jump;
+			return next;
 		}
 
 		@Override
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
 			sc.xCall(name, jump);
-			return this.next;
+			return next;
 		}
 
 	}
 
-	public final static class Ret extends MozInst {
+	public static final class Ret extends MozInst {
 		public Ret(Production e) {
 			super(MozSet.Ret, e.getExpression(), null);
 		}
@@ -489,7 +489,7 @@ public class Moz86 {
 
 	}
 
-	public final static class Alt extends MozInst {
+	public static final class Alt extends MozInst {
 		public final MozInst jump;
 
 		public Alt(Expression e, MozInst failjump, MozInst next) {
@@ -509,23 +509,23 @@ public class Moz86 {
 
 		@Override
 		MozInst branch() {
-			return this.jump;
+			return jump;
 		}
 
 		@Override
 		public MozInst execMoz(MozMachine sc) throws TerminationException {
-			sc.pushAlt(this.jump);
-			return this.next;
+			sc.pushAlt(jump);
+			return next;
 		}
 
 		@Override
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
 			sc.xAlt(jump);
-			return this.next;
+			return next;
 		}
 	}
 
-	public final static class Succ extends MozInst {
+	public static final class Succ extends MozInst {
 		public Succ(Expression e, MozInst next) {
 			super(MozSet.Succ, e, next);
 		}
@@ -542,17 +542,17 @@ public class Moz86 {
 		@Override
 		public MozInst execMoz(MozMachine sc) throws TerminationException {
 			sc.popAlt();
-			return this.next;
+			return next;
 		}
 
 		@Override
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
 			sc.xSucc();
-			return this.next;
+			return next;
 		}
 	}
 
-	public final static class Fail extends MozInst {
+	public static final class Fail extends MozInst {
 		public Fail(Expression e) {
 			super(MozSet.Fail, e, null);
 		}
@@ -578,7 +578,7 @@ public class Moz86 {
 
 	}
 
-	public final static class Guard extends MozInst {
+	public static final class Guard extends MozInst {
 		public Guard(Expression e) {
 			super(MozSet.Skip, e, null);
 		}
@@ -594,16 +594,16 @@ public class Moz86 {
 
 		@Override
 		public MozInst execMoz(MozMachine sc) throws TerminationException {
-			return sc.skip(this.next);
+			return sc.skip(next);
 		}
 
 		@Override
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
-			return sc.xStep(this.next);
+			return sc.xStep(next);
 		}
 	}
 
-	public final static class Step extends MozInst {
+	public static final class Step extends MozInst {
 		public Step(Expression e) {
 			super(MozSet.Skip, e, null);
 		}
@@ -619,12 +619,12 @@ public class Moz86 {
 
 		@Override
 		public MozInst execMoz(MozMachine sc) throws TerminationException {
-			return sc.skip(this.next);
+			return sc.skip(next);
 		}
 
 		@Override
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
-			return sc.xStep(this.next);
+			return sc.xStep(next);
 		}
 	}
 
@@ -635,7 +635,7 @@ public class Moz86 {
 	 *
 	 */
 
-	static abstract class AbstByte extends MozInst {
+	abstract static class AbstByte extends MozInst {
 		public final int byteChar;
 
 		AbstByte(byte bytecode, Nez.Byte e, MozInst next) {
@@ -662,9 +662,9 @@ public class Moz86 {
 
 		@Override
 		public MozInst execMoz(MozMachine sc) throws TerminationException {
-			if (sc.prefetch() == this.byteChar) {
+			if (sc.prefetch() == byteChar) {
 				sc.consume(1);
-				return this.next;
+				return next;
 			}
 			return sc.xFail();
 		}
@@ -672,14 +672,14 @@ public class Moz86 {
 		@Override
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
 			/* EOF must be checked at the next instruction */
-			if (sc.read() == this.byteChar) {
-				return this.next;
+			if (sc.read() == byteChar) {
+				return next;
 			}
 			return sc.xFail();
 		}
 	}
 
-	public final static class BinaryByte extends Byte {
+	public static final class BinaryByte extends Byte {
 		public BinaryByte(MozInst next) {
 			super(0, next);
 		}
@@ -688,7 +688,7 @@ public class Moz86 {
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
 			if (sc.prefetch() == 0 && !sc.eof()) {
 				sc.move(1);
-				return this.next;
+				return next;
 			}
 			return sc.xFail();
 		}
@@ -706,31 +706,31 @@ public class Moz86 {
 
 		@Override
 		public MozInst execMoz(MozMachine sc) throws TerminationException {
-			if (sc.prefetch() != this.byteChar) {
-				return this.next;
+			if (sc.prefetch() != byteChar) {
+				return next;
 			}
 			return sc.xFail();
 		}
 
 		@Override
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
-			if (sc.prefetch() != this.byteChar) {
-				return this.next;
+			if (sc.prefetch() != byteChar) {
+				return next;
 			}
 			return sc.xFail();
 		}
 
 	}
 
-	public final static class BinaryNByte extends NByte {
+	public static final class BinaryNByte extends NByte {
 		public BinaryNByte(int byteChar, MozInst next) {
 			super(byteChar, next);
 		}
 
 		@Override
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
-			if (sc.prefetch() != this.byteChar && !sc.eof()) {
-				return this.next;
+			if (sc.prefetch() != byteChar && !sc.eof()) {
+				return next;
 			}
 			return sc.xFail();
 		}
@@ -748,21 +748,21 @@ public class Moz86 {
 
 		@Override
 		public MozInst execMoz(MozMachine sc) throws TerminationException {
-			if (sc.prefetch() == this.byteChar) {
+			if (sc.prefetch() == byteChar) {
 				sc.consume(1);
 			}
-			return this.next;
+			return next;
 		}
 
 		@Override
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
-			if (sc.prefetch() == this.byteChar) {
-				if (this.byteChar == 0) {
-					return this.next;
+			if (sc.prefetch() == byteChar) {
+				if (byteChar == 0) {
+					return next;
 				}
 				sc.move(1);
 			}
-			return this.next;
+			return next;
 		}
 	}
 
@@ -776,7 +776,7 @@ public class Moz86 {
 			if (sc.prefetch() == 0 && !sc.eof()) {
 				sc.move(1);
 			}
-			return this.next;
+			return next;
 		}
 	}
 
@@ -792,18 +792,18 @@ public class Moz86 {
 
 		@Override
 		public MozInst execMoz(MozMachine sc) throws TerminationException {
-			while (sc.prefetch() == this.byteChar) {
+			while (sc.prefetch() == byteChar) {
 				sc.consume(1);
 			}
-			return this.next;
+			return next;
 		}
 
 		@Override
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
-			while (sc.prefetch() == this.byteChar) {
+			while (sc.prefetch() == byteChar) {
 				sc.move(1);
 			}
-			return this.next;
+			return next;
 		}
 	}
 
@@ -817,18 +817,18 @@ public class Moz86 {
 			while (sc.prefetch() == 0 && !sc.eof()) {
 				sc.move(1);
 			}
-			return this.next;
+			return next;
 		}
 	}
 
-	static abstract class AbstAny extends MozInst {
+	abstract static class AbstAny extends MozInst {
 		AbstAny(byte opcode, Expression e, MozInst next) {
 			super(opcode, e, next);
 		}
 
 	}
 
-	public final static class Any extends AbstAny {
+	public static final class Any extends AbstAny {
 		public Any(Expression e, MozInst next) {
 			super(MozSet.Any, e, next);
 		}
@@ -846,7 +846,7 @@ public class Moz86 {
 		public MozInst execMoz(MozMachine sc) throws TerminationException {
 			if (sc.hasUnconsumed()) {
 				sc.consume(1);
-				return this.next;
+				return next;
 			}
 			return sc.xFail();
 		}
@@ -855,13 +855,13 @@ public class Moz86 {
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
 			if (!sc.eof()) {
 				sc.move(1);
-				return this.next;
+				return next;
 			}
 			return sc.xFail();
 		}
 	}
 
-	public final static class NAny extends AbstAny {
+	public static final class NAny extends AbstAny {
 		public NAny(Expression e, boolean isBinary, MozInst next) {
 			super(MozSet.NAny, e, next);
 		}
@@ -892,23 +892,17 @@ public class Moz86 {
 		}
 	}
 
-	static abstract class AbstSet extends MozInst {
+	abstract static class AbstSet extends MozInst {
 		public final boolean[] byteSet;
 
 		AbstSet(byte opcode, Nez.ByteSet e, MozInst next) {
 			super(opcode, e, next);
 			this.byteSet = e.byteset;
-			// if (this.byteMap[0]) {
-			// this.byteMap[0] = false; // for safety
-			// }
 		}
 
 		AbstSet(byte opcode, boolean[] byteMap, MozInst next) {
 			super(opcode, null, next);
 			this.byteSet = byteMap;
-			// if (this.byteMap[0]) {
-			// this.byteMap[0] = false; // for safety
-			// }
 		}
 
 	}
@@ -928,7 +922,7 @@ public class Moz86 {
 			int byteChar = sc.prefetch();
 			if (byteSet[byteChar]) {
 				sc.consume(1);
-				return this.next;
+				return next;
 			}
 			return sc.xFail();
 		}
@@ -937,14 +931,14 @@ public class Moz86 {
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
 			int byteChar = sc.read();
 			if (byteSet[byteChar]) {
-				return this.next;
+				return next;
 			}
 			return sc.xFail();
 		}
 
 	}
 
-	public final static class BinarySet extends Set {
+	public static final class BinarySet extends Set {
 		public BinarySet(boolean[] byteMap, MozInst next) {
 			super(byteMap, next);
 		}
@@ -954,7 +948,7 @@ public class Moz86 {
 			int byteChar = sc.prefetch();
 			if (byteSet[byteChar] && !sc.eof()) {
 				sc.move(1);
-				return this.next;
+				return next;
 			}
 			return sc.xFail();
 		}
@@ -977,7 +971,7 @@ public class Moz86 {
 			if (byteSet[byteChar]) {
 				sc.consume(1);
 			}
-			return this.next;
+			return next;
 		}
 
 		@Override
@@ -986,7 +980,7 @@ public class Moz86 {
 			if (byteSet[byteChar]) {
 				sc.move(1);
 			}
-			return this.next;
+			return next;
 		}
 
 	}
@@ -1002,7 +996,7 @@ public class Moz86 {
 			if (byteSet[byteChar] && sc.eof()) {
 				sc.move(1);
 			}
-			return this.next;
+			return next;
 		}
 	}
 
@@ -1020,7 +1014,7 @@ public class Moz86 {
 		public MozInst execMoz(MozMachine sc) throws TerminationException {
 			int byteChar = sc.prefetch();
 			if (!byteSet[byteChar]) {
-				return this.next;
+				return next;
 			}
 			return sc.xFail();
 		}
@@ -1029,14 +1023,14 @@ public class Moz86 {
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
 			int byteChar = sc.prefetch();
 			if (!byteSet[byteChar]) {
-				return this.next;
+				return next;
 			}
 			return sc.xFail();
 		}
 
 	}
 
-	public final static class BinaryNSet extends NSet {
+	public static final class BinaryNSet extends NSet {
 		public BinaryNSet(boolean[] byteMap, MozInst next) {
 			super(byteMap, next);
 		}
@@ -1045,7 +1039,7 @@ public class Moz86 {
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
 			int byteChar = sc.prefetch();
 			if (!byteSet[byteChar] && !sc.eof()) {
-				return this.next;
+				return next;
 			}
 			return sc.xFail();
 		}
@@ -1069,7 +1063,7 @@ public class Moz86 {
 				sc.consume(1);
 				byteChar = sc.prefetch();
 			}
-			return this.next;
+			return next;
 		}
 
 		@Override
@@ -1077,7 +1071,7 @@ public class Moz86 {
 			while (byteSet[sc.prefetch()]) {
 				sc.move(1);
 			}
-			return this.next;
+			return next;
 		}
 
 	}
@@ -1092,34 +1086,21 @@ public class Moz86 {
 			while (byteSet[sc.prefetch()] && !sc.eof()) {
 				sc.move(1);
 			}
-			return this.next;
+			return next;
 		}
 
 	}
 
-	static abstract class AbstStr extends MozInst {
+	abstract static class AbstStr extends MozInst {
 		public final byte[] utf8;
 
 		public AbstStr(byte opcode, Nez.MultiByte e, byte[] utf8, MozInst next) {
 			super(opcode, e, next);
 			this.utf8 = utf8;
 		}
-
-		// @Override
-		// protected String getOperand() {
-		// StringBuilder sb = new StringBuilder();
-		// for (int i = 0; i < utf8.length; i++) {
-		// if (i > 0) {
-		// sb.append(" ");
-		// }
-		// sb.append(StringUtils.stringfyCharacter(utf8[i] & 0xff));
-		// }
-		// return sb.toString();
-		// }
-
 	}
 
-	public final static class Str extends AbstStr {
+	public static final class Str extends AbstStr {
 		public Str(Nez.MultiByte e, MozInst next) {
 			super(MozSet.Str, e, e.byteseq, next);
 		}
@@ -1135,24 +1116,24 @@ public class Moz86 {
 
 		@Override
 		public MozInst execMoz(MozMachine sc) throws TerminationException {
-			if (sc.match(this.utf8)) {
+			if (sc.match(utf8)) {
 				sc.consume(utf8.length);
-				return this.next;
+				return next;
 			}
 			return sc.xFail();
 		}
 
 		@Override
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
-			if (sc.match(this.utf8)) {
-				return this.next;
+			if (sc.match(utf8)) {
+				return next;
 			}
 			return sc.xFail();
 		}
 
 	}
 
-	public final static class NStr extends AbstStr {
+	public static final class NStr extends AbstStr {
 		public NStr(Nez.MultiByte e, MozInst next) {
 			super(MozSet.NStr, e, e.byteseq, next);
 		}
@@ -1168,23 +1149,23 @@ public class Moz86 {
 
 		@Override
 		public MozInst execMoz(MozMachine sc) throws TerminationException {
-			if (!sc.match(this.utf8)) {
-				return this.next;
+			if (!sc.match(utf8)) {
+				return next;
 			}
 			return sc.xFail();
 		}
 
 		@Override
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
-			if (!sc.match(this.utf8)) {
-				return this.next;
+			if (!sc.match(utf8)) {
+				return next;
 			}
 			return sc.xFail();
 		}
 
 	}
 
-	public final static class OStr extends AbstStr {
+	public static final class OStr extends AbstStr {
 		public OStr(Nez.MultiByte e, MozInst next) {
 			super(MozSet.OStr, e, e.byteseq, next);
 		}
@@ -1200,21 +1181,21 @@ public class Moz86 {
 
 		@Override
 		public MozInst execMoz(MozMachine sc) throws TerminationException {
-			if (sc.match(this.utf8)) {
+			if (sc.match(utf8)) {
 				sc.consume(utf8.length);
 			}
-			return this.next;
+			return next;
 		}
 
 		@Override
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
-			sc.match(this.utf8);
-			return this.next;
+			sc.match(utf8);
+			return next;
 		}
 
 	}
 
-	public final static class RStr extends AbstStr {
+	public static final class RStr extends AbstStr {
 		public RStr(Nez.MultiByte e, MozInst next) {
 			super(MozSet.RStr, e, e.byteseq, next);
 		}
@@ -1230,17 +1211,17 @@ public class Moz86 {
 
 		@Override
 		public MozInst execMoz(MozMachine sc) throws TerminationException {
-			while (sc.match(this.utf8)) {
+			while (sc.match(utf8)) {
 				sc.consume(utf8.length);
 			}
-			return this.next;
+			return next;
 		}
 
 		@Override
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
-			while (sc.match(this.utf8)) {
+			while (sc.match(utf8)) {
 			}
-			return this.next;
+			return next;
 		}
 
 	}
@@ -1282,7 +1263,7 @@ public class Moz86 {
 
 	}
 
-	public final static class DDispatch extends Dispatch {
+	public static final class DDispatch extends Dispatch {
 		public DDispatch(Nez.Choice e, MozInst next) {
 			super(MozSet.DFirst, e, next);
 		}
@@ -1308,7 +1289,7 @@ public class Moz86 {
 
 	// Tree Construction
 
-	public final static class TPush extends MozInst {
+	public static final class TPush extends MozInst {
 		public TPush(Expression e, MozInst next) {
 			super(MozSet.TPush, e, next);
 		}
@@ -1322,18 +1303,18 @@ public class Moz86 {
 		public MozInst execMoz(MozMachine sc) throws TerminationException {
 			ASTMachine astMachine = sc.getAstMachine();
 			astMachine.logPush();
-			return this.next;
+			return next;
 		}
 
 		@Override
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
 			sc.xTPush();
-			return this.next;
+			return next;
 		}
 
 	}
 
-	public final static class TPop extends MozInst {
+	public static final class TPop extends MozInst {
 
 		public TPop(Expression e, MozInst next) {
 			super(MozSet.TPop, e, next);
@@ -1346,21 +1327,19 @@ public class Moz86 {
 
 		@Override
 		public MozInst execMoz(MozMachine sc) throws TerminationException {
-			// ASTMachine astMachine = sc.getAstMachine();
-			// astMachine.a(label);
 			System.out.println("unsupported");
-			return this.next;
+			return next;
 		}
 
 		@Override
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
 			sc.xTPop();
-			return this.next;
+			return next;
 		}
 
 	}
 
-	public final static class TBegin extends MozInst {
+	public static final class TBegin extends MozInst {
 		public final int shift;
 
 		public TBegin(Nez.BeginTree e, MozInst next) {
@@ -1381,18 +1360,18 @@ public class Moz86 {
 		@Override
 		public MozInst execMoz(MozMachine sc) throws TerminationException {
 			ASTMachine astMachine = sc.getAstMachine();
-			astMachine.logNew(sc.getPosition() + shift, this.id);
-			return this.next;
+			astMachine.logNew(sc.getPosition() + shift, id);
+			return next;
 		}
 
 		@Override
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
 			sc.beginTree(shift);
-			return this.next;
+			return next;
 		}
 	}
 
-	public final static class TEnd extends MozInst {
+	public static final class TEnd extends MozInst {
 		public final int shift;
 		public final Symbol tag;
 		public final String value;
@@ -1420,17 +1399,17 @@ public class Moz86 {
 		public MozInst execMoz(MozMachine sc) throws TerminationException {
 			ASTMachine astMachine = sc.getAstMachine();
 			astMachine.logCapture(sc.getPosition() + shift);
-			return this.next;
+			return next;
 		}
 
 		@Override
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
 			sc.endTree(shift, tag, value);
-			return this.next;
+			return next;
 		}
 	}
 
-	public final static class TTag extends MozInst {
+	public static final class TTag extends MozInst {
 		public final Symbol tag;
 
 		public TTag(Nez.Tag e, MozInst next) {
@@ -1443,11 +1422,6 @@ public class Moz86 {
 			this.tag = tag;
 		}
 
-		// @Override
-		// protected String getOperand() {
-		// return StringUtils.quoteString('"', tag.getSymbol(), '"');
-		// }
-
 		@Override
 		public void visit(InstructionVisitor v) {
 			v.visitTTag(this);
@@ -1457,18 +1431,18 @@ public class Moz86 {
 		public MozInst execMoz(MozMachine sc) throws TerminationException {
 			ASTMachine astMachine = sc.getAstMachine();
 			astMachine.logTag(tag);
-			return this.next;
+			return next;
 		}
 
 		@Override
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
 			sc.tagTree(tag);
-			return this.next;
+			return next;
 		}
 
 	}
 
-	public final static class TReplace extends MozInst {
+	public static final class TReplace extends MozInst {
 		public final String value;
 
 		public TReplace(Nez.Replace e, MozInst next) {
@@ -1481,11 +1455,6 @@ public class Moz86 {
 			this.value = value;
 		}
 
-		// @Override
-		// protected String getOperand() {
-		// return StringUtils.quoteString('"', value, '"');
-		// }
-
 		@Override
 		public void visit(InstructionVisitor v) {
 			v.visitTReplace(this);
@@ -1494,30 +1463,25 @@ public class Moz86 {
 		@Override
 		public MozInst execMoz(MozMachine sc) throws TerminationException {
 			ASTMachine astMachine = sc.getAstMachine();
-			astMachine.logReplace(this.value);
-			return this.next;
+			astMachine.logReplace(value);
+			return next;
 		}
 
 		@Override
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
 			sc.valueTree(value);
-			return this.next;
+			return next;
 		}
 
 	}
 
-	public final static class TLink extends MozInst {
+	public static final class TLink extends MozInst {
 		public final Symbol label;
 
 		public TLink(Nez.LinkTree e, MozInst next) {
 			super(MozSet.TPop, e, next);
 			this.label = e.label;
 		}
-
-		// @Override
-		// protected String getOperand() {
-		// return label.getSymbol();
-		// }
 
 		@Override
 		public void visit(InstructionVisitor v) {
@@ -1528,18 +1492,18 @@ public class Moz86 {
 		public MozInst execMoz(MozMachine sc) throws TerminationException {
 			ASTMachine astMachine = sc.getAstMachine();
 			astMachine.logPop(label);
-			return this.next;
+			return next;
 		}
 
 		@Override
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
 			sc.xTLink(label);
-			return this.next;
+			return next;
 		}
 
 	}
 
-	public final static class TFold extends MozInst {
+	public static final class TFold extends MozInst {
 		public final int shift;
 		public final Symbol label;
 
@@ -1563,18 +1527,18 @@ public class Moz86 {
 		@Override
 		public MozInst execMoz(MozMachine sc) throws TerminationException {
 			ASTMachine astMachine = sc.getAstMachine();
-			astMachine.logLeftFold(sc.getPosition() + shift, this.label);
-			return this.next;
+			astMachine.logLeftFold(sc.getPosition() + shift, label);
+			return next;
 		}
 
 		@Override
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
 			sc.foldTree(shift, label);
-			return this.next;
+			return next;
 		}
 	}
 
-	public final static class TEmit extends MozInst {
+	public static final class TEmit extends MozInst {
 		public final Symbol label;
 
 		public TEmit(Nez.LinkTree e, MozInst next) {
@@ -1592,17 +1556,17 @@ public class Moz86 {
 			MozStackData s = sc.popStack();
 			ASTMachine astMachine = sc.getAstMachine();
 			astMachine.commitTransactionPoint(label, s.ref);
-			return this.next;
+			return next;
 		}
 
 		@Override
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
-			return this.next;
+			return next;
 		}
 
 	}
 
-	public final static class TStart extends MozInst {
+	public static final class TStart extends MozInst {
 		public TStart(Nez.LinkTree e, MozInst next) {
 			super(MozSet.TStart, e, next);
 		}
@@ -1617,19 +1581,19 @@ public class Moz86 {
 			MozStackData s = sc.newUnusedStack();
 			ASTMachine astMachine = sc.getAstMachine();
 			s.ref = astMachine.saveTransactionPoint();
-			return this.next;
+			return next;
 		}
 
 		@Override
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
-			return this.next;
+			return next;
 		}
 
 	}
 
 	/* Symbol */
 
-	static abstract class AbstractTableInstruction extends MozInst {
+	abstract static class AbstractTableInstruction extends MozInst {
 		public final Symbol table;
 
 		AbstractTableInstruction(byte opcode, Expression e, Symbol tableName, MozInst next) {
@@ -1639,7 +1603,7 @@ public class Moz86 {
 
 	}
 
-	public final static class SOpen extends MozInst {
+	public static final class SOpen extends MozInst {
 		public SOpen(Nez.BlockScope e, MozInst next) {
 			super(MozSet.SOpen, e, next);
 		}
@@ -1653,18 +1617,18 @@ public class Moz86 {
 		public MozInst execMoz(MozMachine sc) throws TerminationException {
 			MozStackData s = sc.newUnusedStack();
 			s.value = sc.getSymbolTable().saveSymbolPoint();
-			return this.next;
+			return next;
 		}
 
 		@Override
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
 			sc.xSOpen();
-			return this.next;
+			return next;
 		}
 
 	}
 
-	public final static class SClose extends MozInst {
+	public static final class SClose extends MozInst {
 		public SClose(Expression e, MozInst next) {
 			super(MozSet.SClose, e, next);
 		}
@@ -1678,17 +1642,17 @@ public class Moz86 {
 		public MozInst execMoz(MozMachine sc) throws TerminationException {
 			MozStackData s = sc.popStack();
 			sc.getSymbolTable().backSymbolPoint((int) s.value);
-			return this.next;
+			return next;
 		}
 
 		@Override
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
 			sc.xSClose();
-			return this.next;
+			return next;
 		}
 	}
 
-	public final static class SMask extends AbstractTableInstruction {
+	public static final class SMask extends AbstractTableInstruction {
 		public SMask(Nez.LocalScope e, MozInst next) {
 			super(MozSet.SMask, e, e.tableName, next);
 		}
@@ -1704,19 +1668,19 @@ public class Moz86 {
 			SymbolTable st = sc.getSymbolTable();
 			s.value = st.saveSymbolPoint();
 			st.addSymbolMask(table);
-			return this.next;
+			return next;
 		}
 
 		@Override
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
 			sc.xSOpen();
 			sc.addSymbolMask(table);
-			return this.next;
+			return next;
 		}
 
 	}
 
-	public final static class SDef extends AbstractTableInstruction {
+	public static final class SDef extends AbstractTableInstruction {
 		public SDef(Nez.SymbolAction e, MozInst next) {
 			super(MozSet.SDef, e, e.tableName, next);
 		}
@@ -1730,22 +1694,20 @@ public class Moz86 {
 		public MozInst execMoz(MozMachine sc) throws TerminationException {
 			MozStackData top = sc.popStack();
 			byte[] captured = sc.subbyte(top.value, sc.getPosition());
-			// System.out.println("symbol captured: " + new String(captured) +
-			// ", @"
-			// + this.tableName);
-			sc.getSymbolTable().addSymbol(this.table, captured);
-			return this.next;
+
+			sc.getSymbolTable().addSymbol(table, captured);
+			return next;
 		}
 
 		@Override
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
 			int ppos = sc.xPPos();
 			sc.addSymbol(table, ppos);
-			return this.next;
+			return next;
 		}
 	}
 
-	public final static class SExists extends AbstractTableInstruction {
+	public static final class SExists extends AbstractTableInstruction {
 		public SExists(Nez.SymbolExists e, MozInst next) {
 			super(MozSet.SExists, e, e.tableName, next);
 		}
@@ -1758,17 +1720,17 @@ public class Moz86 {
 		@Override
 		public MozInst execMoz(MozMachine sc) throws TerminationException {
 			byte[] t = sc.getSymbolTable().getSymbol(table);
-			return t != null ? this.next : sc.xFail();
+			return t != null ? next : sc.xFail();
 		}
 
 		@Override
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
-			return sc.exists(table) ? this.next : sc.xFail();
+			return sc.exists(table) ? next : sc.xFail();
 		}
 
 	}
 
-	public final static class SIsDef extends AbstractTableInstruction {
+	public static final class SIsDef extends AbstractTableInstruction {
 		byte[] utf8;
 
 		public SIsDef(SymbolExists e, MozInst next) {
@@ -1783,19 +1745,19 @@ public class Moz86 {
 
 		@Override
 		public MozInst execMoz(MozMachine sc) throws TerminationException {
-			if (sc.getSymbolTable().contains(this.table, utf8)) {
-				return this.next;
+			if (sc.getSymbolTable().contains(table, utf8)) {
+				return next;
 			}
 			return sc.xFail();
 		}
 
 		@Override
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
-			return sc.existsSymbol(table, utf8) ? this.next : sc.xFail();
+			return sc.existsSymbol(table, utf8) ? next : sc.xFail();
 		}
 	}
 
-	public final static class SMatch extends AbstractTableInstruction {
+	public static final class SMatch extends AbstractTableInstruction {
 		public SMatch(Nez.SymbolMatch e, MozInst next) {
 			super(MozSet.SMatch, e, e.tableName, next);
 		}
@@ -1809,23 +1771,23 @@ public class Moz86 {
 		public MozInst execMoz(MozMachine sc) throws TerminationException {
 			byte[] t = sc.getSymbolTable().getSymbol(table);
 			if (t == null) {
-				return this.next;
+				return next;
 			}
 			if (sc.match(t)) {
 				sc.consume(t.length);
-				return this.next;
+				return next;
 			}
 			return sc.xFail();
 		}
 
 		@Override
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
-			return sc.matchSymbol(table) ? this.next : sc.xFail();
+			return sc.matchSymbol(table) ? next : sc.xFail();
 		}
 
 	}
 
-	public final static class SIs extends AbstractTableInstruction {
+	public static final class SIs extends AbstractTableInstruction {
 		public SIs(Nez.SymbolPredicate e, MozInst next) {
 			super(MozSet.SIs, e, e.tableName, next);
 		}
@@ -1844,7 +1806,7 @@ public class Moz86 {
 				// System.out.println("captured:" + new String(captured));
 				if (symbol.length == captured.length && SymbolTable.equalsBytes(symbol, captured)) {
 					// sc.consume(symbol.length);
-					return this.next;
+					return next;
 				}
 			}
 			return sc.xFail();
@@ -1853,12 +1815,12 @@ public class Moz86 {
 		@Override
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
 			int ppos = sc.xPPos();
-			return sc.equals(table, ppos) ? this.next : sc.xFail();
+			return sc.equals(table, ppos) ? next : sc.xFail();
 		}
 
 	}
 
-	public final static class SIsa extends AbstractTableInstruction {
+	public static final class SIsa extends AbstractTableInstruction {
 		public SIsa(Nez.SymbolPredicate e, MozInst next) {
 			super(MozSet.SIsa, e, e.tableName, next);
 		}
@@ -1872,9 +1834,9 @@ public class Moz86 {
 		public MozInst execMoz(MozMachine sc) throws TerminationException {
 			MozStackData s = sc.popStack();
 			byte[] captured = sc.subbyte(s.value, sc.getPosition());
-			if (sc.getSymbolTable().contains(this.table, captured)) {
+			if (sc.getSymbolTable().contains(table, captured)) {
 				// sc.consume(captured.length);
-				return this.next;
+				return next;
 
 			}
 			return sc.xFail();
@@ -1883,14 +1845,14 @@ public class Moz86 {
 		@Override
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
 			int ppos = sc.xPPos();
-			return sc.contains(table, ppos) ? this.next : sc.xFail();
+			return sc.contains(table, ppos) ? next : sc.xFail();
 		}
 
 	}
 
 	/* Number */
 
-	public final static class NScan extends MozInst {
+	public static final class NScan extends MozInst {
 		public final long mask;
 		public final int shift;
 
@@ -1907,7 +1869,7 @@ public class Moz86 {
 
 		@Override
 		public MozInst execMoz(MozMachine sc) throws TerminationException {
-			return this.next;
+			return next;
 		}
 
 		@Override
@@ -1918,7 +1880,7 @@ public class Moz86 {
 		}
 	}
 
-	public final static class NDec extends MozInst {
+	public static final class NDec extends MozInst {
 		public final MozInst jump;
 
 		public NDec(MozInst jump, MozInst next) {
@@ -1933,18 +1895,18 @@ public class Moz86 {
 
 		@Override
 		public MozInst execMoz(MozMachine sc) throws TerminationException {
-			return this.jump;
+			return jump;
 		}
 
 		@Override
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
-			return sc.decCount() ? this.next : this.jump;
+			return sc.decCount() ? next : jump;
 		}
 	}
 
 	/* Memoization */
 
-	static abstract class AbstMemo extends MozInst {
+	abstract static class AbstMemo extends MozInst {
 		final MemoPoint memoPoint;
 		public final int uid;
 		public final boolean state;
@@ -1968,7 +1930,7 @@ public class Moz86 {
 
 	}
 
-	public final static class Lookup extends AbstMemo {
+	public static final class Lookup extends AbstMemo {
 		public Lookup(Expression e, MemoPoint m, MozInst next, MozInst skip) {
 			super(MozSet.Lookup, e, m, m.isStateful(), next, skip);
 		}
@@ -1988,26 +1950,26 @@ public class Moz86 {
 				}
 				memoPoint.memoHit(entry.consumed);
 				sc.consume(entry.consumed);
-				return this.jump;
+				return jump;
 			}
 			memoPoint.miss();
-			return this.next;
+			return next;
 		}
 
 		@Override
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
 			switch (sc.lookupMemo(uid)) {
 			case ParserContext.NotFound:
-				return this.next;
+				return next;
 			case ParserContext.SuccFound:
-				return this.jump;
+				return jump;
 			default:
 				return sc.xFail();
 			}
 		}
 	}
 
-	public final static class Memo extends AbstMemo {
+	public static final class Memo extends AbstMemo {
 		public Memo(Expression e, MemoPoint m, MozInst next) {
 			super(MozSet.Memo, e, m, m.isStateful(), next);
 		}
@@ -2021,19 +1983,19 @@ public class Moz86 {
 		public MozInst execMoz(MozMachine sc) throws TerminationException {
 			long ppos = sc.popAlt();
 			int length = (int) (sc.getPosition() - ppos);
-			sc.setMemo(ppos, uid, false, null, length, this.state);
-			return this.next;
+			sc.setMemo(ppos, uid, false, null, length, state);
+			return next;
 		}
 
 		@Override
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
 			int ppos = sc.xSuccPos();
 			sc.memoSucc(uid, ppos);
-			return this.next;
+			return next;
 		}
 	}
 
-	public final static class MemoFail extends AbstMemo {
+	public static final class MemoFail extends AbstMemo {
 		public MemoFail(Expression e, MemoPoint m) {
 			super(MozSet.MemoFail, e, m, m.isStateful(), null);
 		}
@@ -2057,7 +2019,7 @@ public class Moz86 {
 
 	}
 
-	public final static class TLookup extends AbstMemo {
+	public static final class TLookup extends AbstMemo {
 		public final Symbol label;
 
 		public TLookup(Nez.LinkTree e, MemoPoint m, MozInst next, MozInst skip) {
@@ -2087,19 +2049,19 @@ public class Moz86 {
 				sc.consume(entry.consumed);
 				ASTMachine astMachine = sc.getAstMachine();
 				astMachine.logLink(label, entry.result);
-				return this.jump;
+				return jump;
 			}
 			memoPoint.miss();
-			return this.next;
+			return next;
 		}
 
 		@Override
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
 			switch (sc.lookupTreeMemo(uid)) {
 			case ParserContext.NotFound:
-				return this.next;
+				return next;
 			case ParserContext.SuccFound:
-				return this.jump;
+				return jump;
 			default:
 				return sc.xFail();
 			}
@@ -2107,7 +2069,7 @@ public class Moz86 {
 
 	}
 
-	public final static class TMemo extends AbstMemo {
+	public static final class TMemo extends AbstMemo {
 		public TMemo(Expression e, MemoPoint m, MozInst next) {
 			super(MozSet.TMemo, e, m, m.isStateful(), next);
 		}
@@ -2122,15 +2084,15 @@ public class Moz86 {
 			ASTMachine astMachine = sc.getAstMachine();
 			long ppos = sc.popAlt();
 			int length = (int) (sc.getPosition() - ppos);
-			sc.setMemo(ppos, uid, false, astMachine.getLatestLinkedNode(), length, this.state);
-			return this.next;
+			sc.setMemo(ppos, uid, false, astMachine.getLatestLinkedNode(), length, state);
+			return next;
 		}
 
 		@Override
 		public MozInst exec(ParserMachineContext<?> sc) throws TerminationException {
 			int ppos = sc.xSuccPos();
 			sc.memoTreeSucc(uid, ppos);
-			return this.next;
+			return next;
 		}
 
 	}

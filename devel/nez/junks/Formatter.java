@@ -8,10 +8,10 @@ import nez.lang.Grammar;
 import nez.util.StringUtils;
 
 public abstract class Formatter {
-	public static final Formatter Null = new NullFormatter();
-	public static final Formatter Default = new DefaultFormatter();
+	public static Formatter Null = new NullFormatter();
+	public static Formatter Default = new DefaultFormatter();
 
-	public static final HashMap<String, Formatter> fmtMap = new HashMap<String, Formatter>();
+	public static HashMap<String, Formatter> fmtMap = new HashMap<>();
 	static {
 		fmtMap.put("NL", new IndentFormatter());
 		fmtMap.put("inc", new IncFormatter());
@@ -19,23 +19,23 @@ public abstract class Formatter {
 		fmtMap.put("text", Null);
 	}
 
-	public final static Formatter newAction(String t) {
+	public static Formatter newAction(String t) {
 		return fmtMap.get(t);
 	}
 
-	public final static Formatter newFormatter(String t) {
+	public static Formatter newFormatter(String t) {
 		return new TextFormatter(t);
 	}
 
-	public final static Formatter newFormatter(int index) {
+	public static Formatter newFormatter(int index) {
 		return new IndexFormatter(index);
 	}
 
-	public final static Formatter newFormatter(int start, Formatter delim, int end) {
+	public static Formatter newFormatter(int start, Formatter delim, int end) {
 		return new RangeFormatter(start, delim, end);
 	}
 
-	public final static Formatter newFormatter(List<Formatter> s) {
+	public static Formatter newFormatter(List<Formatter> s) {
 		if (s.size() == 1) {
 			return s.get(0);
 		}
@@ -47,9 +47,6 @@ public abstract class Formatter {
 	}
 
 	public static boolean isSupported(Grammar grammar, CommonTree node) {
-		// Formatter fmt = grammar.getFormatter(node.getTag().getSymbol(),
-		// node.size());
-		// return fmt != null;
 		return false;
 	}
 
@@ -84,7 +81,7 @@ class FormatterEntry {
 		}
 		if (!(index < arguments.length)) {
 			Formatter[] a = new Formatter[index + 1];
-			System.arraycopy(this.arguments, 0, a, 0, this.arguments.length);
+			System.arraycopy(arguments, 0, a, 0, arguments.length);
 			this.arguments = a;
 		}
 		arguments[index] = fmt;
@@ -99,8 +96,8 @@ class FormatterEntry {
 			index = arguments.length - 1;
 		}
 		for (int i = index; i >= 0; i--) {
-			if (this.arguments[i] != null) {
-				return this.arguments[i];
+			if (arguments[i] != null) {
+				return arguments[i];
 			}
 		}
 		return null;
@@ -108,7 +105,7 @@ class FormatterEntry {
 }
 
 class FormatterMap {
-	HashMap<String, FormatterEntry> map = new HashMap<String, FormatterEntry>();
+	HashMap<String, FormatterEntry> map = new HashMap<>();
 
 	void set(String tag, int index, Formatter fmt) {
 		FormatterEntry entry = map.get(tag);
@@ -130,22 +127,22 @@ class FormatterMap {
 
 interface FormatterStream {
 
-	public Formatter lookupFormatter(CommonTree sub);
+	Formatter lookupFormatter(CommonTree sub);
 
-	public void write(String text);
+	void write(String text);
 
-	public void writeNewLineIndent();
+	void writeNewLineIndent();
 
-	public void incIndent();
+	void incIndent();
 
-	public void decIndent();
+	void decIndent();
 
 }
 
 class FormatStringBuilder implements FormatterStream {
 	final Grammar grammar;
 	StringBuilder sb = new StringBuilder();
-	int indent = 0;
+	int indent;
 
 	FormatStringBuilder(Grammar ns) {
 		this.grammar = ns;
@@ -158,12 +155,6 @@ class FormatStringBuilder implements FormatterStream {
 
 	@Override
 	public Formatter lookupFormatter(CommonTree sub) {
-		// Formatter fmt = grammar.getFormatter(sub.getTag().getSymbol(),
-		// sub.size());
-		// if (fmt == null) {
-		// return Formatter.Default;
-		// }
-		// return fmt;
 		return Formatter.Default;
 	}
 
@@ -175,9 +166,7 @@ class FormatStringBuilder implements FormatterStream {
 	@Override
 	public void writeNewLineIndent() {
 		sb.append("\n");
-		for (int i = 0; i < indent; i++) {
-			sb.append("   ");
-		}
+		sb.append("   ".repeat(Math.max(0, indent)));
 	}
 
 	@Override
@@ -217,7 +206,7 @@ class DefaultFormatter extends Formatter {
 }
 
 class SequenceFormatter extends Formatter {
-	final Formatter sub[];
+	final Formatter[] sub;
 
 	SequenceFormatter(List<Formatter> s) {
 		sub = new Formatter[s.size()];
@@ -289,8 +278,8 @@ class RangeFormatter extends Formatter {
 	@Override
 	public void write(FormatterStream stream, CommonTree node) {
 		int size = node.size();
-		int s = Formatter.index(this.start, size);
-		int e = Formatter.index(this.end, size);
+		int s = Formatter.index(start, size);
+		int e = Formatter.index(end, size);
 		if (e > size) {
 			e = size;
 		}

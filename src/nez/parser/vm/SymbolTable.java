@@ -3,14 +3,14 @@ package nez.parser.vm;
 import nez.ast.Symbol;
 
 public class SymbolTable {
-	private final static byte[] NullSymbol = { 0, 0, 0, 0 }; // to distinguish
-																// others
+	private static final byte[] NullSymbol = {0, 0, 0, 0}; // to distinguish
+	// others
 	private SymbolTableEntry[] tables;
-	private int tableSize = 0;
-	private int maxTableSize = 0;
+	private int tableSize;
+	private int maxTableSize;
 
-	private int stateValue = 0;
-	private int stateCount = 0;
+	private int stateValue;
+	private int stateCount;
 
 	static final class SymbolTableEntry {
 		int stateValue;
@@ -20,27 +20,27 @@ public class SymbolTable {
 
 		@Override
 		public String toString() {
-			StringBuilder sb = new StringBuilder();
-			sb.append('[');
-			sb.append(stateValue);
-			sb.append(", ");
-			sb.append(table);
-			sb.append(", ");
-			sb.append((symbol == null) ? "<masked>" : new String(symbol));
-			sb.append("]");
-			return sb.toString();
+			return new StringBuilder()
+				.append('[')
+				.append(stateValue)
+				.append(", ")
+				.append(table)
+				.append(", ")
+				.append((symbol == null)
+						? "<masked>"
+						: new String(symbol)).append("]").toString();
 		}
 	}
 
-	final static long hash(byte[] utf8) {
+	static long hash(byte[] utf8) {
 		long hashCode = 1;
-		for (int i = 0; i < utf8.length; i++) {
-			hashCode = hashCode * 31 + (utf8[i] & 0xff);
+		for (byte b : utf8) {
+			hashCode = hashCode * 31 + (b & 0xff);
 		}
 		return hashCode;
 	}
 
-	public static final boolean equalsBytes(byte[] utf8, byte[] b) {
+	public static boolean equalsBytes(byte[] utf8, byte[] b) {
 		if (utf8.length == b.length) {
 			for (int i = 0; i < utf8.length; i++) {
 				if (utf8[i] != b[i]) {
@@ -54,7 +54,7 @@ public class SymbolTable {
 
 	private void initEntry(int s, int e) {
 		for (int i = s; i < e; i++) {
-			this.tables[i] = new SymbolTableEntry();
+			tables[i] = new SymbolTableEntry();
 		}
 	}
 
@@ -67,7 +67,7 @@ public class SymbolTable {
 			} else {
 				maxTableSize *= 2;
 				SymbolTableEntry[] newtable = new SymbolTableEntry[maxTableSize];
-				System.arraycopy(this.tables, 0, newtable, 0, tables.length);
+				System.arraycopy(tables, 0, newtable, 0, tables.length);
 				this.tables = newtable;
 				initEntry(tables.length / 2, maxTableSize);
 			}
@@ -89,13 +89,13 @@ public class SymbolTable {
 	}
 
 	public final int saveSymbolPoint() {
-		return this.tableSize;
+		return tableSize;
 	}
 
 	public final void backSymbolPoint(int savePoint) {
-		if (this.tableSize != savePoint) {
+		if (tableSize != savePoint) {
 			this.tableSize = savePoint;
-			if (this.tableSize == 0) {
+			if (tableSize == 0) {
 				this.stateValue = 0;
 			} else {
 				this.stateValue = tables[savePoint - 1].stateValue;
@@ -104,7 +104,7 @@ public class SymbolTable {
 	}
 
 	public final int getState() {
-		return this.stateValue;
+		return stateValue;
 	}
 
 	public final void addSymbol(Symbol table, byte[] utf8) {
@@ -130,8 +130,9 @@ public class SymbolTable {
 		for (int i = tableSize - 1; i >= 0; i--) {
 			SymbolTableEntry entry = tables[i];
 			if (entry.table == table) {
-				if (entry.symbol == NullSymbol)
+				if (entry.symbol == NullSymbol) {
 					return false; // masked
+				}
 				if (entry.code == code && equalsBytes(entry.symbol, symbol)) {
 					return true;
 				}
@@ -165,46 +166,4 @@ public class SymbolTable {
 		}
 		return false;
 	}
-
-	// public final boolean exists(Symbol table, Symbol xtable, byte[] symbol) {
-	// long code = hash(symbol);
-	// for (int i = tableSize - 1; i >= 0; i--) {
-	// SymbolTableEntry entry = tables[i];
-	// if (entry.table == xtable) {
-	// if (entry.symbol == NullSymbol) {
-	// xtable = null;
-	// continue;
-	// }
-	// if (entry.code == code && equalsBytes(entry.symbol, symbol)) {
-	// return false;
-	// }
-	// continue;
-	// }
-	// if (entry.table == table) {
-	// if (entry.symbol == null)
-	// return false; // masked
-	// if (entry.code == code && equalsBytes(entry.symbol, symbol)) {
-	// return true;
-	// }
-	// }
-	// }
-	// return false;
-	// }
-	//
-	// public final void setCount(Symbol table, int number) {
-	// push(table, number, NullSymbol);
-	// }
-	//
-	// public final boolean count(Symbol table) {
-	// for (int i = tableSize - 1; i >= 0; i--) {
-	// SymbolTableEntry entry = tables[i];
-	// if (entry.table == table) {
-	// if (entry.code == 0)
-	// return false;
-	// entry.code--;
-	// return true;
-	// }
-	// }
-	// return false;
-	// }
 }

@@ -20,34 +20,34 @@ public class CParserGenerator extends CommonParserGenerator {
 		SupportedMatch7 = true;
 		SupportedMatch8 = true;
 
-		this.addType("$parse", "int");
-		this.addType("$tag", "int");
-		this.addType("$label", "int");
-		this.addType("$table", "int");
-		this.addType("$arity", "int");
-		this.addType("$text", "const unsigned char");
-		this.addType("$index", "const unsigned char");
+		addType("$parse", "int");
+		addType("$tag", "int");
+		addType("$label", "int");
+		addType("$table", "int");
+		addType("$arity", "int");
+		addType("$text", "const unsigned char");
+		addType("$index", "const unsigned char");
 		if (UsingBitmap) {
-			this.addType("$set", "int");
+			addType("$set", "int");
 		} else {
-			this.addType("$set", "const unsigned char");
+			addType("$set", "const unsigned char");
 		}
-		this.addType("$range", "const unsigned char __attribute__((aligned(16)))");
-		this.addType("$string", "const char *");
+		addType("$range", "const unsigned char __attribute__((aligned(16)))");
+		addType("$string", "const char *");
 
-		this.addType("memo", "int");
+		addType("memo", "int");
 		if (UsingBitmap) {
-			this.addType(_set(), "int");
+			addType(_set(), "int");
 		} else {
-			this.addType(_set(), "const unsigned char *");/* boolean */
+			addType(_set(), "const unsigned char *");/* boolean */
 		}
-		this.addType(_index(), "const unsigned char *");
-		this.addType(_temp(), "int");/* boolean */
-		this.addType(_pos(), "const unsigned char *");
-		this.addType(_tree(), "size_t");
-		this.addType(_log(), "size_t");
-		this.addType(_table(), "size_t");
-		this.addType(_state(), "ParserContext *");
+		addType(_index(), "const unsigned char *");
+		addType(_temp(), "int");/* boolean */
+		addType(_pos(), "const unsigned char *");
+		addType(_tree(), "size_t");
+		addType(_log(), "size_t");
+		addType(_table(), "size_t");
+		addType(_state(), "ParserContext *");
 	}
 
 	@Override
@@ -79,9 +79,9 @@ public class CParserGenerator extends CommonParserGenerator {
 		sb.append(name);
 		sb.append("(");
 		sb.append(_state());
-		for (int i = 0; i < args.length; i++) {
+		for (String arg : args) {
 			sb.append(",");
-			sb.append(args[i]);
+			sb.append(arg);
 		}
 		sb.append(")");
 		return sb.toString();
@@ -102,7 +102,7 @@ public class CParserGenerator extends CommonParserGenerator {
 
 	@Override
 	protected String _defun(String type, String name) {
-		if (this.crossRefNames.contains(name)) {
+		if (crossRefNames.contains(name)) {
 			return type + " " + name;
 		}
 		return "static inline " + type + " " + name;
@@ -125,7 +125,7 @@ public class CParserGenerator extends CommonParserGenerator {
 	@Override
 	protected void generatePrototypes() {
 		LineComment("Prototypes");
-		for (String name : this.crossRefNames) {
+		for (String name : crossRefNames) {
 			Statement(_defun("int", name) + "(ParserContext *c)");
 		}
 	}
@@ -139,7 +139,7 @@ public class CParserGenerator extends CommonParserGenerator {
 			VarDecl("void*", "result", _Null());
 			VarDecl(_state(), "ParserContext_new((const unsigned char*)text, len)");
 			Statement(_Func("initTreeFunc", "thunk", "fnew", "fset", "fgc"));
-			this.InitMemoPoint();
+			InitMemoPoint();
 			If(_funccall(_funcname(g.getStartProduction())));
 			{
 				VarAssign("result", _Field(_state(), _tree()));
@@ -164,7 +164,7 @@ public class CParserGenerator extends CommonParserGenerator {
 			VarDecl("long", "result", "-1");
 			VarDecl(_state(), "ParserContext_new((const unsigned char*)text, len)");
 			Statement(_Func("initNoTreeFunc"));
-			this.InitMemoPoint();
+			InitMemoPoint();
 			If(_funccall(_funcname(g.getStartProduction())));
 			{
 				VarAssign("result", _cpos() + "-" + _Field(_state(), "inputs"));
@@ -193,14 +193,14 @@ public class CParserGenerator extends CommonParserGenerator {
 		Line("#endif/*MAIN*/");
 		file.writeIndent("// End of File");
 		generateHeaderFile();
-		this.showManual("cnez-man.txt", new String[] { "$cmd$", _basename() });
+		showManual("cnez-man.txt", new String[] { "$cmd$", _basename() });
 	}
 
 	private void generateHeaderFile() {
-		this.setFileBuilder(".h");
+		setFileBuilder(".h");
 		Statement("typedef unsigned long int symbol_t");
 		int c = 1;
-		for (String s : this.tagList) {
+		for (String s : tagList) {
 			if (s.equals("")) {
 				continue;
 			}
@@ -209,7 +209,7 @@ public class CParserGenerator extends CommonParserGenerator {
 		}
 		Line("#define MAXTAG " + c);
 		c = 1;
-		for (String s : this.labelList) {
+		for (String s : labelList) {
 			if (s.equals("")) {
 				continue;
 			}
@@ -221,7 +221,7 @@ public class CParserGenerator extends CommonParserGenerator {
 		Statement("long " + _ns() + "match(const char *text, size_t len)");
 		Statement("const char* " + _ns() + "tag(symbol_t n)");
 		Statement("const char* " + _ns() + "label(symbol_t n)");
-		this.file.close();
+		file.close();
 	}
 
 }

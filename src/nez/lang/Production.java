@@ -6,9 +6,9 @@ import nez.util.UList;
 
 public class Production {
 
-	private Grammar grammar;
-	private String name;
-	private String uname;
+	private final Grammar grammar;
+	private final String name;
+	private final String uname;
 	private Expression body;
 
 	Production(SourceLocation s, Grammar grammar, String name, Expression body) {
@@ -19,19 +19,19 @@ public class Production {
 	}
 
 	public final Grammar getGrammar() {
-		return this.grammar;
+		return grammar;
 	}
 
 	public final String getLocalName() {
-		return this.name;
+		return name;
 	}
 
 	public final String getUniqueName() {
-		return this.uname;
+		return uname;
 	}
 
 	public final Expression getExpression() {
-		return this.body;
+		return body;
 	}
 
 	public final void setExpression(Expression e) {
@@ -43,15 +43,15 @@ public class Production {
 	}
 
 	public final boolean isTerminal() {
-		return this.name.startsWith("\"");
+		return name.startsWith("\"");
 	}
 
 	public final void dump() {
-		UList<String> l = new UList<String>(new String[4]);
-		if (this.isPublic()) {
+		UList<String> l = new UList<>(new String[4]);
+		if (isPublic()) {
 			l.add("public");
 		}
-		ConsoleUtils.println(l + "\n" + this.getLocalName() + " = " + this.getExpression());
+		ConsoleUtils.println(l + "\n" + getLocalName() + " = " + getExpression());
 	}
 
 }

@@ -8,7 +8,7 @@ import nez.util.StringUtils;
 import nez.util.Verbose;
 
 public class ParserContext<T extends Tree<T>> {
-	public int pos = 0;
+	public int pos;
 	public T left;
 
 	public ParserContext(String s, T proto) {
@@ -29,8 +29,8 @@ public class ParserContext<T extends Tree<T>> {
 	}
 
 	protected Source source;
-	private byte[] inputs;
-	private int length;
+	private final byte[] inputs;
+	private final int length;
 
 	public boolean eof() {
 		return !(pos < length);
@@ -54,11 +54,11 @@ public class ParserContext<T extends Tree<T>> {
 
 	public boolean match(byte[] text) {
 		int len = text.length;
-		if (pos + len > this.length) {
+		if (pos + len > length) {
 			return false;
 		}
 		for (int i = 0; i < len; i++) {
-			if (text[i] != this.inputs[pos + i]) {
+			if (text[i] != inputs[pos + i]) {
 				return false;
 			}
 		}
@@ -68,7 +68,7 @@ public class ParserContext<T extends Tree<T>> {
 
 	public byte[] subByte(int startIndex, int endIndex) {
 		byte[] b = new byte[endIndex - startIndex];
-		System.arraycopy(this.inputs, (startIndex), b, 0, b.length);
+		System.arraycopy(inputs, (startIndex), b, 0, b.length);
 		return b;
 	}
 
@@ -79,7 +79,7 @@ public class ParserContext<T extends Tree<T>> {
 	// AST
 
 	private enum Operation {
-		Link, Tag, Replace, New;
+		Link, Tag, Replace, New
 	}
 
 	static class TreeLog {
@@ -90,7 +90,7 @@ public class ParserContext<T extends Tree<T>> {
 	}
 
 	private TreeLog[] logs = new TreeLog[0];
-	private int unused_log = 0;
+	private int unused_log;
 
 	private void log2(Operation op, int pos, Object value, T tree) {
 		if (!(unused_log < logs.length)) {
@@ -163,7 +163,7 @@ public class ParserContext<T extends Tree<T>> {
 				}
 			}
 		}
-		this.backLog(start_index);
+		backLog(start_index);
 	}
 
 	public final T newTree(Symbol tag, int start, int end, int n, String value) {
@@ -178,13 +178,13 @@ public class ParserContext<T extends Tree<T>> {
 	}
 
 	public final void backLog(int log) {
-		if (this.unused_log > log) {
+		if (unused_log > log) {
 			this.unused_log = log;
 		}
 	}
 
 	public final T saveTree() {
-		return this.left;
+		return left;
 	}
 
 	public final void backTree(T tree) {
@@ -193,36 +193,23 @@ public class ParserContext<T extends Tree<T>> {
 
 	// Symbol Table ---------------------------------------------------------
 
-	private final static byte[] NullSymbol = { 0, 0, 0, 0 }; // to distinguish
+	private static final byte[] NullSymbol = { 0, 0, 0, 0 }; // to distinguish
 
 	// others
 	private SymbolTableEntry[] tables = new SymbolTableEntry[0];
-	private int tableSize = 0;
+	private int tableSize;
 
-	private int stateValue = 0;
-	private int stateCount = 0;
+	private int stateValue;
+	private int stateCount;
 
 	static final class SymbolTableEntry {
 		int stateValue;
 		Symbol table;
 		long code;
 		byte[] symbol; // if uft8 is null, hidden
-
-		// @Override
-		// public String toString() {
-		// StringBuilder sb = new StringBuilder();
-		// sb.append('[');
-		// sb.append(stateValue);
-		// sb.append(", ");
-		// sb.append(table);
-		// sb.append(", ");
-		// sb.append((symbol == null) ? "<masked>" : new String(symbol));
-		// sb.append("]");
-		// return sb.toString();
-		// }
 	}
 
-	private final static long hash(byte[] utf8, int ppos, int pos) {
+	private static long hash(byte[] utf8, int ppos, int pos) {
 		long hashCode = 1;
 		for (int i = ppos; i < pos; i++) {
 			hashCode = hashCode * 31 + (utf8[i] & 0xff);
@@ -230,7 +217,7 @@ public class ParserContext<T extends Tree<T>> {
 		return hashCode;
 	}
 
-	private final static boolean equalsBytes(byte[] utf8, byte[] b) {
+	private static boolean equalsBytes(byte[] utf8, byte[] b) {
 		if (utf8.length == b.length) {
 			for (int i = 0; i < utf8.length; i++) {
 				if (utf8[i] != b[i]) {
@@ -245,7 +232,7 @@ public class ParserContext<T extends Tree<T>> {
 	private void push(Symbol table, long code, byte[] utf8) {
 		if (!(tableSize < tables.length)) {
 			SymbolTableEntry[] newtable = new SymbolTableEntry[tables.length + 256];
-			System.arraycopy(this.tables, 0, newtable, 0, tables.length);
+			System.arraycopy(tables, 0, newtable, 0, tables.length);
 			for (int i = tables.length; i < newtable.length; i++) {
 				newtable[i] = new SymbolTableEntry();
 			}
@@ -269,13 +256,13 @@ public class ParserContext<T extends Tree<T>> {
 	}
 
 	public final int saveSymbolPoint() {
-		return this.tableSize;
+		return tableSize;
 	}
 
 	public final void backSymbolPoint(int savePoint) {
-		if (this.tableSize != savePoint) {
+		if (tableSize != savePoint) {
 			this.tableSize = savePoint;
-			if (this.tableSize == 0) {
+			if (tableSize == 0) {
 				this.stateValue = 0;
 			} else {
 				this.stateValue = tables[savePoint - 1].stateValue;
@@ -284,7 +271,7 @@ public class ParserContext<T extends Tree<T>> {
 	}
 
 	public final void addSymbol(Symbol table, int ppos) {
-		byte[] b = this.subByte(ppos, pos);
+		byte[] b = subByte(ppos, pos);
 		push(table, hash(b, 0, b.length), b);
 	}
 
@@ -325,13 +312,13 @@ public class ParserContext<T extends Tree<T>> {
 				if (entry.symbol == NullSymbol) {
 					return false; // masked
 				}
-				return this.match(entry.symbol);
+				return match(entry.symbol);
 			}
 		}
 		return false;
 	}
 
-	private final long hashInputs(int ppos, int pos) {
+	private long hashInputs(int ppos, int pos) {
 		long hashCode = 1;
 		for (int i = ppos; i < pos; i++) {
 			hashCode = hashCode * 31 + (byteAt(i) & 0xff);
@@ -339,7 +326,7 @@ public class ParserContext<T extends Tree<T>> {
 		return hashCode;
 	}
 
-	private final boolean equalsInputs(int ppos, int pos, byte[] b2) {
+	private boolean equalsInputs(int ppos, int pos, byte[] b2) {
 		if ((pos - ppos) == b2.length) {
 			for (int i = 0; i < b2.length; i++) {
 				if (byteAt(ppos + i) != b2[i]) {
@@ -382,7 +369,7 @@ public class ParserContext<T extends Tree<T>> {
 
 	// Counter ------------------------------------------------------------
 
-	private int count = 0;
+	private int count;
 
 	public final void scanCount(int ppos, long mask, int shift) {
 		if (mask == 0) {
@@ -391,7 +378,7 @@ public class ParserContext<T extends Tree<T>> {
 		} else {
 			long v = 0;
 			for (int i = ppos; i < pos; i++) {
-				int n = this.byteAt(i) & 0xff;
+				int n = byteAt(i) & 0xff;
 				v <<= 8;
 				v |= n;
 			}
@@ -407,28 +394,28 @@ public class ParserContext<T extends Tree<T>> {
 
 	// Memotable ------------------------------------------------------------
 
-	public final static int NotFound = 0;
-	public final static int SuccFound = 1;
-	public final static int FailFound = 2;
+	public static final int NotFound = 0;
+	public static final int SuccFound = 1;
+	public static final int FailFound = 2;
 
 	private static class MemoEntry<E extends Tree<E>> {
 		long key = -1;
 		public int consumed;
 		public E memoTree;
 		public int result;
-		public int stateValue = 0;
+		public int stateValue;
 	}
 
-	private MemoEntry<T>[] memoArray = null;
-	private int shift = 0;
+	private MemoEntry<T>[] memoArray;
+	private int shift;
 
 	@SuppressWarnings("unchecked")
 	public void initMemoTable(int w, int n) {
 		this.memoArray = new MemoEntry[w * n + 1];
-		for (int i = 0; i < this.memoArray.length; i++) {
-			this.memoArray[i] = new MemoEntry<T>();
-			this.memoArray[i].key = -1;
-			this.memoArray[i].result = NotFound;
+		for (int i = 0; i < memoArray.length; i++) {
+			memoArray[i] = new MemoEntry<>();
+			memoArray[i].key = -1;
+			memoArray[i].result = NotFound;
 		}
 		this.shift = (int) (Math.log(n) / Math.log(2.0)) + 1;
 		// this.initStat();
@@ -441,7 +428,7 @@ public class ParserContext<T extends Tree<T>> {
 	public final int lookupMemo(int memoPoint) {
 		long key = longkey(pos, memoPoint, shift);
 		int hash = (int) (key % memoArray.length);
-		MemoEntry<T> m = this.memoArray[hash];
+		MemoEntry<T> m = memoArray[hash];
 		if (m.key == key) {
 			this.pos += m.consumed;
 			return m.result;
@@ -452,7 +439,7 @@ public class ParserContext<T extends Tree<T>> {
 	public final int lookupTreeMemo(int memoPoint) {
 		long key = longkey(pos, memoPoint, shift);
 		int hash = (int) (key % memoArray.length);
-		MemoEntry<T> m = this.memoArray[hash];
+		MemoEntry<T> m = memoArray[hash];
 		if (m.key == key) {
 			this.pos += m.consumed;
 			this.left = m.memoTree;
@@ -464,7 +451,7 @@ public class ParserContext<T extends Tree<T>> {
 	public void memoSucc(int memoPoint, int ppos) {
 		long key = longkey(ppos, memoPoint, shift);
 		int hash = (int) (key % memoArray.length);
-		MemoEntry<T> m = this.memoArray[hash];
+		MemoEntry<T> m = memoArray[hash];
 		m.key = key;
 		m.memoTree = left;
 		m.consumed = pos - ppos;
@@ -476,7 +463,7 @@ public class ParserContext<T extends Tree<T>> {
 	public void memoTreeSucc(int memoPoint, int ppos) {
 		long key = longkey(ppos, memoPoint, shift);
 		int hash = (int) (key % memoArray.length);
-		MemoEntry<T> m = this.memoArray[hash];
+		MemoEntry<T> m = memoArray[hash];
 		m.key = key;
 		m.memoTree = left;
 		m.consumed = pos - ppos;
@@ -488,7 +475,7 @@ public class ParserContext<T extends Tree<T>> {
 	public void memoFail(int memoPoint) {
 		long key = longkey(pos, memoPoint, shift);
 		int hash = (int) (key % memoArray.length);
-		MemoEntry<T> m = this.memoArray[hash];
+		MemoEntry<T> m = memoArray[hash];
 		m.key = key;
 		m.memoTree = left;
 		m.consumed = 0;
@@ -501,7 +488,7 @@ public class ParserContext<T extends Tree<T>> {
 	public final int lookupStateMemo(int memoPoint) {
 		long key = longkey(pos, memoPoint, shift);
 		int hash = (int) (key % memoArray.length);
-		MemoEntry<T> m = this.memoArray[hash];
+		MemoEntry<T> m = memoArray[hash];
 		if (m.key == key) {
 			this.pos += m.consumed;
 			return m.result;
@@ -512,8 +499,8 @@ public class ParserContext<T extends Tree<T>> {
 	public final int lookupStateTreeMemo(int memoPoint) {
 		long key = longkey(pos, memoPoint, shift);
 		int hash = (int) (key % memoArray.length);
-		MemoEntry<T> m = this.memoArray[hash];
-		if (m.key == key && m.stateValue == this.stateValue) {
+		MemoEntry<T> m = memoArray[hash];
+		if (m.key == key && m.stateValue == stateValue) {
 			this.pos += m.consumed;
 			this.left = m.memoTree;
 			return m.result;
@@ -524,36 +511,36 @@ public class ParserContext<T extends Tree<T>> {
 	public void memoStateSucc(int memoPoint, int ppos) {
 		long key = longkey(ppos, memoPoint, shift);
 		int hash = (int) (key % memoArray.length);
-		MemoEntry<T> m = this.memoArray[hash];
+		MemoEntry<T> m = memoArray[hash];
 		m.key = key;
 		m.memoTree = left;
 		m.consumed = pos - ppos;
 		m.result = SuccFound;
-		m.stateValue = this.stateValue;
+		m.stateValue = stateValue;
 		// this.CountStored += 1;
 	}
 
 	public void memoStateTreeSucc(int memoPoint, int ppos) {
 		long key = longkey(ppos, memoPoint, shift);
 		int hash = (int) (key % memoArray.length);
-		MemoEntry<T> m = this.memoArray[hash];
+		MemoEntry<T> m = memoArray[hash];
 		m.key = key;
 		m.memoTree = left;
 		m.consumed = pos - ppos;
 		m.result = SuccFound;
-		m.stateValue = this.stateValue;
+		m.stateValue = stateValue;
 		// this.CountStored += 1;
 	}
 
 	public void memoStateFail(int memoPoint) {
 		long key = longkey(pos, memoPoint, shift);
 		int hash = (int) (key % memoArray.length);
-		MemoEntry<T> m = this.memoArray[hash];
+		MemoEntry<T> m = memoArray[hash];
 		m.key = key;
 		m.memoTree = left;
 		m.consumed = 0;
 		m.result = FailFound;
-		m.stateValue = this.stateValue;
+		m.stateValue = stateValue;
 	}
 
 }

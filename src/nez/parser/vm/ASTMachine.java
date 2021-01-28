@@ -6,38 +6,37 @@ import nez.ast.Tree;
 import nez.util.Verbose;
 
 class ASTMachine {
-	final static boolean debugMode = false;
-	final static int Nop = 0;
-	final static int Capture = 1;
-	final static int Tag = 2;
-	final static int Replace = 3;
-	final static int LeftFold = 4;
-	final static int Pop = 5;
-	final static int Push = 6;
-	final static int Link = 7;
-	final static int New = 8;
+	static final boolean debugMode = false;
+	static final int Nop = 0;
+	static final int Capture = 1;
+	static final int Tag = 2;
+	static final int Replace = 3;
+	static final int LeftFold = 4;
+	static final int Pop = 5;
+	static final int Push = 6;
+	static final int Link = 7;
+	static final int New = 8;
 
 	Source source;
-	// TreeTransducer treeTransducer;
 	Tree<?> prototype;
-	ASTLog firstLog = null;
-	ASTLog lastAppendedLog = null;
-	ASTLog unusedDataLog = null;
+	ASTLog firstLog;
+	ASTLog lastAppendedLog;
+	ASTLog unusedDataLog;
 
 	public ASTMachine(Source source, Tree<?> prototype) {
 		this.source = source;
 		this.prototype = prototype == null ? new EmptyTree() : prototype;
 		// this.log(ASTMachine.Nop, 0, null);
 		this.firstLog = new ASTLog();
-		this.lastAppendedLog = this.firstLog;
+		this.lastAppendedLog = firstLog;
 	}
 
-	private final void log(int type, long pos, Symbol label, Object value) {
+	private void log(int type, long pos, Symbol label, Object value) {
 		ASTLog l;
-		if (this.unusedDataLog == null) {
+		if (unusedDataLog == null) {
 			l = new ASTLog();
 		} else {
-			l = this.unusedDataLog;
+			l = unusedDataLog;
 			this.unusedDataLog = l.next;
 		}
 		l.id = lastAppendedLog.id + 1;
@@ -51,41 +50,41 @@ class ASTMachine {
 	}
 
 	public final void logNew(long pos, Object debug) {
-		log(ASTMachine.New, pos, null, debug);
+		log(New, pos, null, debug);
 	}
 
 	public final void logCapture(long pos) {
-		log(ASTMachine.Capture, pos, null, null);
+		log(Capture, pos, null, null);
 	}
 
 	public final void logTag(Symbol tag) {
-		log(ASTMachine.Tag, 0, null, tag);
+		log(Tag, 0, null, tag);
 	}
 
 	public final void logReplace(Object value) {
-		log(ASTMachine.Replace, 0, null, value);
+		log(Replace, 0, null, value);
 	}
 
 	public final void logLeftFold(long pos, Symbol label) {
-		log(ASTMachine.LeftFold, pos, label, null);
+		log(LeftFold, pos, label, null);
 	}
 
 	public final void logPush() {
-		log(ASTMachine.Push, 0, null, null);
+		log(Push, 0, null, null);
 	}
 
 	public final void logPop(Symbol label) {
-		log(ASTMachine.Pop, 0, label, null);
+		log(Pop, 0, label, null);
 	}
 
-	private Object latestLinkedNode = null;
+	private Object latestLinkedNode;
 
 	public final Object getLatestLinkedNode() {
 		return latestLinkedNode;
 	}
 
 	public final void logLink(Symbol label, Object node) {
-		log(ASTMachine.Link, 0, label, node);
+		log(Link, 0, label, node);
 		latestLinkedNode = node;
 	}
 
@@ -96,10 +95,10 @@ class ASTMachine {
 	public final void rollTransactionPoint(Object point) {
 		ASTLog save = (ASTLog) point;
 		if (debugMode) {
-			Verbose.debug("roll" + save + " < " + this.lastAppendedLog);
+			Verbose.debug("roll" + save + " < " + lastAppendedLog);
 		}
 		if (save != lastAppendedLog) {
-			lastAppendedLog.next = this.unusedDataLog;
+			lastAppendedLog.next = unusedDataLog;
 			this.unusedDataLog = save.next;
 			save.next = null;
 			this.lastAppendedLog = save;
@@ -110,13 +109,13 @@ class ASTMachine {
 	public final void commitTransactionPoint(Symbol label, Object point) {
 		ASTLog save = (ASTLog) point;
 		Object node = createNode(save.next, null);
-		this.rollTransactionPoint(point);
+		rollTransactionPoint(point);
 		if (node != null) {
 			logLink(label, node);
 		}
 	}
 
-	private void dump(ASTLog start, ASTLog end) {
+	private void dump(ASTLog start) {
 		for (ASTLog cur = start; cur != null; cur = cur.next) {
 			Verbose.debug(cur.toString());
 		}
@@ -133,7 +132,7 @@ class ASTMachine {
 		int objectSize = 0;
 		for (cur = start; cur != null; cur = cur.next) {
 			switch (cur.type) {
-			case ASTMachine.New:
+			case New:
 				spos = cur.value;
 				epos = spos;
 				objectSize = 0;
@@ -141,18 +140,18 @@ class ASTMachine {
 				value = null;
 				start = cur;
 				break;
-			case ASTMachine.Capture:
+			case Capture:
 				epos = cur.value;
 				break;
-			case ASTMachine.Tag:
+			case Tag:
 				tag = (Symbol) cur.ref;
 				break;
-			case ASTMachine.Replace:
+			case Replace:
 				value = cur.ref;
 				break;
-			case ASTMachine.LeftFold:
+			case LeftFold:
 				cur.ref = constructLeft(start, cur, spos, epos, objectSize, tag, value);
-				cur.type = ASTMachine.Link;
+				cur.type = Link;
 				// cur.value = 0;
 				spos = cur.value;
 				tag = null;
@@ -160,19 +159,19 @@ class ASTMachine {
 				objectSize = 1;
 				start = cur;
 				break;
-			case ASTMachine.Pop:
+			case Pop:
 				assert (pushed != null);
-				pushed.type = ASTMachine.Link;
+				pushed.type = Link;
 				pushed.label = cur.label;
 				pushed.ref = constructLeft(start, cur, spos, epos, objectSize, tag, value);
 				pushed.value = cur.value;
 				// TODO unused
 				pushed.next = cur.next;
 				return (Tree<?>) pushed.ref;
-			case ASTMachine.Push:
+			case Push:
 				createNode(cur.next, cur);
-				assert (cur.type == ASTMachine.Link);
-			case ASTMachine.Link:
+				assert (cur.type == Link);
+			case Link:
 				objectSize++;
 				break;
 			}
@@ -185,16 +184,14 @@ class ASTMachine {
 		if (tag == null) {
 			tag = Symbol.Null;
 		}
-		Tree<?> newnode = this.prototype.newInstance(tag, source, spos, (int) (epos - spos), objectSize, value);
+		Tree<?> newnode = prototype.newInstance(tag, source, spos, (int) (epos - spos), objectSize, value);
 		int n = 0;
 		if (objectSize > 0) {
 			for (ASTLog cur = start; cur != end; cur = cur.next) {
-				if (cur.type == ASTMachine.Link) {
+				if (cur.type == Link) {
 					if (cur.ref == null) {
 						Verbose.debug("@@ linking null child at " + cur.value);
 					} else {
-						// this.treeTransducer.link(newnode, n, cur.label,
-						// cur.ref);
 						newnode.link(n, cur.label, cur.ref);
 					}
 					n++;
@@ -205,39 +202,17 @@ class ASTMachine {
 		return newnode;
 	}
 
-	// private Object constructTree(ASTLog start, ASTLog end, long spos, long
-	// epos, int objectSize, Object left, Tag tag, Object value) {
-	// Object newnode = this.treeTransducer.newNode(tag, source, spos, epos,
-	// objectSize, value);
-	// if(left != null) {
-	// this.treeTransducer.link(newnode, 0, left);
-	// }
-	// if(objectSize > 0) {
-	// for(ASTLog cur = start.next; cur != end; cur = cur.next ) {
-	// if(cur.type == ASTMachine.Link) {
-	// if(cur.ref == null) {
-	// Verbose.debug("@@ linking null child at " + cur.value);
-	// }
-	// else {
-	// this.treeTransducer.link(newnode, (int)cur.value, cur.ref);
-	// }
-	// }
-	// }
-	// }
-	// return this.treeTransducer.commit(newnode);
-	// }
-
-	private Tree<?> parseResult = null;
+	private Tree<?> parseResult;
 
 	public final Tree<?> getParseResult(long startpos, long endpos) {
 		if (parseResult != null) {
 			return parseResult;
 		}
 		if (debugMode) {
-			dump(this.firstLog, null);
+			dump(firstLog);
 		}
-		for (ASTLog cur = this.firstLog; cur != null; cur = cur.next) {
-			if (cur.type == ASTMachine.New) {
+		for (ASTLog cur = firstLog; cur != null; cur = cur.next) {
+			if (cur.type == New) {
 				parseResult = createNode(cur, null);
 				break;
 			}
@@ -265,21 +240,21 @@ class ASTMachine {
 		@Override
 		public String toString() {
 			switch (type) {
-			case ASTMachine.Link:
-				return "[" + id + "] link(index=" + this.value + ")";
-			case ASTMachine.Capture:
-				return "[" + id + "] cap(" + this.value + ")";
-			case ASTMachine.Tag:
-				return "[" + id + "] tag(" + this.ref + ")";
-			case ASTMachine.Replace:
-				return "[" + id + "] replace(" + this.ref + ")";
-			case ASTMachine.LeftFold:
-				return "[" + id + "] left(" + this.value + ")";
-			case ASTMachine.New:
-				return "[" + id + "] new(" + this.value + "," + this.ref + ")";
-			case ASTMachine.Pop:
-				return "[" + id + "] pop(" + this.ref + ")";
-			case ASTMachine.Push:
+			case Link:
+				return "[" + id + "] link(index=" + value + ")";
+			case Capture:
+				return "[" + id + "] cap(" + value + ")";
+			case Tag:
+				return "[" + id + "] tag(" + ref + ")";
+			case Replace:
+				return "[" + id + "] replace(" + ref + ")";
+			case LeftFold:
+				return "[" + id + "] left(" + value + ")";
+			case New:
+				return "[" + id + "] new(" + value + "," + ref + ")";
+			case Pop:
+				return "[" + id + "] pop(" + ref + ")";
+			case Push:
 				return "[" + id + "] push";
 			}
 			return "[" + id + "] nop";

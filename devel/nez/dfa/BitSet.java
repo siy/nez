@@ -3,12 +3,13 @@ package nez.dfa;
 import java.util.ArrayList;
 
 public class BitSet implements Comparable<BitSet> {
-	private ArrayList<Integer> arr = null;
-	private int size = 0;
-	private final int LEN = 31;
+	private static final int LEN = 31;
+
+	private final ArrayList<Integer> arr;
+	private int size;
 
 	public BitSet() {
-		arr = new ArrayList<Integer>();
+		this(new ArrayList<>(), 0);
 	}
 
 	public BitSet(ArrayList<Integer> arr, int size) {
@@ -61,7 +62,7 @@ public class BitSet implements Comparable<BitSet> {
 	}
 
 	public ArrayList<Integer> toArrayList() {
-		ArrayList<Integer> set = new ArrayList<Integer>();
+		ArrayList<Integer> set = new ArrayList<>();
 		for (int i = 0; i < size; i++) {
 			int arrID = i / LEN;
 			int ID = i % LEN;
@@ -73,22 +74,17 @@ public class BitSet implements Comparable<BitSet> {
 	}
 
 	public BitSet copy() {
-		ArrayList<Integer> newArr = new ArrayList<Integer>();
-		int newSize = size;
-		for (int i = 0; i < arr.size(); i++) {
-			newArr.add(new Integer(arr.get(i)));
-		}
-		return new BitSet(newArr, newSize);
+		return new BitSet(new ArrayList<>(arr), size);
 	}
 
 	@Override
 	public int compareTo(BitSet o) {
 		if (arr.size() != o.arrSize()) {
-			return new Integer(arr.size()).compareTo(new Integer(o.arrSize()));
+			return Integer.compare(arr.size(), o.arrSize());
 		}
 		for (int i = 0; i < arr.size(); i++) {
 			if (arr.get(i) != o.arrGet(i)) {
-				return new Integer(arr.get(i)).compareTo(new Integer(o.arrGet(i)));
+				return arr.get(i).compareTo(o.arrGet(i));
 			}
 		}
 		return 0;
@@ -107,16 +103,17 @@ public class BitSet implements Comparable<BitSet> {
 		if (top == -1) {
 			return "0";
 		}
-		String v = "";
+
+		StringBuilder v = new StringBuilder();
 		for (int i = 0; i <= top; i++) {
 			int arrID = i / LEN;
 			int ID = i % LEN;
 			if (((arr.get(arrID) >> ID) & 1) >= 1) {
-				v += "1";
+				v.append("1");
 			} else {
-				v += "0";
+				v.append("0");
 			}
 		}
-		return v;
+		return v.toString();
 	}
 }

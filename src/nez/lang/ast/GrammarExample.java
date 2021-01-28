@@ -7,10 +7,10 @@ import nez.lang.Grammar;
 import nez.util.UList;
 
 public class GrammarExample {
-	private UList<Example> exampleList;
+	private final UList<Example> exampleList;
 
 	public GrammarExample(Grammar grammar) {
-		exampleList = new UList<Example>(new Example[8]);
+		exampleList = new UList<>(new Example[8]);
 	}
 
 	public List<Example> getExampleList() {
@@ -21,7 +21,7 @@ public class GrammarExample {
 		exampleList.add(new Example(isPublic, nameNode, hash, textNode));
 	}
 
-	public final static void add(Grammar g, boolean isPublic, Tree<?> nameNode, String hash, Tree<?> textNode) {
+	public static void add(Grammar g, boolean isPublic, Tree<?> nameNode, String hash, Tree<?> textNode) {
 		GrammarExample example = (GrammarExample) g.getMetaData("example");
 		if (example == null) {
 			example = new GrammarExample(g);
@@ -31,12 +31,10 @@ public class GrammarExample {
 	}
 
 	public final List<String> getExampleList(String name) {
-		UList<String> l = new UList<String>(new String[4]);
-		if (exampleList != null) {
-			for (Example ex : exampleList) {
-				if (name.equals(ex.getName())) {
-					l.add(ex.getText());
-				}
+		UList<String> l = new UList<>(new String[4]);
+		for (Example ex : exampleList) {
+			if (name.equals(ex.getName())) {
+				l.add(ex.getText());
 			}
 		}
 		return l;
@@ -64,7 +62,7 @@ public class GrammarExample {
 		}
 
 		public final boolean hasHash() {
-			return this.hash != null;
+			return hash != null;
 		}
 
 		public String formatPanic(String msg) {

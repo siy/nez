@@ -3,15 +3,15 @@ package nez.lang;
 public enum SymbolDependency {
 	Independent, Dependent, Undecided;
 
-	public static interface SymbolDependencyAnalyzer extends PropertyAnalyzer<SymbolDependency> {
-		public boolean isDependent(Expression e);
+	public interface SymbolDependencyAnalyzer extends PropertyAnalyzer<SymbolDependency> {
+		boolean isDependent(Expression e);
 	}
 
-	public static final SymbolDependencyAnalyzer newAnalyzer() {
+	public static SymbolDependencyAnalyzer newAnalyzer() {
 		return new SymbolDependencyVisitor();
 	}
 
-	final static class SymbolDependencyVisitor extends Expression.AnalyzeVisitor<SymbolDependency> implements SymbolDependencyAnalyzer {
+	static final class SymbolDependencyVisitor extends Expression.AnalyzeVisitor<SymbolDependency> implements SymbolDependencyAnalyzer {
 
 		protected SymbolDependencyVisitor() {
 			super(Independent, Undecided);
@@ -20,22 +20,22 @@ public enum SymbolDependency {
 		@Override
 		public boolean isDependent(Expression e) {
 			SymbolDependency s = (SymbolDependency) e.visit(this, null);
-			return (s != SymbolDependency.Independent);
+			return (s != Independent);
 		}
 
 		@Override
 		public final Object visitBlockScope(Nez.BlockScope e, Object a) {
-			return this.analyzeInners(e);
+			return analyzeInners(e);
 		}
 
 		@Override
 		public final Object visitLocalScope(Nez.LocalScope e, Object a) {
-			return this.analyzeInners(e);
+			return analyzeInners(e);
 		}
 
 		@Override
 		public final Object visitSymbolAction(Nez.SymbolAction e, Object a) {
-			return this.analyzeInners(e);
+			return analyzeInners(e);
 		}
 
 		@Override
@@ -60,7 +60,7 @@ public enum SymbolDependency {
 
 		@Override
 		public final Object visitOn(Nez.OnCondition e, Object a) {
-			return this.analyzeInners(e);
+			return analyzeInners(e);
 		}
 
 	}

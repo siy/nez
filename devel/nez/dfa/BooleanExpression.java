@@ -8,14 +8,14 @@ public class BooleanExpression {
 
 	public BooleanExpression deepCopy() {
 		System.out.println("WARNING");
-		return this.deepCopy();
+		return deepCopy();
 	}
 
 	// BooleanExpression内のlogicVariableにbooleanValueを代入した結果のBooleanExpressionを返す
 	// Deep Copy
 	public BooleanExpression assignBooleanValueToLogicVariable(boolean booleanValue, LogicVariable logicVariable) {
 		System.out.println("WARNING");
-		return this.assignBooleanValueToLogicVariable(booleanValue, logicVariable);
+		return assignBooleanValueToLogicVariable(booleanValue, logicVariable);
 	}
 
 	public int traverse() {
@@ -30,7 +30,7 @@ public class BooleanExpression {
 
 	public BooleanExpression recoverPredicate() {
 		System.out.println("WARNING");
-		return this.recoverPredicate();
+		return recoverPredicate();
 	}
 
 }

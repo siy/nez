@@ -22,7 +22,7 @@ public class Not extends BooleanExpression {
 	public int traverse() {
 		// System.out.println("Not");
 		int address = inner.traverse();
-		return this.notApply(address);
+		return notApply(address);
 	}
 
 	public int notApply(int address) {

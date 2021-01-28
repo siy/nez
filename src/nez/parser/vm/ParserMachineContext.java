@@ -18,23 +18,23 @@ public class ParserMachineContext<T extends Tree<T>> extends ParserContext<T> {
 
 	@Override
 	public final boolean eof() {
-		return this.source.eof(pos);
+		return source.eof(pos);
 	}
 
 	@Override
 	public final int read() {
-		return this.source.byteAt(pos++);
+		return source.byteAt(pos++);
 	}
 
 	@Override
 	public final int prefetch() {
-		return this.source.byteAt(pos);
+		return source.byteAt(pos);
 	}
 
 	@Override
 	public final boolean match(byte[] utf8) {
 		if (source.match(pos, utf8)) {
-			this.move(utf8.length);
+			move(utf8.length);
 			return true;
 		}
 		return false;
@@ -50,7 +50,7 @@ public class ParserMachineContext<T extends Tree<T>> extends ParserContext<T> {
 		return (byte) source.byteAt(pos);
 	}
 
-	private int head_pos = 0;
+	private int head_pos;
 
 	@Override
 	public final void back(int pos) {
@@ -61,7 +61,7 @@ public class ParserMachineContext<T extends Tree<T>> extends ParserContext<T> {
 	}
 
 	public final long getPosition() {
-		return this.pos;
+		return pos;
 	}
 
 	public final long getMaximumPosition() {
@@ -79,24 +79,24 @@ public class ParserMachineContext<T extends Tree<T>> extends ParserContext<T> {
 		public int value;
 	}
 
-	private static int StackSize = 64;
-	private StackData[] stacks = null;
+	private static final int StackSize = 64;
+	private StackData[] stacks;
 	private int usedStackTop;
 	private int catchStackTop;
 
 	public final void initVM() {
 		this.stacks = new StackData[StackSize];
 		for (int i = 0; i < StackSize; i++) {
-			this.stacks[i] = new StackData();
+			stacks[i] = new StackData();
 		}
-		this.stacks[0].ref = null;
-		this.stacks[0].value = 0;
-		this.stacks[1].ref = new Moz86.Exit(false);
-		this.stacks[1].value = pos;
-		this.stacks[2].ref = this.saveLog();
-		this.stacks[2].value = this.saveSymbolPoint();
-		this.stacks[3].ref = new Moz86.Exit(true);
-		this.stacks[3].value = 0;
+		stacks[0].ref = null;
+		stacks[0].value = 0;
+		stacks[1].ref = new Moz86.Exit(false);
+		stacks[1].value = pos;
+		stacks[2].ref = saveLog();
+		stacks[2].value = saveSymbolPoint();
+		stacks[3].ref = new Moz86.Exit(true);
+		stacks[3].value = 0;
 		this.catchStackTop = 0;
 		this.usedStackTop = 3;
 	}
@@ -110,7 +110,7 @@ public class ParserMachineContext<T extends Tree<T>> extends ParserContext<T> {
 		if (stacks.length == usedStackTop) {
 			StackData[] newstack = new StackData[stacks.length * 2];
 			System.arraycopy(stacks, 0, newstack, 0, stacks.length);
-			for (int i = this.stacks.length; i < newstack.length; i++) {
+			for (int i = stacks.length; i < newstack.length; i++) {
 				newstack[i] = new StackData();
 			}
 			stacks = newstack;
@@ -119,7 +119,7 @@ public class ParserMachineContext<T extends Tree<T>> extends ParserContext<T> {
 	}
 
 	public final StackData popStack() {
-		StackData s = stacks[this.usedStackTop];
+		StackData s = stacks[usedStackTop];
 		usedStackTop--;
 		// assert(this.catchStackTop <= this.usedStackTop);
 		return s;
@@ -128,27 +128,27 @@ public class ParserMachineContext<T extends Tree<T>> extends ParserContext<T> {
 	// Instruction
 
 	public final void xPos() {
-		StackData s = this.newUnusedStack();
-		s.value = this.pos;
+		StackData s = newUnusedStack();
+		s.value = pos;
 	}
 
 	public final int xPPos() {
-		StackData s = this.popStack();
+		StackData s = popStack();
 		return s.value;
 	}
 
 	public final void xBack() {
-		StackData s = this.popStack();
-		this.back(s.value);
+		StackData s = popStack();
+		back(s.value);
 	}
 
 	public final void xCall(String name, MozInst jump) {
-		StackData s = this.newUnusedStack();
+		StackData s = newUnusedStack();
 		s.ref = jump;
 	}
 
 	public final MozInst xRet() {
-		StackData s = this.popStack();
+		StackData s = popStack();
 		return (MozInst) s.ref;
 	}
 
@@ -159,9 +159,9 @@ public class ParserMachineContext<T extends Tree<T>> extends ParserContext<T> {
 		s0.value = catchStackTop;
 		catchStackTop = usedStackTop - 2;
 		s1.ref = failjump;
-		s1.value = this.pos;
-		s2.value = this.saveLog();
-		s2.ref = this.saveSymbolPoint();
+		s1.value = pos;
+		s2.value = saveLog();
+		s2.ref = saveSymbolPoint();
 	}
 
 	public final void xSucc() {
@@ -185,59 +185,56 @@ public class ParserMachineContext<T extends Tree<T>> extends ParserContext<T> {
 		StackData s2 = stacks[catchStackTop + 2];
 		usedStackTop = catchStackTop - 1;
 		catchStackTop = s0.value;
-		if (s1.value < this.pos) {
-			// if (this.lprof != null) {
-			// this.lprof.statBacktrack(s1.value, this.pos);
-			// }
-			this.back(s1.value);
+		if (s1.value < pos) {
+			back(s1.value);
 		}
-		this.backLog(s2.value);
-		this.backSymbolPoint((Integer) s2.ref); // FIXME slow
+		backLog(s2.value);
+		backSymbolPoint((Integer) s2.ref); // FIXME slow
 		assert (s1.ref != null);
 		return (MozInst) s1.ref;
 	}
 
 	public final MozInst xStep(MozInst next) {
 		StackData s1 = stacks[catchStackTop + 1];
-		if (s1.value == this.pos) {
+		if (s1.value == pos) {
 			return xFail();
 		}
-		s1.value = this.pos;
+		s1.value = pos;
 		StackData s2 = stacks[catchStackTop + 2];
-		s2.value = this.saveLog();
-		s2.ref = this.saveSymbolPoint(); // FIXME slow
+		s2.value = saveLog();
+		s2.ref = saveSymbolPoint(); // FIXME slow
 		return next;
 	}
 
 	public final void xTPush() {
-		StackData s = this.newUnusedStack();
-		s.ref = this.left;
-		s.value = this.saveLog();
+		StackData s = newUnusedStack();
+		s.ref = left;
+		s.value = saveLog();
 	}
 
 	@SuppressWarnings("unchecked")
 	public final void xTLink(Symbol label) {
-		StackData s = this.popStack();
-		this.backLog(s.value);
-		this.linkTree((T) s.ref, label);
+		StackData s = popStack();
+		backLog(s.value);
+		linkTree((T) s.ref, label);
 		this.left = (T) s.ref;
 	}
 
 	@SuppressWarnings("unchecked")
 	public final void xTPop() {
-		StackData s = this.popStack();
-		this.backLog(s.value);
+		StackData s = popStack();
+		backLog(s.value);
 		this.left = (T) s.ref;
 	}
 
 	public final void xSOpen() {
-		StackData s = this.newUnusedStack();
-		s.value = this.saveSymbolPoint();
+		StackData s = newUnusedStack();
+		s.value = saveSymbolPoint();
 	}
 
 	public final void xSClose() {
-		StackData s = this.popStack();
-		this.backSymbolPoint(s.value);
+		StackData s = popStack();
+		backSymbolPoint(s.value);
 	}
 
 	/* ----------------------------------------------------------------- */

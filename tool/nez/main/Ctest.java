@@ -21,7 +21,7 @@ import nez.util.Verbose;
 public class Ctest extends Command {
 	@Override
 	public void exec() throws IOException {
-		if (this.hasInputSource()) {
+		if (hasInputSource()) {
 			Parser parser = newParser();
 			while (hasInputSource()) {
 				Source input = nextInputSource();
@@ -58,16 +58,12 @@ public class Ctest extends Command {
 			Parser p = parserMap.get(name);
 			if (p == null) {
 				p = grammar.newParser(name, strategy);
-				if (p == null) {
-					ConsoleUtils.println(ex.formatWarning("undefined nonterminal: " + name));
-					continue;
-				}
 				parserMap.put(name, p);
 			}
 			testExample(ex, p, result, this instanceof Cexample);
 		}
 		long t2 = System.nanoTime();
-		CoverageProfiler prof = strategy.getCoverageProfier();
+		CoverageProfiler prof = strategy.getCoverageProfiler();
 		if (prof != null) {
 			prof.dumpCoverage();
 		}
@@ -76,6 +72,7 @@ public class Ctest extends Command {
 		ConsoleUtils.println(", AST Pass: " + result.getSuccAST() + "/" + result.getTotalAST() + " ratio: " + result.getRatioAST() + "%");
 
 		if (!(this instanceof Cexample) && !result.hasFailure()) {
+			assert prof != null;
 			double cov = prof.getCoverage();
 			if (cov > 0.5) {
 				ConsoleUtils.println("");
@@ -123,9 +120,6 @@ public class Ctest extends Command {
 			display(ex, ConsoleUtils.Magenta, "[PASS??]", name, nodehash, node);
 			stat.failAST += 1;
 			return false;
-		} catch (Exception e) {
-			display(ex, ConsoleUtils.Red, "[PANIC]", name, "detected: " + e, null);
-			Verbose.traceException(e);
 		} catch (Throwable e) {
 			display(ex, ConsoleUtils.Red, "[PANIC]", name, "detected: " + e, null);
 			Verbose.traceException(e);
@@ -173,10 +167,8 @@ public class Ctest extends Command {
 			}
 			int b = parseHex(t, i);
 			if (b != -1) {
-				// System.out.println("hex=" + b);
 				i += 1;
 				bytes.add((byte) b);
-				continue;
 			}
 		}
 		bytes.add((byte) 0);
@@ -191,20 +183,20 @@ public class Ctest extends Command {
 		try {
 			char ch = t.charAt(i);
 			char ch2 = t.charAt(i + 1);
-			return Integer.parseInt("" + ch + ch2, 16);
 
+			return Integer.parseInt("" + ch + ch2, 16);
 		} catch (Exception e) {
 			return -1;
 		}
 	}
 
-	class TestStat {
-		int testCount = 0;
-		int succSyntax = 0;
+	static class TestStat {
+		int testCount;
+		int succSyntax;
 
-		int untestedAST = 0;
-		int succAST = 0;
-		int failAST = 0;
+		int untestedAST;
+		int succAST;
+		int failAST;
 
 		int getTotal() {
 			return testCount;
@@ -223,11 +215,11 @@ public class Ctest extends Command {
 		}
 
 		float getRatioSyntax() {
-			return succSyntax * 100.0f / this.getTotal();
+			return succSyntax * 100.0f / getTotal();
 		}
 
 		float getRatioAST() {
-			return succAST * 100.0f / this.getTotalAST();
+			return succAST * 100.0f / getTotalAST();
 		}
 
 		String getStatus(float r) {

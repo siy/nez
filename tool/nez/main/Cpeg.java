@@ -12,11 +12,8 @@ public class Cpeg extends Command {
 	@Override
 	public void exec() throws IOException {
 		ParserGrammarWriter pw = newGenerator();
-		// Grammar g = getSpecifiedGrammar();
 		Parser p = newParser();
 		pw.init(p);
-		// generator.pCommentLine("Translated by nez peg -g " + g.getURN() +
-		// " --format " + outputFormat);
 		pw.generate();
 	}
 
@@ -27,19 +24,11 @@ public class Cpeg extends Command {
 		switch (outputFormat) {
 		case "peg":
 			return new PEGTranslator();
-			// case "nez":
-			// return new NezTranslator();
-			// case "pegjs":
-			// return new PEGjsTranslator();
-			// case "pegtl":
-			// return new PEGTLTranslator();
-			// case "mouse":
-			// return new MouseTranslator();
 		case "lpeg":
 		case "lua":
 			return new LPegTranslator();
 		default:
-			return (ParserGrammarWriter) this.newExtendedOutputHandler("", "peg pegjs pegtl lpeg mouse nez");
+			return (ParserGrammarWriter) newExtendedOutputHandler("", "peg pegjs pegtl lpeg mouse nez");
 		}
 	}
 }

@@ -1,8 +1,8 @@
 package nez.dfa;
 
 public class TauKey implements Comparable<TauKey> {
-	final private State state;
-	final private int sigma;
+	private final State state;
+	private final int sigma;
 
 	public TauKey(State state, int sigma) {
 		this.state = new State(state.getID());
@@ -20,9 +20,8 @@ public class TauKey implements Comparable<TauKey> {
 	@Override
 	public int compareTo(TauKey o) {
 		if (state.getID() != o.getState().getID()) {
-			return new Integer(state.getID()).compareTo(new Integer(o.getState().getID()));
+			return Integer.compare(state.getID(), o.getState().getID());
 		}
-		return new Integer(sigma).compareTo(new Integer(o.getSigma()));
+		return Integer.compare(sigma, o.getSigma());
 	}
-
 }

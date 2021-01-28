@@ -16,23 +16,7 @@ public class InferenceEngine {
 		this.clusterTolerance = 0.01;
 	}
 
-	// public Grammar infer(String filePath) throws IOException {
-	// Tree<?> tokenTree = tokenize(filePath);
-	// StructureType schema = this.discoverStructure(tokenTree);
-	// Grammar infered = this.generateGrammar(schema);
-	// infered.dump();
-	// return infered;
-	// }
-
-	// public Tree<?> tokenize(String filePath) throws IOException {
-	// ParserStrategy strategy = ParserStrategy.newSafeStrategy();
-	// Grammar g = GrammarFileLoader.loadGrammar("inference_log.nez",
-	// strategy);
-	// SourceContext sc = SourceContext.newFileContext(filePath);
-	// return g.newParser(strategy).parseCommonTree(sc);
-	// }
-
-	private final StructureType discoverStructure(Tree<?> tokenTree) {
+	private StructureType discoverStructure(Tree<?> tokenTree) {
 
 		// 1. build TokenSequence and Histograms of tokens
 		List<TokenSequence> analyzedTokenSequences = new TokenVisitor().parse(tokenTree);
@@ -49,13 +33,13 @@ public class InferenceEngine {
 		return new Struct(structureSequence);
 	}
 
-	private final List<Cluster> newClusterList(Token[] tokenList) {
-		List<Cluster> clusters = new ArrayList<Cluster>();
+	private List<Cluster> newClusterList(Token[] tokenList) {
+		List<Cluster> clusters = new ArrayList<>();
 		boolean clustered;
 		for (Token token : tokenList) {
 			clustered = false;
 			for (Cluster cluster : clusters) {
-				if (token.calcHistogramSimilarity(cluster.getToken(0)) < this.clusterTolerance) {
+				if (token.calcHistogramSimilarity(cluster.getToken(0)) < clusterTolerance) {
 					cluster.addToken(token);
 					clustered = true;
 				}
@@ -67,7 +51,7 @@ public class InferenceEngine {
 		return clusters;
 	}
 
-	private final StructureType identifyStructure(List<Cluster> clusters, int maxCount) {
+	private StructureType identifyStructure(List<Cluster> clusters, int maxCount) {
 		StructureType[] structureList = new StructureType[clusters.size()];
 		int index = 0;
 		for (Cluster cluster : clusters) {
@@ -103,7 +87,7 @@ public class InferenceEngine {
 		return structureList.length == 1 ? new Struct(structureList) : new Union(structureList);
 	}
 
-	private final Token findMinResidualMassToken(List<Token> tokenList) {
+	private Token findMinResidualMassToken(List<Token> tokenList) {
 		Token minToken = tokenList.get(0);
 		double minResidualMass = minToken.getHistogram().residualMass(0);
 		for (Token token : tokenList) {
@@ -115,20 +99,4 @@ public class InferenceEngine {
 		}
 		return minToken;
 	}
-
-	// public Grammar generateGrammar(StructureType inferedStructure) {
-	// Grammar inferedGrammar = new Grammar();
-	// inferedGrammar.newProduction("Generated",
-	// inferedStructure.getExpression(inferedGrammar));
-	// return inferedGrammar;
-	// }
-
-	// public static void main(String[] args) {
-	// InferenceEngine eng = new InferenceEngine();
-	// try {
-	// eng.infer(args[0]);
-	// } catch (IOException e) {
-	// e.printStackTrace();
-	// }
-	// }
 }

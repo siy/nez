@@ -15,22 +15,22 @@ public class Function {
 	public Function(Production rule) {
 		this.funcName = rule.getLocalName();
 		this.rule = rule;
-		this.bbList = new ArrayList<BasicBlock>();
-		this.callers = new ArrayList<Function>();
+		this.bbList = new ArrayList<>();
+		this.callers = new ArrayList<>();
 	}
 
 	public BasicBlock get(int index) {
-		return this.bbList.get(index);
+		return bbList.get(index);
 	}
 
 	public void setCaller(Function func) {
 		if(!callers.contains(func)) {
-			this.callers.add(func);
+			callers.add(func);
 		}
 	}
 
 	public DebugVMInstruction getStartInstruction() {
-		BasicBlock bb = this.get(0);
+		BasicBlock bb = get(0);
 		while(bb.size() == 0) {
 			bb = bb.getSingleSuccessor();
 		}
@@ -38,23 +38,23 @@ public class Function {
 	}
 
 	public Function append(BasicBlock bb) {
-		this.bbList.add(bb);
+		bbList.add(bb);
 		return this;
 	}
 
 	public Function add(int index, BasicBlock bb) {
-		this.bbList.add(index, bb);
+		bbList.add(index, bb);
 		return this;
 	}
 
 	public BasicBlock remove(int index) {
-		return this.bbList.remove(index);
+		return bbList.remove(index);
 	}
 
 	public List<DebugVMInstruction> serchInst(Expression e) {
-		List<DebugVMInstruction> ilist = new ArrayList<DebugVMInstruction>();
-		for(int i = 0; i < this.size(); i++) {
-			BasicBlock bb = this.get(i);
+		List<DebugVMInstruction> ilist = new ArrayList<>();
+		for(int i = 0; i < size(); i++) {
+			BasicBlock bb = get(i);
 			for(int j = 0; j < bb.size(); j++) {
 				DebugVMInstruction inst = bb.get(j);
 				if(inst.expr.equals(e)) {
@@ -66,26 +66,26 @@ public class Function {
 	}
 
 	public int size() {
-		return this.bbList.size();
+		return bbList.size();
 	}
 
 	public int instSize() {
 		int size = 0;
-		for(int i = 0; i < this.size(); i++) {
-			size += this.get(i).size();
+		for(int i = 0; i < size(); i++) {
+			size += get(i).size();
 		}
 		return size;
 	}
 
 	public int indexOf(BasicBlock bb) {
-		return this.bbList.indexOf(bb);
+		return bbList.indexOf(bb);
 	}
 
 	public void stringfy(StringBuilder sb) {
-		sb.append(this.funcName + ":\n");
-		for(int i = 0; i < this.size(); i++) {
-			BasicBlock bb = this.get(i);
-			sb.append(bb.name + " {\n");
+		sb.append(funcName).append(":\n");
+		for(int i = 0; i < size(); i++) {
+			BasicBlock bb = get(i);
+			sb.append(bb.name).append(" {\n");
 			bb.stringfy(sb);
 			sb.append("}\n");
 		}

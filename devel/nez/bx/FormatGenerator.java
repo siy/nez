@@ -43,25 +43,25 @@ import nez.lang.Production;
 import nez.util.FileBuilder;
 
 public class FormatGenerator {
-	private String dir = null;
-	private String outputFile = null;
+	private final String dir;
+	private final String outputFile;
 	private FileBuilder file;
-	private Grammar grammar = null;
+	private Grammar grammar;
 
-	private boolean inFirst = false;
-	private Element currentLeft = null;
+	private boolean inFirst;
+	private Element currentLeft;
 	private Captured[] nonterminalList = new Captured[4];
 	private String[] nonterminalNameList = new String[4];
 	private Captured[] capturedList = new Captured[4];
 	private String[] tagList = new String[4];
 	private Elements[] elementsStack = new Elements[4];
-	private int nonterminalId = 0;
-	private int capturedId = 0;
-	private int tagId = 0;
-	private int stackTop = 0;
+	private int nonterminalId;
+	private int capturedId;
+	private int tagId;
+	private int stackTop;
 	private boolean[] checkedNonterminal;
 	private boolean[] checkedNullLabelTag;
-	private int repetitionId = 0;
+	private int repetitionId;
 
 	public FormatGenerator(String dir, String outputFile) {
 		this.outputFile = outputFile;
@@ -70,11 +70,11 @@ public class FormatGenerator {
 
 	public void generate(Grammar grammar) {
 		this.grammar = grammar;
-		this.openOutputFile();
-		this.makeFormat();
-		this.reshapeFormat();
-		this.makeFormatSet();
-		this.writeFormat();
+		openOutputFile();
+		makeFormat();
+		reshapeFormat();
+		makeFormatSet();
+		writeFormat();
 	}
 
 	public void openOutputFile() {
@@ -147,8 +147,8 @@ public class FormatGenerator {
 	}
 
 	public void makeFormatSet() {
-		for (int i = 0; i < this.capturedList.length; i++) {
-			if (this.capturedList[i] == null) {
+		for (int i = 0; i < capturedList.length; i++) {
+			if (capturedList[i] == null) {
 				break;
 			}
 			capturedList[i].setFormat(i);
@@ -157,15 +157,15 @@ public class FormatGenerator {
 
 	public void writeFormat() {
 		checkedNullLabelTag = new boolean[tagId];
-		for (int i = 0; i < this.capturedList.length; i++) {
-			if (this.capturedList[i] == null) {
+		for (int i = 0; i < capturedList.length; i++) {
+			if (capturedList[i] == null) {
 				break;
 			}
 			capturedList[i].writeFormat(i);
 		}
 	}
 
-	private FormatVisitor formatVisitor = new FormatVisitor();
+	private final FormatVisitor formatVisitor = new FormatVisitor();
 
 	public void makeProductionFormat(Production rule) {
 		formatVisitor.visit(rule.getExpression());
@@ -226,8 +226,8 @@ public class FormatGenerator {
 		@Override
 		public Object visitMultiByte(MultiByte e, Object a) {
 			byte[] byteSeq = e.byteseq;
-			for (int i = 0; i < byteSeq.length; i++) {
-				addElement(new ByteElement(byteSeq[i]));
+			for (byte b : byteSeq) {
+				addElement(new ByteElement(b));
 			}
 			return null;
 		}
@@ -543,7 +543,7 @@ public class FormatGenerator {
 		FormatSet[] formatSet = new FormatSet[4];
 		Elements left;
 		Elements right;
-		int size = 0;
+		int size;
 
 		public Captured(Elements elements) {
 			name = null;
@@ -559,19 +559,20 @@ public class FormatGenerator {
 			while (true) {
 				checkedNonterminal = new boolean[nonterminalId];
 				int tag = searchTag();
-				if (tag != -1) {
-					if (size == formatSet.length) {
-						FormatSet[] newList = new FormatSet[formatSet.length * 2];
-						System.arraycopy(formatSet, 0, newList, 0, formatSet.length);
-						formatSet = newList;
-					}
-					formatSet[size] = new FormatSet();
-					formatSet[size].tag = tag;
-					checkedNonterminal = new boolean[nonterminalId];
-					formatSet[size++].link = searchLink();
-				} else {
+
+				if (tag == -1) {
 					break;
 				}
+
+				if (size == formatSet.length) {
+					FormatSet[] newList = new FormatSet[formatSet.length * 2];
+					System.arraycopy(formatSet, 0, newList, 0, formatSet.length);
+					formatSet = newList;
+				}
+				formatSet[size] = new FormatSet();
+				formatSet[size].tag = tag;
+				checkedNonterminal = new boolean[nonterminalId];
+				formatSet[size++].link = searchLink();
 			}
 			if (size == 0) {
 				System.out.println("CAUTION:UNTAGGED BLOCK EXISTS");
@@ -651,8 +652,8 @@ public class FormatGenerator {
 
 		public String toFormat(int tag) {
 			String formats = elements.toFormat(tag);
-			if (this.name == null) {
-				if (formats == null || formats.indexOf("${") == -1) {
+			if (name == null) {
+				if (formats == null || !formats.contains("${")) {
 					return null;
 				}
 			}
@@ -661,15 +662,15 @@ public class FormatGenerator {
 
 		@Override
 		public String toString() {
-			return this.elements.toString();
+			return elements.toString();
 		}
 	}
 
 	class Elements {
 		Element[] elementList;
 		int size;
-		boolean hasLF = false;
-		boolean inOptional = false;
+		boolean hasLF;
+		boolean inOptional;
 
 		public Elements() {
 			elementList = new Element[4];
@@ -687,7 +688,7 @@ public class FormatGenerator {
 		}
 
 		public int searchTag() {
-			for (int i = 0; i < this.size; i++) {
+			for (int i = 0; i < size; i++) {
 				int tag = elementList[i].searchTag();
 				if (tag != -1) {
 					return tag;
@@ -698,7 +699,7 @@ public class FormatGenerator {
 
 		public Elements searchLink() {
 			Elements links = null;
-			for (int i = 0; i < this.size; i++) {
+			for (int i = 0; i < size; i++) {
 				Elements link = elementList[i].searchLink();
 				if (link != null) {
 					if (links == null) {
@@ -723,9 +724,10 @@ public class FormatGenerator {
 							LinkedInner[] newList = new LinkedInner[inner.length * inners.length];
 							for (int j = 0; j < inners.length; j++) {
 								for (int k = 0; k < inner.length; k++) {
-									newList[j * inner.length + k] = new LinkedInner();
-									newList[j * inner.length + k].join(inners[j]);
-									newList[j * inner.length + k].join(inner[k]);
+									LinkedInner linkedInner = new LinkedInner();
+									linkedInner.join(inners[j]);
+									linkedInner.join(inner[k]);
+									newList[j * inner.length + k] = linkedInner;
 								}
 							}
 							inners = newList;
@@ -737,19 +739,19 @@ public class FormatGenerator {
 		}
 
 		public String toFormat(int tag) {
-			String formats = null;
-			for (int i = 0; i < this.size; i++) {
+			StringBuilder formats = null;
+			for (int i = 0; i < size; i++) {
 				Element element = elementList[i];
 				String format = element.toFormat(tag);
 				if (format != null) {
 					if (formats == null) {
-						formats = format;
+						formats = new StringBuilder(format);
 					} else {
-						formats += " " + format;
+						formats.append(" ").append(format);
 					}
 				}
 			}
-			return formats;
+			return formats.toString();
 		}
 
 		public boolean hasCapturedElement() {
@@ -790,15 +792,15 @@ public class FormatGenerator {
 			if (elementList[0] == null) {
 				return " ";
 			}
-			String text = elementList[0].toString();
+			StringBuilder text = new StringBuilder(elementList[0].toString());
 			for (int i = 1; i < elementList.length; i++) {
 				if (elementList[i] == null) {
 					break;
 				}
-				text += " ";
-				text += elementList[i].toString();
+				text.append(" ");
+				text.append(elementList[i]);
 			}
-			return text;
+			return text.toString();
 		}
 	}
 
@@ -837,7 +839,7 @@ public class FormatGenerator {
 		}
 
 		@Override
-		abstract public String toString();
+		public abstract String toString();
 	}
 
 	class NonTerminalElement extends Element {
@@ -905,14 +907,14 @@ public class FormatGenerator {
 
 		@Override
 		public LinkedInner[] checkInner() {
-			LinkedInner[] ret = { new LinkedInner() };
-			ret[0].id = this.id;
+			LinkedInner[] ret = {new LinkedInner()};
+			ret[0].id = id;
 			return ret;
 		}
 
 		@Override
 		public String toString() {
-			return "[" + this.id + "]";
+			return "[" + id + "]";
 		}
 	}
 
@@ -923,7 +925,7 @@ public class FormatGenerator {
 		int[] groupId;
 		int[] mainId = new int[4];
 		int size;
-		int groupSize = 0;
+		int groupSize;
 		int labelFix;
 
 		public LinkedElement(Symbol label, Elements inner) {
@@ -984,9 +986,9 @@ public class FormatGenerator {
 			labelFix = mainId[labelSet.tagProgression % groupSize];
 			labelSet.tagProgression = labelSet.tagProgression / groupSize;
 			boolean[] needTag = new boolean[tagId];
-			String ret = null;
+			StringBuilder ret = null;
 			if (capturedList[linkedInner[labelFix].id].size == 0) {
-				ret = toLabel() + ":#Tree";
+				ret = new StringBuilder(toLabel() + ":#Tree");
 			} else {
 				FormatSet[] formatSet = capturedList[linkedInner[labelFix].id].formatSet;
 				needTag[formatSet[0].tag] = true;
@@ -1004,15 +1006,15 @@ public class FormatGenerator {
 				for (int i = 0; i < tagId; i++) {
 					if (needTag[i]) {
 						if (ret == null) {
-							ret = toLabel() + ":" + tagList[i];
+							ret = new StringBuilder(toLabel() + ":" + tagList[i]);
 						} else {
-							ret += "|" + tagList[i];
+							ret.append("|").append(tagList[i]);
 						}
 					}
 				}
 			}
 			if (labelSet.label == null) {
-				labelSet.label = ret;
+				labelSet.label = ret.toString();
 			} else {
 				labelSet.label += "," + ret;
 			}
@@ -1031,22 +1033,14 @@ public class FormatGenerator {
 		public String toFormat(int tag) {
 			String ret = "";
 
-			if (label == null) {
-				if (!linkedInner[labelFix].before.equals("")) {
-					ret += linkedInner[labelFix].before + " ";
-				}
-				ret += "${$unlabeled}";
-				if (!linkedInner[labelFix].after.equals("")) {
-					ret += " " + linkedInner[labelFix].after;
-				}
-			} else {
-				if (!linkedInner[labelFix].before.equals("")) {
-					ret += linkedInner[labelFix].before + " ";
-				}
-				ret += "${" + label + "}";
-				if (!linkedInner[labelFix].after.equals("")) {
-					ret += " " + linkedInner[labelFix].after;
-				}
+			if (!linkedInner[labelFix].before.equals("")) {
+				ret += linkedInner[labelFix].before + " ";
+			}
+
+			ret += label == null ? "${$unlabeled}" : "${" + label + "}";
+
+			if (!linkedInner[labelFix].after.equals("")) {
+				ret += " " + linkedInner[labelFix].after;
 			}
 
 			return ret;
@@ -1054,7 +1048,7 @@ public class FormatGenerator {
 
 		@Override
 		public String toString() {
-			return "$" + this.label + this.inner;
+			return "$" + label + inner;
 		}
 	}
 
@@ -1075,7 +1069,7 @@ public class FormatGenerator {
 
 		@Override
 		public LinkedInner[] checkInner() {
-			LinkedInner[] ret = { new LinkedInner() };
+			LinkedInner[] ret = {new LinkedInner()};
 			ret[0].before = String.valueOf(cByte);
 			return ret;
 		}
@@ -1146,7 +1140,7 @@ public class FormatGenerator {
 		int currentTagFixBranch;
 		int[] tagFixBranch;
 		int linkFixBranch = -1;
-		boolean hasNullBranch = false;
+		boolean hasNullBranch;
 
 		public ChoiceElement(Elements[] branch) {
 			this.branch = branch;
@@ -1193,8 +1187,8 @@ public class FormatGenerator {
 		@Override
 		public LinkedInner[] checkInner() {
 			LinkedInner[] inners = null;
-			for (int i = 0; i < branch.length; i++) {
-				LinkedInner[] inner = branch[i].checkInner();
+			for (Elements elements : branch) {
+				LinkedInner[] inner = elements.checkInner();
 				if (inner != null) {
 					if (inners == null) {
 						inners = inner;
@@ -1274,11 +1268,12 @@ public class FormatGenerator {
 
 		@Override
 		public String toString() {
-			String text = "( " + branch[0];
+			StringBuilder text = new StringBuilder("( " + branch[0]);
 			for (int i = 1; i < branch.length; i++) {
-				text += " / " + branch[i].toString();
+				text.append(" / ").append(branch[i]);
 			}
-			return text + " )";
+			text.append(" )");
+			return text.toString();
 		}
 	}
 
@@ -1382,7 +1377,7 @@ public class FormatGenerator {
 
 		@Override
 		public String toString() {
-			return "(" + this.inner + ")+";
+			return "(" + inner + ")+";
 		}
 	}
 
@@ -1497,7 +1492,7 @@ public class FormatGenerator {
 
 		@Override
 		public String toString() {
-			return "(" + this.inner + ")*";
+			return "(" + inner + ")*";
 		}
 	}
 
@@ -1507,7 +1502,7 @@ public class FormatGenerator {
 		boolean hasTag;
 		boolean[] tagFix;
 		int rate;
-		boolean linkFix = false;
+		boolean linkFix;
 
 		public OptionElement(Elements inner) {
 			this.inner = inner;
@@ -1588,12 +1583,12 @@ public class FormatGenerator {
 
 		@Override
 		public String toString() {
-			return "(" + this.inner + ")?";
+			return "(" + inner + ")?";
 		}
 
 	}
 
-	class LabelSet {
+	static class LabelSet {
 		String label;
 		int labelProgression;
 		int tagProgression;
@@ -1604,7 +1599,7 @@ public class FormatGenerator {
 		}
 	}
 
-	class LinkedInner {
+	static class LinkedInner {
 		int id = -1;
 		String before = "";
 		String after = "";
@@ -1616,7 +1611,7 @@ public class FormatGenerator {
 				this.before += target.before;
 				this.after = target.after;
 			} else {
-				if (this.id == -1) {
+				if (id == -1) {
 					this.before += target.before;
 				} else {
 					this.after += target.before;

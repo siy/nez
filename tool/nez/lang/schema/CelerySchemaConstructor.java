@@ -54,11 +54,6 @@ public class CelerySchemaConstructor extends SchemaConstructor {
 	public final class TObject extends Undefined {
 		@Override
 		public Schema accept(Tree<?> node) {
-			// if (node.has(_Range)) {
-			// int min = Integer.parseInt(node.getText(_Min, ""));
-			// int max = Integer.parseInt(node.getText(_Max, ""));
-			// // return schema.newTObject(min, max);
-			// }
 			return generator.newTObject();
 		}
 	}
@@ -80,11 +75,6 @@ public class CelerySchemaConstructor extends SchemaConstructor {
 	public final class TArray extends Undefined {
 		@Override
 		public Schema accept(Tree<?> node) {
-			// if (node.has(_Range)) {
-			// int min = Integer.parseInt(node.getText(_Min, ""));
-			// int max = Integer.parseInt(node.getText(_Max, ""));
-			// // return schema.newTArray(toType(node), min, max);
-			// }
 			return generator.newTArray(toSchema(node.get(0)));
 		}
 	}
@@ -104,11 +94,6 @@ public class CelerySchemaConstructor extends SchemaConstructor {
 	public final class TInteger extends Undefined {
 		@Override
 		public Schema accept(Tree<?> node) {
-			// if (node.has(_Range)) {
-			// int min = Integer.parseInt(node.getText(_Min, ""));
-			// int max = Integer.parseInt(node.getText(_Max, ""));
-			// // return schema.newTInteger(min, max);
-			// }
 			return generator.newTInteger();
 		}
 	}
@@ -116,11 +101,6 @@ public class CelerySchemaConstructor extends SchemaConstructor {
 	public final class TFloat extends Undefined {
 		@Override
 		public Schema accept(Tree<?> node) {
-			// if (node.has(_Range)) {
-			// float min = Float.parseFloat(node.getText(_Min, ""));
-			// float max = Float.parseFloat(node.getText(_Max, ""));
-			// // return schema.newTFloat(min, max);
-			// }
 			return generator.newTFloat();
 		}
 	}
@@ -128,11 +108,6 @@ public class CelerySchemaConstructor extends SchemaConstructor {
 	public final class TString extends Undefined {
 		@Override
 		public Schema accept(Tree<?> node) {
-			// if (node.has(_Length)) {
-			// int min = Integer.parseInt(node.getText(_Min, ""));
-			// int max = Integer.parseInt(node.getText(_Max, ""));
-			// // return schema.newTString(min, max);
-			// }
 			return generator.newTString();
 		}
 	}

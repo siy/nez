@@ -7,14 +7,11 @@ import nez.util.StringUtils;
 
 public class TreeUtils {
 
-	public final static String digestString(Tree<?> node) {
+	public static String digestString(Tree<?> node) {
 		StringBuilder sb = new StringBuilder();
 		byte[] hash = digest(node);
-		for (int i = 0; i < hash.length; i++) {
-			int d = hash[i] & 0xff;
-			// if (d < 0) {
-			// d += 256;
-			// }
+		for (byte b : hash) {
+			int d = b & 0xff;
 			if (d < 16) {
 				sb.append("0");
 			}
@@ -23,7 +20,7 @@ public class TreeUtils {
 		return sb.toString();
 	}
 
-	public final static byte[] digest(Tree<?> node) {
+	public static byte[] digest(Tree<?> node) {
 		try {
 			MessageDigest md;
 			md = MessageDigest.getInstance("MD5");

@@ -16,11 +16,11 @@ public class Productions {
 	 * @return true if the production is recursive
 	 */
 
-	public final static boolean isRecursive(Production p) {
+	public static boolean isRecursive(Production p) {
 		return isRecursive(p.getExpression(), p.getUniqueName(), new HashSet<>());
 	}
 
-	private final static boolean isRecursive(Expression e, String uname, HashSet<String> visited) {
+	private static boolean isRecursive(Expression e, String uname, HashSet<String> visited) {
 		if (e instanceof NonTerminal) {
 			Production p = ((NonTerminal) e).getProduction();
 			if (p == null) {
@@ -37,8 +37,7 @@ public class Productions {
 			return false;
 		}
 		for (Expression sub : e) {
-			boolean b = isRecursive(sub, uname, visited);
-			if (b == true) {
+			if (isRecursive(sub, uname, visited)) {
 				return true;
 			}
 		}
@@ -52,7 +51,7 @@ public class Productions {
 	 * @return
 	 */
 
-	public final static NonterminalReference countNonterminalReference(Grammar grammar) {
+	public static NonterminalReference countNonterminalReference(Grammar grammar) {
 		NonterminalReference refc = new NonterminalReference();
 		refc.put(grammar.getStartProduction().getUniqueName(), 1);
 		for (Production p : grammar) {
@@ -72,15 +71,10 @@ public class Productions {
 		return refc;
 	}
 
-	private final static void count(Expression e, HashMap<String, Integer> counts) {
+	private static void count(Expression e, HashMap<String, Integer> counts) {
 		if (e instanceof NonTerminal) {
 			String uname = ((NonTerminal) e).getUniqueName();
-			Integer n = counts.get(uname);
-			if (n == null) {
-				counts.put(uname, 1);
-			} else {
-				counts.put(uname, n + 1);
-			}
+			counts.merge(uname, 1, Integer::sum);
 			return;
 		}
 		for (Expression sub : e) {
@@ -88,7 +82,7 @@ public class Productions {
 		}
 	}
 
-	private final static boolean hasUnusedProduction(Grammar grammar, NonterminalReference refc) {
+	private static boolean hasUnusedProduction(Grammar grammar, NonterminalReference refc) {
 		for (Production p : grammar) {
 			String uname = p.getUniqueName();
 			if (refc.count(uname) == 0) {
@@ -104,78 +98,16 @@ public class Productions {
 	 * @author kiki
 	 *
 	 */
-	@SuppressWarnings("serial")
 	public static class NonterminalReference extends HashMap<String, Integer> {
 		public final int count(String key) {
-			Integer n = this.get(key);
-			return n == null ? 0 : (int) n;
+			Integer n = get(key);
+			return n == null ? 0 : n;
 		}
 	}
 
-	// public static class ProductionProperty extends UList<String> {
-	// HashMap<String, Boolean> boolMap;
-	//
-	// public ProductionProperty() {
-	// super(new String[64]);
-	// this.boolMap = new HashMap<>();
-	// }
-	//
-	// public void push(String uname) {
-	// this.add(uname);
-	// }
-	//
-	// public boolean isVisited(String uname) {
-	// for (String u : this) {
-	// if (uname.equals(u)) {
-	// return true;
-	// }
-	// }
-	// return false;
-	// }
-	//
-	// public boolean hasProperty(String uname) {
-	// return this.boolMap.containsKey(uname);
-	// }
-	//
-	// public Boolean getProperty(String uname) {
-	// return this.boolMap.get(uname);
-	// }
-	//
-	// public void setProperty(String uname, Boolean result) {
-	// this.boolMap.put(uname, result);
-	// }
-	//
-	// void setAll(String uname, Boolean result) {
-	// for (int i = this.size() - 1; i >= 0; i--) {
-	// String u = this.get(i);
-	// this.boolMap.put(u, result);
-	// if (uname.equals(u)) {
-	// break;
-	// }
-	// }
-	// }
-	// }
+	private static final LeftRecursionChecker leftRecursionChecker = new LeftRecursionChecker();
 
-	/*
-	 * public final static boolean isContextual(Production p, ProductionProperty
-	 * stack) { String uname = p.getUniqueName(); if (stack.hasProperty(uname))
-	 * { return stack.getProperty(uname); } if(!stack.isVisited(uname)) {
-	 * stack.push(uname); checkContextual(p.getExpression(), stack);
-	 * stack.pop(); } if (stack.hasProperty(uname)) { return
-	 * stack.getProperty(uname); } stack.setProperty(uname, false); return
-	 * false; }
-	 * 
-	 * private void checkContextual(Expression e, ProductionProperty stack) { if
-	 * (e instanceof NonTerminal) { Production p = ((NonTerminal)
-	 * e).getProduction(); if (p == null) { stack.setProperty(((NonTerminal)
-	 * e).getUniqueName(), false); return; } isContextual(p, stack); } if (e
-	 * instanceof Nez.Contextual) { stack.setAll(uname, result); return; } for
-	 * (Expression sub : e) { checkContextual(sub, v); } }
-	 */
-
-	private static LeftRecursionChecker leftRecursionChecker = new LeftRecursionChecker();
-
-	public final static boolean isLeftRecursive1(Production p) {
+	public static boolean isLeftRecursive1(Production p) {
 		try {
 			return leftRecursionChecker.check(p.getExpression(), null);
 		} catch (StackOverflowError e) {
@@ -183,7 +115,7 @@ public class Productions {
 		return true;
 	}
 
-	public final static void checkLeftRecursion(Production p) {
+	public static void checkLeftRecursion(Production p) {
 		leftRecursionChecker.check(p.getExpression(), p.getUniqueName());
 	}
 
@@ -241,7 +173,7 @@ public class Productions {
 
 		@Override
 		public Object visitPair(Nez.Pair e, Object a) {
-			if (check(e.get(0), a) == false) {
+			if (!check(e.get(0), a)) {
 				return false;
 			}
 			return check(e.get(1), a);
@@ -250,8 +182,7 @@ public class Productions {
 		@Override
 		public Object visitSequence(Nez.Sequence e, Object a) {
 			for (Expression sub : e) {
-				boolean c = check(sub, a);
-				if (c == false) {
+				if (!check(sub, a)) {
 					return false;
 				}
 			}
@@ -262,8 +193,7 @@ public class Productions {
 		public Object visitChoice(Nez.Choice e, Object a) {
 			boolean unconsumed = false;
 			for (Expression sub : e) {
-				boolean c = check(sub, a);
-				if (c == true) {
+				if (check(sub, a)) {
 					unconsumed = true;
 				}
 			}
@@ -274,8 +204,7 @@ public class Productions {
 		public Object visitDispatch(Nez.Dispatch e, Object a) {
 			boolean unconsumed = false;
 			for (int i = 1; i < e.size(); i++) {
-				boolean c = check(e.get(i), a);
-				if (c == true) {
+				if (check(e.get(i), a)) {
 					unconsumed = true;
 				}
 			}

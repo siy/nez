@@ -8,13 +8,12 @@ import java.io.OutputStream;
 
 public class FileBuilder {
 
-	protected String fileName = null;
+	protected String fileName;
 	private OutputStream out;
-	private String CHARSET = "UTF8";
 
-	public final static String TAB = "   ";
-	public final static String LF = "\n";
-	public final static String CRLF = "\r\n";
+	public static final String TAB = "   ";
+	public static final String LF = "\n";
+	public static final String CRLF = "\r\n";
 
 	public FileBuilder() {
 		this.out = null;
@@ -37,6 +36,7 @@ public class FileBuilder {
 			if (out == null) {
 				System.out.print(text);
 			} else {
+				String CHARSET = "UTF8";
 				out.write(text.getBytes(CHARSET));
 			}
 		} catch (IOException e) {
@@ -57,9 +57,9 @@ public class FileBuilder {
 	}
 
 	public final void close() {
-		this.flush();
-		if (this.fileName != null) {
-			Verbose.println("generating: " + this.fileName);
+		flush();
+		if (fileName != null) {
+			Verbose.println("generating: " + fileName);
 		}
 	}
 
@@ -71,47 +71,47 @@ public class FileBuilder {
 		return LF;
 	}
 
-	int IndentLevel = 0;
+	int IndentLevel;
 	String currentIndentString = "";
 
 	public final void incIndent() {
-		this.IndentLevel = this.IndentLevel + 1;
+		this.IndentLevel = IndentLevel + 1;
 		this.currentIndentString = null;
 	}
 
 	public final void decIndent() {
-		this.IndentLevel = this.IndentLevel - 1;
-		assert (this.IndentLevel >= 0);
+		this.IndentLevel = IndentLevel - 1;
+		assert (IndentLevel >= 0);
 		this.currentIndentString = null;
 	}
 
-	private final String Indent() {
-		if (this.currentIndentString == null) {
+	private String Indent() {
+		if (currentIndentString == null) {
 			StringBuilder indentBuilder = new StringBuilder(64);
-			for (int i = 0; i < this.IndentLevel; ++i) {
-				indentBuilder.append(this.Tab());
+			for (int i = 0; i < IndentLevel; ++i) {
+				indentBuilder.append(Tab());
 			}
 			this.currentIndentString = indentBuilder.toString();
 		}
-		return this.currentIndentString;
+		return currentIndentString;
 	}
 
 	public final void writeNewLine() {
-		this.write(this.NewLine());
-		this.flush();
+		write(NewLine());
+		flush();
 	}
 
 	public final void writeIndent() {
-		this.write(this.NewLine());
-		this.flush();
-		this.write(Indent());
+		write(NewLine());
+		flush();
+		write(Indent());
 	}
 
 	public final void writeIndent(String text) {
-		this.write(this.NewLine());
-		this.flush();
-		this.write(Indent());
-		this.write(text);
+		write(NewLine());
+		flush();
+		write(Indent());
+		write(text);
 	}
 
 	public final void write(String fmt, Object... args) {
@@ -132,7 +132,7 @@ public class FileBuilder {
 			}
 			if (ch == '\n') {
 				if (!empty) {
-					this.writeIndent(sub.substring(start, i));
+					writeIndent(sub.substring(start, i));
 				}
 				start = i + 1;
 				empty = true;
@@ -144,7 +144,7 @@ public class FileBuilder {
 
 	/* Utils */
 
-	public final static String toFileName(String urn, String dir, String ext) {
+	public static String toFileName(String urn, String dir, String ext) {
 		if (urn == null) {
 			urn = "stdout.out";
 		}
@@ -167,7 +167,7 @@ public class FileBuilder {
 		return urn;
 	}
 
-	public final static String extractFileName(String path) {
+	public static String extractFileName(String path) {
 		int loc = path.lastIndexOf('/');
 		if (loc > 0) {
 			return path.substring(loc + 1);
@@ -179,7 +179,7 @@ public class FileBuilder {
 		return path;
 	}
 
-	public final static String extractFileExtension(String path) {
+	public static String extractFileExtension(String path) {
 		int loc = path.lastIndexOf('.');
 		if (loc > 0) {
 			return path.substring(loc + 1);
@@ -187,7 +187,7 @@ public class FileBuilder {
 		return path;
 	}
 
-	public final static String changeFileExtension(String path, String ext) {
+	public static String changeFileExtension(String path, String ext) {
 		int loc = path.lastIndexOf('.');
 		if (loc > 0) {
 			return path.substring(0, loc + 1) + ext;

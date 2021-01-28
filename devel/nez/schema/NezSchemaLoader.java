@@ -14,9 +14,9 @@ public class NezSchemaLoader extends TreeVisitorMap<NezSchemaVisitor> {
 	Schema schema;
 
 	public Type load(Tree<?> node) {
-		Type startType = (Type) this.visit(node.get(0));
+		Type startType = (Type) visit(node.get(0));
 		for (int i = 1; i < node.size(); i++) {
-			this.visit(node.get(i));
+			visit(node.get(i));
 		}
 		return startType;
 	}
@@ -32,16 +32,16 @@ public class NezSchemaLoader extends TreeVisitorMap<NezSchemaVisitor> {
 	public NezSchemaLoader(Schema schema) {
 		this.schema = schema;
 		addBuiltInTypes();
-		this.init(NezSchemaLoader.class, new Undefined());
+		init(NezSchemaLoader.class, new Undefined());
 	}
 
 	// Temporary use
-	private final void addBuiltInTypes() {
-		this.schema.newType("#String");
-		this.schema.newType("#Number");
-		this.schema.newType("#Integer");
-		this.schema.newType("#Float");
-		this.schema.newType("#Boolean");
+	private void addBuiltInTypes() {
+		schema.newType("#String");
+		schema.newType("#Number");
+		schema.newType("#Integer");
+		schema.newType("#Float");
+		schema.newType("#Boolean");
 	}
 
 	public class Undefined implements NezSchemaVisitor {
@@ -146,14 +146,14 @@ public class NezSchemaLoader extends TreeVisitorMap<NezSchemaVisitor> {
 }
 
 interface NezSchemaVisitor {
-	public Object accept(Tree<?> node);
+	Object accept(Tree<?> node);
 }
 
 interface NezSchemaSymbols {
-	static Symbol _Name = Symbol.unique("name");
-	static Symbol _List = Symbol.unique("list");
-	static Symbol _Fixed = Symbol.unique("fixed");
-	static Symbol _Type = Symbol.unique("type");
-	static Symbol _Alias = Symbol.unique("alias");
-	static Symbol _Value = Symbol.unique("value");
+	Symbol _Name = Symbol.unique("name");
+	Symbol _List = Symbol.unique("list");
+	Symbol _Fixed = Symbol.unique("fixed");
+	Symbol _Type = Symbol.unique("type");
+	Symbol _Alias = Symbol.unique("alias");
+	Symbol _Value = Symbol.unique("value");
 }

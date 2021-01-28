@@ -3,15 +3,15 @@ package nez.lang;
 public enum SymbolMutation {
 	Immutated, Mutated, Undecided;
 
-	public static interface SymbolMutationAnalyzer extends PropertyAnalyzer<SymbolMutation> {
-		public boolean isMutated(Expression e);
+	public interface SymbolMutationAnalyzer extends PropertyAnalyzer<SymbolMutation> {
+		boolean isMutated(Expression e);
 	}
 
-	public static final SymbolMutationAnalyzer newAnalyzer() {
+	public static SymbolMutationAnalyzer newAnalyzer() {
 		return new SymbolMutationVisitor();
 	}
 
-	final static class SymbolMutationVisitor extends Expression.AnalyzeVisitor<SymbolMutation> implements SymbolMutationAnalyzer {
+	static final class SymbolMutationVisitor extends Expression.AnalyzeVisitor<SymbolMutation> implements SymbolMutationAnalyzer {
 
 		protected SymbolMutationVisitor() {
 			super(Immutated, Undecided);

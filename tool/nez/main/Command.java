@@ -1,7 +1,5 @@
 package nez.main;
 
-import java.io.IOException;
-
 import nez.ParserGenerator;
 import nez.Version;
 import nez.ast.Source;
@@ -19,19 +17,43 @@ import nez.util.FileBuilder;
 import nez.util.UList;
 import nez.util.Verbose;
 
-public abstract class Command {
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Supplier;
 
-	public final static String ProgName = "Nez";
-	public final static String CodeName = "beta";
-	public final static int MajorVersion = 1;
-	public final static int MinerVersion = 0;
-	public final static int PatchLevel = nez.Version.REV;
+import static java.util.Optional.ofNullable;
+
+public abstract class Command {
+	public static final String ProgName = "Nez";
+	public static final String CodeName = "beta";
+
+	public static final int MajorVersion = 1;
+	public static final int MinorVersion = 0;
+	public static final int PatchLevel = nez.Version.REV;
+
+	private static final Map<String, Supplier<Command>> COMMANDS = new HashMap<>();
+
+	static {
+		COMMANDS.put("bench", Cbench::new);
+		COMMANDS.put("code", Ccode::new);
+		COMMANDS.put("dump", Cdump::new);
+		COMMANDS.put("format", Cformat::new);
+		COMMANDS.put("match", Cmatch::new);
+		COMMANDS.put("parse", Cparse::new);
+		COMMANDS.put("test", Ctest::new);
+		COMMANDS.put("compile", Ccompile::new);
+		COMMANDS.put("example", Cexample::new);
+		COMMANDS.put("inez", Cinez::new);
+		COMMANDS.put("peg", Cpeg::new);
+	}
 
 	public static void main(String[] args) {
 		try {
 			Command com = newCommand(args);
 			if (Verbose.enabled) {
-				Verbose.println("nez-%d.%d.%d %s", MajorVersion, MinerVersion, PatchLevel, com.getClass().getName());
+				Verbose.println("nez-%d.%d.%d %s", MajorVersion, MinorVersion, PatchLevel, com.getClass().getName());
 				Verbose.println("strategy: %s", com.strategy);
 			}
 			com.exec();
@@ -43,36 +65,36 @@ public abstract class Command {
 	}
 
 	private static Command newCommand(String[] args) {
-		try {
-			String className = args[0];
-			if (className.indexOf('.') == -1) {
-				className = "nez.main.C" + className;
-			}
-			Command cmd = (Command) Class.forName(className).newInstance();
-			cmd.parseCommandOption(args);
-			return cmd;
-		} catch (Exception e) {
-			// Verbose.traceException(e);
-			showUsage("unknown command");
-		}
-		return null;
+		return ofNullable(args)
+			.flatMap(arg -> ofNullable(arg.length > 0 ? arg[0] : null))
+			.flatMap(arg -> ofNullable(COMMANDS.get(arg.toLowerCase())))
+			.map(Supplier::get)
+			.map(cmd -> {cmd.parseCommandOption(args); return cmd;})
+			.orElse(new Command() {
+				@Override
+				public void exec() {
+					assert args != null;
+					String cmd = args.length > 0 ? args[0] : "";
+					showUsage("Unknown command " + cmd);
+				}
+			});
 	}
 
 	public void exec() throws IOException {
 		System.out.println(strategy);
 	}
 
-	protected String command = null;
+	protected String command;
 	protected ParserStrategy strategy = new ParserStrategy();
-	protected String grammarFile = null;
-	protected String grammarSource = null;
-	protected String grammarType = null;
-	protected UList<String> grammarFiles = new UList<String>(new String[4]);
-	protected String startProduction = null;
-	protected String inputText = null;
-	protected UList<String> inputFiles = new UList<String>(new String[4]);
-	protected String outputFormat = null;
-	protected String outputDirectory = null;
+	protected String grammarFile;
+	protected String grammarSource;
+	protected String grammarType;
+	protected UList<String> grammarFiles = new UList<>(new String[4]);
+	protected String startProduction;
+	protected String inputText;
+	protected UList<String> inputFiles = new UList<>(new String[4]);
+	protected String outputFormat;
+	protected String outputDirectory;
 
 	private void parseCommandOption(String[] args) {
 		for (int index = 1; index < args.length; index++) {
@@ -122,15 +144,15 @@ public abstract class Command {
 				continue;
 			}
 			if (!strategy.setOption(as)) {
-				if (as.equals("-") && as.length() > 1) {
+				if (as.startsWith("-") && as.length() > 1) {
 					showUsage("undefined option: " + as);
 				}
-				this.inputFiles.add(as);
+				inputFiles.add(as);
 			}
 		}
 	}
 
-	public final static void displayVersion() {
+	public static void displayVersion() {
 		ConsoleUtils.bold();
 		ConsoleUtils.println(ProgName + "-" + nez.Version.Version + " (" + CodeName + ") on Java JVM-" + System.getProperty("java.version"));
 		ConsoleUtils.end();
@@ -142,8 +164,6 @@ public abstract class Command {
 		ConsoleUtils.println("Usage: nez <command> options inputs");
 		ConsoleUtils.println("  -g | --grammar <file>      Specify a grammar file");
 		ConsoleUtils.println("  -f | --format <string>     Specify an output format");
-		// ConsoleUtils.println("  -e <text>      Specify a Nez parsing expression");
-		// ConsoleUtils.println("  -a <file>      Specify a Nez auxiliary grammar files");
 		ConsoleUtils.println("  -s | --start <NAME>        Specify a starting production");
 		ConsoleUtils.println("  -d | --dir <dirname>       Specify an output dir");
 		ConsoleUtils.println("Example:");
@@ -170,11 +190,11 @@ public abstract class Command {
 		if (grammarFile != null) {
 			ParserGenerator pg = new ParserGenerator();
 			Grammar grammar = pg.loadGrammar(grammarFile);
-			for (String f : this.grammarFiles) {
+			for (String f : grammarFiles) {
 				pg.updateGrammar(grammar, f);
 			}
-			if (this.startProduction != null) {
-				if (!grammar.hasProduction(this.startProduction)) {
+			if (startProduction != null) {
+				if (!grammar.hasProduction(startProduction)) {
 					String s = startProduction.substring(0, 1);
 					StringBuilder sb = new StringBuilder();
 					for (Production p : grammar) {
@@ -183,10 +203,10 @@ public abstract class Command {
 							sb.append(p.getLocalName());
 						}
 					}
-					ConsoleUtils.println("No such production -s " + this.startProduction + ". Try " + sb.toString());
-					throw new IOException("No such start production: " + this.startProduction);
+					ConsoleUtils.println("No such production -s " + startProduction + ". Try " + sb);
+					throw new IOException("No such start production: " + startProduction);
 				}
-				grammar.setStartProduction(this.startProduction);
+				grammar.setStartProduction(startProduction);
 			}
 			return grammar;
 		}
@@ -194,16 +214,15 @@ public abstract class Command {
 	}
 
 	public final Parser newParser() throws IOException {
-		return this.strategy.newParser(getSpecifiedGrammar());
+		return strategy.newParser(getSpecifiedGrammar());
 	}
 
 	public final Parser getNezParser() {
 		Grammar grammar = new Grammar("nez");
-		Parser parser = new NezGrammarCombinator().load(grammar, "File").newParser(ParserStrategy.newSafeStrategy());
-		return parser;
+		return new NezGrammarCombinator().load(grammar, "File").newParser(ParserStrategy.newSafeStrategy());
 	}
 
-	private int fileIndex = 0;
+	private int fileIndex;
 
 	public final void checkInputSource() {
 		if (inputFiles.size() == 0 && inputText == null) {
@@ -222,7 +241,7 @@ public abstract class Command {
 				inputText = null;
 				return s;
 			}
-			String path = this.inputFiles.ArrayValues[fileIndex];
+			String path = inputFiles.ArrayValues[fileIndex];
 			fileIndex++;
 			return CommonSource.newFileSource(path);
 		}
@@ -261,8 +280,8 @@ public abstract class Command {
 			classPath += outputFormat;
 		}
 		try {
-			return Class.forName(classPath).newInstance();
-		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+			return Class.forName(classPath).getDeclaredConstructor().newInstance();
+		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | NoSuchMethodException | InvocationTargetException e) {
 			Verbose.traceException(e);
 			if (options != null) {
 				ConsoleUtils.println("Available format: " + options);
@@ -271,5 +290,4 @@ public abstract class Command {
 		}
 		return null;
 	}
-
 }

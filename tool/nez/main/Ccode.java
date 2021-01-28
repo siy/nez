@@ -32,10 +32,8 @@ public class Ccode extends Command {
 		case "py":
 		case "python":
 			return new PythonParserGenerator();
-			// case "coffee":
-			// return new CoffeeParserGenerator();
 		default:
-			return (ParserGrammarWriter) this.newExtendedOutputHandler("", "c java python");
+			return (ParserGrammarWriter) newExtendedOutputHandler("", "c java python");
 		}
 	}
 }

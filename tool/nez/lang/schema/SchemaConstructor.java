@@ -12,20 +12,20 @@ public abstract class SchemaConstructor extends GrammarVisitorMap<SchemaTransduc
 	}
 
 	public Schema newSchema(Tree<?> node) {
-		return this.find(key(node)).accept(node);
+		return find(key(node)).accept(node);
 	}
 
 }
 
 interface SchemaTransducer {
-	public Schema accept(Tree<?> node);
+	Schema accept(Tree<?> node);
 }
 
 interface SchemaSymbol {
-	static final Symbol _Key = Symbol.unique("key");
-	static final Symbol _Value = Symbol.unique("value");
-	static final Symbol _Member = Symbol.unique("member");
-	static final Symbol _Name = Symbol.unique("name");
-	static final Symbol _Type = Symbol.unique("type");
-	static final Symbol _List = Symbol.unique("list");
+	Symbol _Key = Symbol.unique("key");
+	Symbol _Value = Symbol.unique("value");
+	Symbol _Member = Symbol.unique("member");
+	Symbol _Name = Symbol.unique("name");
+	Symbol _Type = Symbol.unique("type");
+	Symbol _List = Symbol.unique("list");
 }

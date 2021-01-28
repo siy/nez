@@ -4,9 +4,6 @@ package nez.dfa;
 public class BDDNode implements Comparable<BDDNode> {
 	public int variableID, zeroID, oneID;
 
-	public BDDNode() {
-	}
-
 	public BDDNode(int variableID, int zeroID, int oneID) {
 		this.variableID = variableID;
 		this.zeroID = zeroID;
@@ -14,7 +11,7 @@ public class BDDNode implements Comparable<BDDNode> {
 	}
 
 	public BDDNode deepCopy() {
-		return new BDDNode(this.variableID, this.zeroID, this.oneID);
+		return new BDDNode(variableID, zeroID, oneID);
 	}
 
 	public boolean equals(BDDNode o) {
@@ -23,11 +20,11 @@ public class BDDNode implements Comparable<BDDNode> {
 
 	@Override
 	public int compareTo(BDDNode o) {
-		int result = new Integer(this.variableID).compareTo(o.variableID);
+		int result = Integer.compare(variableID, o.variableID);
 		if (result == 0) {
-			result = new Integer(this.zeroID).compareTo(o.zeroID);
+			result = Integer.compare(zeroID, o.zeroID);
 			if (result == 0) {
-				result = new Integer(this.oneID).compareTo(o.oneID);
+				result = Integer.compare(oneID, o.oneID);
 			}
 		}
 		return result;

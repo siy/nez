@@ -5,10 +5,6 @@ public class BinaryOperatorMemoState implements Comparable<BinaryOperatorMemoSta
 	public char op;
 	public int F, G;
 
-	public BinaryOperatorMemoState() {
-
-	}
-
 	public BinaryOperatorMemoState(char op, int F, int G) {
 		this.op = op;
 		this.F = F;
@@ -17,11 +13,11 @@ public class BinaryOperatorMemoState implements Comparable<BinaryOperatorMemoSta
 
 	@Override
 	public int compareTo(BinaryOperatorMemoState o) {
-		int result = new Character(this.op).compareTo(o.op);
+		int result = Character.compare(op, o.op);
 		if (result == 0) {
-			result = new Integer(this.F).compareTo(o.F);
+			result = Integer.compare(F, o.F);
 			if (result == 0) {
-				result = new Integer(this.G).compareTo(o.G);
+				result = Integer.compare(G, o.G);
 			}
 		}
 		return result;

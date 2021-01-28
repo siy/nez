@@ -14,7 +14,7 @@ import nez.util.Verbose;
 
 public class Cinez extends Command {
 	Object console;
-	String text = null;
+	String text;
 	int linenum = 1;
 
 	private void p(String line) {
@@ -30,8 +30,8 @@ public class Cinez extends Command {
 		p("Tips: Start with an empty line for multiple lines.");
 		p("      Entering two empty lines diplays the current grammar.");
 		ConsoleUtils.println("");
-		Parser nezParser = this.getNezParser();
-		TreeWriter writer = this.getTreeWriter("ast json xml", "ast");
+		Parser nezParser = getNezParser();
+		TreeWriter writer = getTreeWriter("ast json xml", "ast");
 		Grammar grammar = getSpecifiedGrammar();
 		String start = grammar.getStartProduction().getLocalName();
 		Parser p = strategy.newParser(grammar);
@@ -97,7 +97,7 @@ public class Cinez extends Command {
 			hasNext = true;
 		} else if (line.endsWith("\\")) {
 			hasNext = true;
-			sb.append(line.substring(0, line.length() - 1));
+			sb.append(line, 0, line.length() - 1);
 			linecount = 1;
 		} else {
 			linecount = 1;
@@ -115,7 +115,7 @@ public class Cinez extends Command {
 				if (linecount > 0) {
 					sb.append("\n");
 				}
-				sb.append(line.substring(0, line.length() - 1));
+				sb.append(line, 0, line.length() - 1);
 				linecount++;
 			} else {
 				if (linecount > 0) {

@@ -12,7 +12,7 @@ public class Cparse extends Command {
 	public void exec() throws IOException {
 		checkInputSource();
 		Parser parser = newParser();
-		TreeWriter tw = this.getTreeWriter("ast xml json", "line");
+		TreeWriter tw = getTreeWriter("ast xml json", "line");
 		while (hasInputSource()) {
 			Source input = nextInputSource();
 			Tree<?> node = parser.parse(input);
@@ -20,26 +20,10 @@ public class Cparse extends Command {
 				parser.showErrors();
 				continue;
 			}
-			// if (node != null) {
-			// //record(parser.getProfiler(), node);
-			// parser.logProfiler();
-			if (this.outputDirectory != null) {
+			if (outputDirectory != null) {
 				tw.init(getOutputFileName(input, tw.getFileExtension()));
 			}
 			tw.writeTree(node);
-			// }
 		}
 	}
-
-	// private void record(ParserProfier prof, Tree<?> node) {
-	// if (prof != null) {
-	// System.gc();
-	// prof.setCount("O.Size", node.countSubNodes());
-	// long t1 = System.nanoTime();
-	// Tree<?> t = node.dup();
-	// long t2 = System.nanoTime();
-	// ParserProfier.recordLatencyMS(prof, "O.Overhead", t1, t2);
-	// }
-	// }
-
 }

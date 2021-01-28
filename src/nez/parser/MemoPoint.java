@@ -19,23 +19,23 @@ public final class MemoPoint {
 	}
 
 	public final boolean isStateful() {
-		return this.contextSensitive;
+		return contextSensitive;
 	}
 
 	public final Typestate getTypestate() {
-		return this.typeState;
+		return typeState;
 	}
 
-	int memoHit = 0;
-	int memoFailHit = 0;
-	long hitLength = 0;
-	int maxLength = 0;
-	int memoMiss = 0;
+	int memoHit;
+	int memoFailHit;
+	long hitLength;
+	int maxLength;
+	int memoMiss;
 
 	public void memoHit(int consumed) {
 		this.memoHit += 1;
 		this.hitLength += consumed;
-		if (this.maxLength < consumed) {
+		if (maxLength < consumed) {
 			this.maxLength = consumed;
 		}
 	}
@@ -49,52 +49,46 @@ public final class MemoPoint {
 	}
 
 	public final double hitRatio() {
-		if (this.memoMiss == 0)
+		if (memoMiss == 0)
 			return 0.0;
-		return (double) this.memoHit / this.memoMiss;
+		return (double) memoHit / memoMiss;
 	}
 
 	public final double failHitRatio() {
-		if (this.memoMiss == 0)
+		if (memoMiss == 0)
 			return 0.0;
-		return (double) this.memoFailHit / this.memoMiss;
+		return (double) memoFailHit / memoMiss;
 	}
 
 	public final double meanLength() {
-		if (this.memoHit == 0)
+		if (memoHit == 0)
 			return 0.0;
-		return (double) this.hitLength / this.memoHit;
+		return (double) hitLength / memoHit;
 	}
 
 	public final int count() {
-		return this.memoMiss + this.memoFailHit + this.memoHit;
+		return memoMiss + memoFailHit + memoHit;
 	}
 
 	protected final boolean checkDeactivation() {
-		if (this.memoMiss == 32) {
-			if (this.memoHit < 2) {
+		if (memoMiss == 32) {
+			if (memoHit < 2) {
 				return true;
 			}
 		}
-		if (this.memoMiss % 64 == 0) {
-			if (this.memoHit == 0) {
+		if (memoMiss % 64 == 0) {
+			if (memoHit == 0) {
 				return true;
 			}
-			// if(this.hitLength < this.memoHit) {
-			// enableMemo = false;
-			// disabledMemo();
-			// return;
-			// }
-			if (this.memoMiss / this.memoHit > 10) {
-				return true;
-			}
+
+			return memoMiss / memoHit > 10;
 		}
 		return false;
 	}
 
 	@Override
 	public String toString() {
-		return this.label + "[id=" + this.id + "]";
+		return label + "[id=" + id + "]";
 	}
 
 }

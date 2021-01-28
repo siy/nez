@@ -26,8 +26,8 @@ public class LiteralConstructor extends TreeVisitorMap<nez.ast.LiteralConstructo
 		return find(node.getTag().getSymbol());
 	}
 
-	public static interface TreeConstructor {
-		public Object newInstance(Tree<?> node);
+	public interface TreeConstructor {
+		Object newInstance(Tree<?> node);
 	}
 
 	public class _Object implements TreeConstructor {
@@ -47,10 +47,7 @@ public class LiteralConstructor extends TreeVisitorMap<nez.ast.LiteralConstructo
 		@Override
 		public Boolean newInstance(Tree<?> node) {
 			try {
-				if (node.toText().equals("true")) {
-					return true;
-				}
-				return false;
+				return node.toText().equals("true");
 			} catch (LiteralFormatException e) {
 				throw e;
 			} catch (RuntimeException e) {
@@ -145,7 +142,7 @@ public class LiteralConstructor extends TreeVisitorMap<nez.ast.LiteralConstructo
 	}
 
 	protected List<Object> newList(int n) {
-		return new ArrayList<Object>(n);
+		return new ArrayList<>(n);
 	}
 
 	public List<Object> newList(Tree<?> node) {
@@ -163,7 +160,7 @@ public class LiteralConstructor extends TreeVisitorMap<nez.ast.LiteralConstructo
 	}
 
 	protected Map<String, Object> newMap() {
-		return new HashMap<String, Object>();
+		return new HashMap<>();
 	}
 
 	public Map<String, Object> newMap(Tree<?> node) {

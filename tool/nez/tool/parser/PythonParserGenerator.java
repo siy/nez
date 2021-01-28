@@ -8,21 +8,10 @@ public class PythonParserGenerator extends CommonParserGenerator {
 		super(".py");
 	}
 
-	public boolean Python3 = false;
+	public boolean Python3;
 
 	@Override
 	protected void initLanguageSpec() {
-		// this.addType("parse", "boolean");
-		// this.addType("memo", "int");
-		// this.addType(_byteSet_(), "boolean[]");
-		// this.addType(_indexMap_(), "byte[]");
-		// this.addType(_byteSeq_(), "byte[]");
-		// this.addType(_unchoiced_(), "boolean");
-		// this.addType(_pos_(), "int");
-		// this.addType(_left_(), "Tree<?>");
-		// this.addType(_log_(), "Object");
-		// this.addType(_sym_(), "int");
-		// this.addType(_state_(), "ParserContext");
 	}
 
 	/* Syntax */
@@ -137,9 +126,6 @@ public class PythonParserGenerator extends CommonParserGenerator {
 
 	@Override
 	protected String _byte(int ch) {
-		// if (ch < 128 && (!Character.isISOControl(ch))) {
-		// return "'" + (char) ch + "'";
-		// }
 		return "" + ch;
 	}
 
@@ -191,8 +177,6 @@ public class PythonParserGenerator extends CommonParserGenerator {
 	@Override
 	protected void End() {
 		file.decIndent();
-		// file.writeIndent();
-		// file.write("#");
 	}
 
 	@Override

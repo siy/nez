@@ -17,17 +17,17 @@ public class CommonTree extends Tree<CommonTree> {
 
 	@Override
 	public void link(int n, Symbol label, Object child) {
-		this.set(n, label, (CommonTree) child);
+		set(n, label, (CommonTree) child);
 	}
 
 	@Override
 	public CommonTree newInstance(Symbol tag, int size, Object value) {
-		return new CommonTree(tag, this.getSource(), this.getSourcePosition(), 0, size, value);
+		return new CommonTree(tag, getSource(), getSourcePosition(), 0, size, value);
 	}
 
 	@Override
 	protected CommonTree dupImpl() {
-		return new CommonTree(this.getTag(), this.getSource(), this.getSourcePosition(), this.getLength(), this.size(), getValue());
+		return new CommonTree(getTag(), getSource(), getSourcePosition(), getLength(), size(), getValue());
 	}
 
 }

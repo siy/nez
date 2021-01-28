@@ -28,14 +28,14 @@ public class DirectedEdge {
 	}
 
 	public int getSrc() {
-		return this.src;
+		return src;
 	}
 
 	public int getDst() {
-		return this.dst;
+		return dst;
 	}
 
 	public int getWeight() {
-		return this.weight;
+		return weight;
 	}
 }

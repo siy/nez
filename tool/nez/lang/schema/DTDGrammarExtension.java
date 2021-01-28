@@ -12,11 +12,6 @@ public class DTDGrammarExtension extends ParserGenerator.GrammarExtension {
 		super("xmldtd.nez");
 	}
 
-	// @Override
-	// public GrammarExtension newState() {
-	// return new DTDGrammarExtension(); // in case of statefull
-	// }
-
 	@Override
 	public String getExtension() {
 		return "dtd";

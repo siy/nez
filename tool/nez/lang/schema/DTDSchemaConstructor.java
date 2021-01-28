@@ -5,7 +5,7 @@ import nez.lang.Grammar;
 import nez.parser.ParserStrategy;
 
 public class DTDSchemaConstructor extends SchemaConstructor {
-	String elementName = null;
+	String elementName;
 	DTDSchemaGrammarGenerator generator;
 
 	public DTDSchemaConstructor(Grammar grammar, ParserStrategy strategy, DTDSchemaGrammarGenerator generator) {

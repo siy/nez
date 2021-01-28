@@ -10,9 +10,9 @@ public class LabeledExprVerifier extends BaseVisitor<Void, Void> {
 
 	@Override
 	public Void visit(TypedPEG expr, Void param) {
-		this.exprStack.add(expr);
+		exprStack.add(expr);
 		expr.accept(this, param);
-		this.exprStack.remove(this.exprStack.size() - 1);
+		exprStack.remove(exprStack.size() - 1);
 		return null;
 	}
 
@@ -23,23 +23,23 @@ public class LabeledExprVerifier extends BaseVisitor<Void, Void> {
 
 	@Override
 	public Void visitRepeatExpr(TypedPEG.RepeatExpr expr, Void param) {
-		return this.visit(expr.getExpr());
+		return visit(expr.getExpr());
 	}
 
 	@Override
 	public Void visitOptionalExpr(TypedPEG.OptionalExpr expr, Void param) {
-		return this.visit(expr.getExpr());
+		return visit(expr.getExpr());
 	}
 
 	@Override
 	public Void visitPredicateExpr(TypedPEG.PredicateExpr expr, Void param) {
-		return this.visit(expr.getExpr());
+		return visit(expr.getExpr());
 	}
 
 	@Override
 	public Void visitChoiceExpr(TypedPEG.ChoiceExpr expr, Void param) {
 		for (TypedPEG e : expr.getExprs()) {
-			this.visit(e);
+			visit(e);
 		}
 		return null;
 	}
@@ -47,30 +47,30 @@ public class LabeledExprVerifier extends BaseVisitor<Void, Void> {
 	@Override
 	public Void visitSequenceExpr(TypedPEG.SequenceExpr expr, Void param) {
 		for (TypedPEG e : expr.getExprs()) {
-			this.visit(e);
+			visit(e);
 		}
 		return null;
 	}
 
 	@Override
 	public Void visitRuleExpr(TypedPEG.RuleExpr expr, Void param) {
-		return this.visit(expr.getExpr());
+		return visit(expr.getExpr());
 	}
 
 	@Override
 	public Void visitTypedRuleExpr(TypedPEG.TypedRuleExpr expr, Void param) {
-		return this.visit(expr.getExpr());
+		return visit(expr.getExpr());
 	}
 
 	@Override
 	public Void visitLabeledExpr(TypedPEG.LabeledExpr expr, Void param) {
-		if (this.exprStack.size() == 3 && this.exprStack.get(0) instanceof TypedPEG.RuleExpr && this.exprStack.get(1) instanceof TypedPEG.SequenceExpr) {
-			return this.visit(expr.getExpr());
+		if (exprStack.size() == 3 && exprStack.get(0) instanceof TypedPEG.RuleExpr && exprStack.get(1) instanceof TypedPEG.SequenceExpr) {
+			return visit(expr.getExpr());
 		}
-		if (this.exprStack.size() == 2 && this.exprStack.get(0) instanceof TypedPEG.RuleExpr) {
-			return this.visit(expr.getExpr());
+		if (exprStack.size() == 2 && exprStack.get(0) instanceof TypedPEG.RuleExpr) {
+			return visit(expr.getExpr());
 		}
-		this.exprStack.clear();
+		exprStack.clear();
 		throw new SemanticException(expr.getRange(), "not allowed label");
 	}
 }

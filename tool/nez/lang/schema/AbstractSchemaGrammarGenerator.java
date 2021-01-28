@@ -14,35 +14,31 @@ public abstract class AbstractSchemaGrammarGenerator implements SchemaGrammarGen
 	protected Grammar grammar;
 	private List<Element> requiredElementList;
 	private List<Element> elementList;
-	private int tableCounter = 0;
+	private int tableCounter;
 
 	public AbstractSchemaGrammarGenerator(Grammar grammar) {
 		this.grammar = grammar;
 	}
 
 	public List<Element> getElementList() {
-		return this.elementList;
+		return elementList;
 	}
 
 	public List<Element> getRequiredElementList() {
-		return this.requiredElementList;
-	}
-
-	public List<Element> getOptionalElementList() {
-		return extractOptionalMembers();
+		return requiredElementList;
 	}
 
 	public void addRequired(Element element) {
-		this.requiredElementList.add(element);
-		this.elementList.add(element);
+		requiredElementList.add(element);
+		elementList.add(element);
 	}
 
 	public void addElement(Element element) {
-		this.elementList.add(element);
+		elementList.add(element);
 	}
 
 	public int getTableCounter() {
-		return this.tableCounter;
+		return tableCounter;
 	}
 
 	public String getTableName() {
@@ -50,16 +46,16 @@ public abstract class AbstractSchemaGrammarGenerator implements SchemaGrammarGen
 	}
 
 	public final void initMemberList() {
-		requiredElementList = new ArrayList<Element>();
-		elementList = new ArrayList<Element>();
+		requiredElementList = new ArrayList<>();
+		elementList = new ArrayList<>();
 		tableCounter++;
 	}
 
 	protected final List<Element> extractOptionalMembers() {
-		List<Element> impliedList = new ArrayList<Element>();
-		for (int i = 0; i < elementList.size(); i++) {
-			if (!requiredElementList.contains(elementList.get(i))) {
-				impliedList.add(elementList.get(i));
+		List<Element> impliedList = new ArrayList<>();
+		for (Element element : elementList) {
+			if (!requiredElementList.contains(element)) {
+				impliedList.add(element);
 			}
 		}
 		return impliedList;
@@ -108,7 +104,7 @@ public abstract class AbstractSchemaGrammarGenerator implements SchemaGrammarGen
 	}
 
 	protected final Expression _Sequence(Expression... l) {
-		UList<Expression> seq = new UList<Expression>(new Expression[8]);
+		UList<Expression> seq = new UList<>(new Expression[8]);
 		for (Expression p : l) {
 			Expressions.addSequence(seq, p);
 		}
@@ -116,15 +112,11 @@ public abstract class AbstractSchemaGrammarGenerator implements SchemaGrammarGen
 	}
 
 	protected final Expression _Choice(Expression... l) {
-		UList<Expression> seq = new UList<Expression>(new Expression[8]);
+		UList<Expression> seq = new UList<>(new Expression[8]);
 		for (Expression p : l) {
 			Expressions.addChoice(seq, p);
 		}
 		return Expressions.newChoice(seq);
-	}
-
-	protected final Expression _Detree(Expression e) {
-		return Expressions.newDetree(null, e);
 	}
 
 	protected final Expression _Link(Symbol label, Expression e) {
@@ -135,20 +127,8 @@ public abstract class AbstractSchemaGrammarGenerator implements SchemaGrammarGen
 		return Expressions.newTree(null, false, null, _Sequence(seq));
 	}
 
-	protected final Expression _LeftFold(Symbol label, int shift) {
-		return Expressions.newFoldTree(null, label, shift);
-	}
-
-	protected final Expression _Capture(int shift) {
-		return Expressions.newEndTree(null, shift);
-	}
-
 	protected final Expression _Tag(String tag) {
 		return Expressions.newTag(null, Symbol.unique(tag));
-	}
-
-	protected final Expression _Replace(String msg) {
-		return Expressions.newReplace(null, msg);
 	}
 
 	protected final Expression _DQuat() {
@@ -272,8 +252,8 @@ public abstract class AbstractSchemaGrammarGenerator implements SchemaGrammarGen
 				int seqCount = 0;
 				Expression[] seqList = new Expression[listLength * 2 + 1];
 				seqList[seqCount++] = _ZeroMore(impliedChoiceRule);
-				for (int index = 0; index < targetLine.length; index++) {
-					seqList[seqCount++] = _NonTerminal(getRequiredElementList().get(targetLine[index]).getUniqueName());
+				for (int i : targetLine) {
+					seqList[seqCount++] = _NonTerminal(getRequiredElementList().get(i).getUniqueName());
 					seqList[seqCount++] = _ZeroMore(impliedChoiceRule);
 				}
 				choiceList[choiceCount++] = _Sequence(seqList);
@@ -285,7 +265,6 @@ public abstract class AbstractSchemaGrammarGenerator implements SchemaGrammarGen
 	protected void genImpliedChoice() {
 		List<Element> impliedList = extractOptionalMembers();
 		List<Expression> l = Expressions.newList(impliedList.size());
-		int choiceCount = 0;
 		for (Element element : impliedList) {
 			l.add(_NonTerminal(element.getUniqueName()));
 		}
@@ -312,7 +291,7 @@ public abstract class AbstractSchemaGrammarGenerator implements SchemaGrammarGen
 	public Schema newTFloat(int min, int max) {
 		// TODO Auto-generated method stub
 		return null;
-	};
+	}
 
 	@Override
 	public Schema newTString() {

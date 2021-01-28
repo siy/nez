@@ -18,15 +18,10 @@ public class Command extends nez.main.Command {
 	public void exec() throws IOException {
 		/* Setting required options */
 		strategy.Optimization = false;
-		Grammar grammar = this.getSpecifiedGrammar();
+		Grammar grammar = getSpecifiedGrammar();
 		SchemaTransformer conv = new SchemaTransformer();
 		Schema schema = new Schema();
 		Type topType = loadSchema(schema);
-		// schema.newType("#String");
-		// schema.newType("#Integer");
-		// Schema.ObjectType topType = schema.newType("#Person", "name",
-		// "#String", "age", "#Integer");
-		// System.out.println(topType);
 		grammar = conv.transform(grammar.getStartProduction(), schema, (ObjectType) topType);
 		grammar.dump();
 	}

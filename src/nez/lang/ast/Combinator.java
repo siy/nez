@@ -22,7 +22,7 @@ public class Combinator {
 
 	public final Grammar load(Grammar g, String start) {
 		this.g = g;
-		Class<?> c = this.getClass();
+		Class<?> c = getClass();
 		Method startMethod = null;
 		if (start != null) {
 			try {
@@ -59,11 +59,9 @@ public class Combinator {
 	private SourceLocation src() {
 		Exception e = new Exception();
 		StackTraceElement[] stacks = e.getStackTrace();
-		// System.out.println("^0 " + stacks[0]);
-		// System.out.println("^1 " + stacks[1]);
-		// System.out.println("^2 " + stacks[2]);
+
 		class JavaSourcePosition implements SourceLocation {
-			StackTraceElement e;
+			final StackTraceElement e;
 
 			JavaSourcePosition(StackTraceElement e) {
 				this.e = e;
@@ -115,18 +113,10 @@ public class Combinator {
 
 	protected final Expression c(int... chars) {
 		boolean[] b = Bytes.newMap(false);
-		boolean binary = false;
 		for (int c : chars) {
 			b[c] = true;
-			if (c == 0) {
-				binary = true;
-			}
 		}
 		return Expressions.newByteSet(src(), b);
-	}
-
-	protected final Expression ByteChar(int byteChar) {
-		return Expressions.newByte(src(), byteChar);
 	}
 
 	protected final Expression AnyChar() {
@@ -142,7 +132,7 @@ public class Combinator {
 	}
 
 	protected final Expression Sequence(Expression... elist) {
-		UList<Expression> l = new UList<Expression>(new Expression[8]);
+		UList<Expression> l = new UList<>(new Expression[8]);
 		for (Expression e : elist) {
 			Expressions.addSequence(l, e);
 		}
@@ -150,7 +140,7 @@ public class Combinator {
 	}
 
 	protected final Expression Choice(Expression... elist) {
-		UList<Expression> l = new UList<Expression>(new Expression[8]);
+		UList<Expression> l = new UList<>(new Expression[8]);
 		for (Expression e : elist) {
 			Expressions.addChoice(l, e);
 		}
@@ -185,32 +175,12 @@ public class Combinator {
 		return Expressions.newAnd(src(), Sequence(e));
 	}
 
-	protected final Expression NCapture(int shift) {
-		return Expressions.newBeginTree(src(), shift);
-	}
-
-	protected final Expression LCapture(int shift, String label) {
-		return Expressions.newFoldTree(src(), toSymbol(label), shift);
-	}
-
-	protected final Expression Capture(int shift) {
-		return Expressions.newEndTree(src(), shift);
-	}
-
 	protected final Expression New(Expression... e) {
 		return Expressions.newTree(src(), false, null, Sequence(e));
 	}
 
 	protected final Expression LeftFoldOption(String label, Expression... e) {
 		return Expressions.newLeftFoldOption(src(), toSymbol(label), Sequence(e));
-	}
-
-	protected final Expression LeftFoldZeroMore(String label, Expression... e) {
-		return Expressions.newLeftFoldRepetition(src(), toSymbol(label), Sequence(e));
-	}
-
-	protected final Expression LeftFoldOneMore(String label, Expression... e) {
-		return Expressions.newLeftFoldRepetition1(src(), toSymbol(label), Sequence(e));
 	}
 
 	protected Expression Link(String label, Expression e) {
@@ -234,10 +204,6 @@ public class Combinator {
 	protected Expression Msg(String label, String msg) {
 		return Expressions.newLinkTree(src(), Symbol.unique(label), New(Replace(msg)));
 	}
-
-	// protected final Expression Tag(Tag t) {
-	// return GrammarFactory.newTagging(src(), t);
-	// }
 
 	protected final Expression Tag(String tag) {
 		return Expressions.newTag(src(), Symbol.unique(tag));

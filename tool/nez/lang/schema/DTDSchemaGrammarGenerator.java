@@ -15,10 +15,10 @@ public class DTDSchemaGrammarGenerator extends AbstractSchemaGrammarGenerator {
 		loadPredefinedRules();
 	}
 
-	int entityCount = 0;
+	int entityCount;
 	boolean enableNezExtension = true;
-	List<String> elementNameList = new ArrayList<String>();
-	Set<String> attributeOccurences = new HashSet<String>();
+	List<String> elementNameList = new ArrayList<>();
+	Set<String> attributeOccurences = new HashSet<>();
 
 	@Override
 	public void loadPredefinedRules() {
@@ -26,7 +26,7 @@ public class DTDSchemaGrammarGenerator extends AbstractSchemaGrammarGenerator {
 	}
 
 	public final void addElementName(String elementName) {
-		this.elementNameList.add(elementName);
+		elementNameList.add(elementName);
 	}
 
 	@Override
@@ -208,8 +208,8 @@ public class DTDSchemaGrammarGenerator extends AbstractSchemaGrammarGenerator {
 				int seqCount = 0;
 				Expression[] seqList = new Expression[listLength * 2 + 1];
 				seqList[seqCount++] = _ZeroMore(impliedChoiceRule);
-				for (int index = 0; index < targetLine.length; index++) {
-					seqList[seqCount++] = _NonTerminal(getRequiredElementList().get(targetLine[index]).getUniqueName());
+				for (int i : targetLine) {
+					seqList[seqCount++] = _NonTerminal(getRequiredElementList().get(i).getUniqueName());
 					seqList[seqCount++] = _ZeroMore(impliedChoiceRule);
 				}
 				seqList[seqCount] = _NonTerminal("ENDTAG");

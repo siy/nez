@@ -19,7 +19,7 @@ public class ParserProfiler {
 		this.logFile = logFile;
 	}
 
-	class DataPoint {
+	static class DataPoint {
 		String key;
 		Object value;
 
@@ -29,22 +29,22 @@ public class ParserProfiler {
 		}
 	}
 
-	private UList<DataPoint> dataPointList = new UList<DataPoint>(new DataPoint[64]);
-	private UMap<DataPoint> dataPointMap = new UMap<DataPoint>();
+	private final UList<DataPoint> dataPointList = new UList<>(new DataPoint[64]);
+	private final UMap<DataPoint> dataPointMap = new UMap<>();
 
 	private void setDataPoint(String key, Object value) {
-		if (!this.dataPointMap.hasKey(key)) {
+		if (!dataPointMap.hasKey(key)) {
 			DataPoint d = new DataPoint(key, value);
-			this.dataPointMap.put(key, d);
-			this.dataPointList.add(d);
+			dataPointMap.put(key, d);
+			dataPointList.add(d);
 		} else {
-			DataPoint d = this.dataPointMap.get(key);
+			DataPoint d = dataPointMap.get(key);
 			d.value = value;
 		}
 	}
 
 	public final void setText(String key, String value) {
-		this.setDataPoint(key, value);
+		setDataPoint(key, value);
 	}
 
 	public final void setFile(String key, String file) {
@@ -52,28 +52,26 @@ public class ParserProfiler {
 		if (loc > 0) {
 			file = file.substring(loc + 1);
 		}
-		this.setDataPoint(key, file);
+		setDataPoint(key, file);
 	}
 
 	public final void setCount(String key, long v) {
-		this.setDataPoint(key, new Long(v));
+		setDataPoint(key, v);
 	}
 
 	public final void setDouble(String key, double d) {
-		this.setDataPoint(key, d);
+		setDataPoint(key, d);
 	}
 
 	public final void setRatio(String key, long v, long v2) {
-		double d = v;
-		double d2 = v2;
-		this.setDataPoint(key, new Double(d / d2));
+		setDataPoint(key, (double) v / (double) v2);
 	}
 
 	public final String formatCommaSeparateValue() {
 		StringBuilder sb = new StringBuilder();
 		SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy/MM/dd");
 		sb.append(sdf1.format(new Date()));
-		for (DataPoint d : this.dataPointList) {
+		for (DataPoint d : dataPointList) {
 			sb.append(",");
 			sb.append(d.key);
 			sb.append(":,");
@@ -87,39 +85,23 @@ public class ParserProfiler {
 	}
 
 	public final void log() {
-		try (PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(this.logFile, true)))) {
+		try (PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(logFile, true)))) {
 			String csv = formatCommaSeparateValue();
-			Verbose.println("writing .. " + this.logFile + " " + csv);
+			Verbose.println("writing .. " + logFile + " " + csv);
 			out.println(csv);
-			// double cf = 0;
-			// for(int i = 0; i < 16; i++) {
-			// int n = 1 << i;
-			// double f = (double)this.backtrackCount[i] / this.BacktrackCount;
-			// cf += this.backtrackCount[i];
-			// System.out.println(String.format("%d\t%d\t%2.3f\t%2.3f", n,
-			// this.backtrackCount[i], f, (cf / this.BacktrackCount)));
-			// if(n > this.WorstBacktrackSize) break;
-			// }
 		} catch (IOException e) {
-			ConsoleUtils.exit(1, "Can't write csv log: " + this.logFile);
+			ConsoleUtils.exit(1, "Can't write csv log: " + logFile);
 		}
 	}
 
-	public final static void recordLatencyMS(ParserProfiler rec, String key, long nanoT1, long nanoT2) {
+	public static void recordLatencyMS(ParserProfiler rec, String key, long nanoT1, long nanoT2) {
 		if (rec != null) {
 			long t = (nanoT2 - nanoT1) / 1000; // [micro second]
 			rec.setDouble(key + "[ms]", t / 1000.0);
 		}
 	}
 
-	public final static void recordLatencyS(ParserProfiler rec, String key, long nanoT1, long nanoT2) {
-		if (rec != null) {
-			long t = (nanoT2 - nanoT1) / 1000; // [micro second]
-			rec.setDouble(key + "[s]", t / 10000000.0);
-		}
-	}
-
-	public final static void recordThroughputKPS(ParserProfiler rec, String key, long length, long nanoT1, long nanoT2) {
+	public static void recordThroughputKPS(ParserProfiler rec, String key, long length, long nanoT1, long nanoT2) {
 		if (rec != null) {
 			long micro = (nanoT2 - nanoT1) / 1000; // [micro second]
 			double sec = micro / 1000000.0;

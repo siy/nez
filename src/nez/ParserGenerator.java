@@ -30,10 +30,10 @@ import nez.util.Verbose;
  */
 
 public class ParserGenerator {
-	public static abstract class GrammarExtension {
+	public abstract static class GrammarExtension {
 		ParserGenerator nez;
 		String path;
-		Parser parser = null;
+		Parser parser;
 
 		protected GrammarExtension(String path) {
 			this.path = path;
@@ -59,8 +59,8 @@ public class ParserGenerator {
 		}
 	}
 
-	private String[] classPath = null;
-	private HashMap<String, GrammarExtension> extensionMap = new HashMap<>();
+	private final String[] classPath;
+	private final HashMap<String, GrammarExtension> extensionMap = new HashMap<>();
 
 	public ParserGenerator(String path) {
 		this.classPath = path.split(":");
@@ -82,9 +82,9 @@ public class ParserGenerator {
 
 	public final void loadExtension(Class<?> c) {
 		try {
-			GrammarExtension ext = (GrammarExtension) c.newInstance();
+			GrammarExtension ext = (GrammarExtension) c.getDeclaredConstructor().newInstance();
 			ext.init(this);
-			this.extensionMap.put(ext.getExtension(), ext);
+			extensionMap.put(ext.getExtension(), ext);
 			Verbose.println("added GrammarExtension : " + ext.getClass().getName());
 		} catch (Exception e) {
 			Verbose.traceException(e);
@@ -114,7 +114,7 @@ public class ParserGenerator {
 	}
 
 	public final void updateGrammar(Grammar grammar, Source source, String ext) throws IOException {
-		GrammarExtension grammarExtention = this.lookupGrammarExtension(ext);
+		GrammarExtension grammarExtention = lookupGrammarExtension(ext);
 		Parser parser = grammarExtention.getParser();
 		Tree<?> node = parser.parse(source);
 		parser.ensureNoErrors();
@@ -132,7 +132,7 @@ public class ParserGenerator {
 	}
 
 	public final void updateGrammar(Grammar grammar, Tree<?> parsedTree, String ext) throws IOException {
-		GrammarExtension grammarExtention = this.lookupGrammarExtension(ext);
+		GrammarExtension grammarExtention = lookupGrammarExtension(ext);
 		GrammarLoader loader = new GrammarLoader(grammar, ParserStrategy.newDefaultStrategy());
 		grammarExtention.updateGrammarLoader(loader);
 		loader.load(parsedTree);
@@ -149,7 +149,7 @@ public class ParserGenerator {
 			class P extends GrammarExtension {
 				P(ParserGenerator factory) {
 					super(null);
-					this.init(factory);
+					init(factory);
 				}
 
 				@Override
@@ -194,11 +194,4 @@ public class ParserGenerator {
 	public final Parser newParser(String fileName) throws IOException {
 		return newParser(fileName, ParserStrategy.newDefaultStrategy());
 	}
-
-	/* Regex */
-
-	static {
-
-	}
-
 }

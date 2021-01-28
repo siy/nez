@@ -27,7 +27,7 @@ public class StringTransducer {
 	private static final Symbol ListTag = Symbol.unique("List");
 	private static final Symbol IntTag = Symbol.unique("Integer");
 
-	public final static <E extends Tree<E>> StringTransducer parseStringTransducer(Tree<E> node) {
+	public static <E extends Tree<E>> StringTransducer parseStringTransducer(Tree<E> node) {
 		if (node.is(NameTag)) {
 			return newActionStringTransducer(node.toText());
 		}
@@ -53,7 +53,7 @@ public class StringTransducer {
 		return new TextualStringTransducer(node.toText());
 	}
 
-	public final static <E extends Tree<E>> StringTransducer newActionStringTransducer(String command) {
+	public static <E extends Tree<E>> StringTransducer newActionStringTransducer(String command) {
 		switch (command) {
 		case "NL":
 			return new IndentAction();

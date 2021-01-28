@@ -46,25 +46,25 @@ public class ExprTypeChecker extends ExpressionVisitor<LType, Void> {
 		for (RuleExpr ruleExpr : rules) {
 			// if (Objects.nonNull(this.ruleMap.put(ruleExpr.getRuleName(),
 			// ruleExpr))) {
-			if (this.ruleMap.put(ruleExpr.getRuleName(), ruleExpr) != null) {
+			if (ruleMap.put(ruleExpr.getRuleName(), ruleExpr) != null) {
 				semanticError(ruleExpr.getRange(), "duplicated rule: " + ruleExpr.getRuleName());
 			}
 		}
 
 		// verify and check type
 		for (RuleExpr ruleExpr : rules) {
-			this.visitedExprSet.clear();
-			this.labeledExprVerifier.visit(ruleExpr);
-			this.checkType(ruleExpr);
+			visitedExprSet.clear();
+			labeledExprVerifier.visit(ruleExpr);
+			checkType(ruleExpr);
 		}
 	}
 
 	public LType checkType(TypedPEG expr) {
-		return this.checkType(null, expr);
+		return checkType(null, expr);
 	}
 
 	public LType checkType(LType requiredType, TypedPEG expr) {
-		LType type = expr.getType() != null ? expr.getType() : this.visit(expr);
+		LType type = expr.getType() != null ? expr.getType() : visit(expr);
 		if (type == null) {
 			semanticError(expr.getRange(), "broken visit" + expr.getClass().getSimpleName());
 		}
@@ -79,7 +79,7 @@ public class ExprTypeChecker extends ExpressionVisitor<LType, Void> {
 
 	@Override
 	public LType visit(TypedPEG expr, Void param) {
-		if (!this.visitedExprSet.add(Objects.requireNonNull(expr))) {
+		if (!visitedExprSet.add(Objects.requireNonNull(expr))) {
 			semanticError(expr.getRange(), "detect circular reference");
 		}
 		return expr.accept(this, param);
@@ -87,24 +87,24 @@ public class ExprTypeChecker extends ExpressionVisitor<LType, Void> {
 
 	@Override
 	public LType visitAnyExpr(AnyExpr expr, Void param) {
-		return expr.setType(this.env.getVoidType());
+		return expr.setType(env.getVoidType());
 	}
 
 	@Override
 	public LType visitStringExpr(StringExpr expr, Void param) {
-		return expr.setType(this.env.getVoidType());
+		return expr.setType(env.getVoidType());
 	}
 
 	@Override
 	public LType visitCharClassExpr(CharClassExpr expr, Void param) {
-		return expr.setType(this.env.getVoidType());
+		return expr.setType(env.getVoidType());
 	}
 
 	@Override
 	public LType visitRepeatExpr(RepeatExpr expr, Void param) {
-		LType exprType = this.checkType(expr.getExpr());
+		LType exprType = checkType(expr.getExpr());
 		try {
-			return expr.setType(exprType.isVoid() ? this.env.getVoidType() : this.env.getArrayType(exprType));
+			return expr.setType(exprType.isVoid() ? env.getVoidType() : env.getArrayType(exprType));
 		} catch (TypeException e) {
 			throw new SemanticException(expr.getRange(), e);
 		}
@@ -112,9 +112,9 @@ public class ExprTypeChecker extends ExpressionVisitor<LType, Void> {
 
 	@Override
 	public LType visitOptionalExpr(OptionalExpr expr, Void param) {
-		LType exprType = this.checkType(expr.getExpr());
+		LType exprType = checkType(expr.getExpr());
 		try {
-			return expr.setType(exprType.isVoid() ? this.env.getVoidType() : this.env.getOptionalType(exprType));
+			return expr.setType(exprType.isVoid() ? env.getVoidType() : env.getOptionalType(exprType));
 		} catch (TypeException e) {
 			throw new SemanticException(expr.getRange(), e);
 		}
@@ -122,27 +122,27 @@ public class ExprTypeChecker extends ExpressionVisitor<LType, Void> {
 
 	@Override
 	public LType visitPredicateExpr(PredicateExpr expr, Void param) {
-		this.checkType(this.env.getVoidType(), expr.getExpr());
-		return expr.setType(this.env.getVoidType());
+		checkType(env.getVoidType(), expr.getExpr());
+		return expr.setType(env.getVoidType());
 	}
 
 	@Override
 	public LType visitSequenceExpr(SequenceExpr expr, Void param) {
 		List<LType> types = new ArrayList<>();
 		for (TypedPEG e : expr.getExprs()) {
-			LType type = this.checkType(e);
+			LType type = checkType(e);
 			if (!type.isVoid()) {
 				types.add(type);
 			}
 		}
 
 		if (types.isEmpty()) {
-			return expr.setType(this.env.getVoidType());
+			return expr.setType(env.getVoidType());
 		} else if (types.size() == 1) {
 			return expr.setType(types.get(0));
 		} else {
 			try {
-				return expr.setType(this.env.getTupleType(types.toArray(new LType[types.size()])));
+				return expr.setType(env.getTupleType(types.toArray(new LType[0])));
 			} catch (TypeException e) {
 				throw new SemanticException(expr.getRange(), e);
 			}
@@ -153,7 +153,7 @@ public class ExprTypeChecker extends ExpressionVisitor<LType, Void> {
 	public LType visitChoiceExpr(ChoiceExpr expr, Void param) {
 		List<LType> types = new ArrayList<>();
 		for (TypedPEG e : expr.getExprs()) {
-			LType type = this.checkType(e);
+			LType type = checkType(e);
 			if (!type.isVoid()) {
 				types.add(type);
 			}
@@ -163,11 +163,11 @@ public class ExprTypeChecker extends ExpressionVisitor<LType, Void> {
 		}
 
 		if (types.isEmpty()) {
-			return expr.setType(this.env.getVoidType());
+			return expr.setType(env.getVoidType());
 		}
 
 		boolean sameAll = true;
-		final int size = types.size();
+		int size = types.size();
 		for (int i = 1; i < size; i++) {
 			if (!types.get(0).equals(types.get(i))) {
 				sameAll = false;
@@ -178,7 +178,7 @@ public class ExprTypeChecker extends ExpressionVisitor<LType, Void> {
 			return expr.setType(types.get(0));
 		} else {
 			try {
-				return expr.setType(this.env.getUnionType(types.toArray(new LType[types.size()])));
+				return expr.setType(env.getUnionType(types.toArray(new LType[0])));
 			} catch (TypeException e) {
 				throw new SemanticException(expr.getRange(), e);
 			}
@@ -187,45 +187,45 @@ public class ExprTypeChecker extends ExpressionVisitor<LType, Void> {
 
 	@Override
 	public LType visitNonTerminalExpr(NonTerminalExpr expr, Void param) {
-		TypedPEG targetExpr = this.ruleMap.get(expr.getName());
+		TypedPEG targetExpr = ruleMap.get(expr.getName());
 		if (targetExpr == null) {
 			semanticError(expr.getRange(), "undefined rule: " + expr.getName());
 		}
-		return expr.setType(this.checkType(targetExpr));
+		return expr.setType(checkType(targetExpr));
 	}
 
 	@Override
 	public LType visitLabeledExpr(LabeledExpr expr, Void param) {
-		this.checkType(this.env.getAnyType(), expr.getExpr());
-		return expr.setType(this.env.getVoidType()); // actual type is
+		checkType(env.getAnyType(), expr.getExpr());
+		return expr.setType(env.getVoidType()); // actual type is
 														// expr.getExprType()
 	}
 
 	@Override
 	public LType visitRuleExpr(RuleExpr expr, Void param) {
-		if (this.labeledExprDetector.visit(expr.getExpr())) {
+		if (labeledExprDetector.visit(expr.getExpr())) {
 			semanticError(expr.getRange(), "not need label");
 		}
-		return expr.setType(this.checkType(expr.getExpr()));
+		return expr.setType(checkType(expr.getExpr()));
 	}
 
 	@Override
 	public LType visitTypedRuleExpr(TypedRuleExpr expr, Void param) {
-		boolean primary = this.env.isPrimaryType(expr.getTypeName());
-		boolean hasLabel = this.labeledExprDetector.visit(expr.getExpr());
+		boolean primary = env.isPrimaryType(expr.getTypeName());
+		boolean hasLabel = labeledExprDetector.visit(expr.getExpr());
 
 		try {
 			if (primary && !hasLabel) { // treat as primary type
-				LType type = this.env.getBasicType(expr.getTypeName());
+				LType type = env.getBasicType(expr.getTypeName());
 				expr.setType(type);
 
-				this.checkType(this.env.getVoidType(), expr.getExpr());
+				checkType(env.getVoidType(), expr.getExpr());
 				return type;
 			} else if (!primary && hasLabel) { // treat as structure type
-				LType.StructureType type = this.env.newStructureType(expr.getTypeName());
+				LType.StructureType type = env.newStructureType(expr.getTypeName());
 				expr.setType(type);
 
-				this.checkType(this.env.getVoidType(), expr.getExpr());
+				checkType(env.getVoidType(), expr.getExpr());
 
 				// define field
 				TypedPEG rightHandSideExpr = expr.getExpr();
@@ -233,12 +233,12 @@ public class ExprTypeChecker extends ExpressionVisitor<LType, Void> {
 					for (TypedPEG e : ((SequenceExpr) rightHandSideExpr).getExprs()) {
 						if (e instanceof LabeledExpr) {
 							LabeledExpr l = (LabeledExpr) e;
-							this.env.defineField(type, l.getLabelName(), l.getExprType());
+							env.defineField(type, l.getLabelName(), l.getExprType());
 						}
 					}
 				} else if (rightHandSideExpr instanceof LabeledExpr) {
 					LabeledExpr l = (LabeledExpr) rightHandSideExpr;
-					this.env.defineField(type, l.getLabelName(), l.getExprType());
+					env.defineField(type, l.getLabelName(), l.getExprType());
 				} else {
 					semanticError(expr.getRange(), "broken right hand side expression");
 				}
@@ -254,7 +254,7 @@ public class ExprTypeChecker extends ExpressionVisitor<LType, Void> {
 
 	@Override
 	public LType visitRootExpr(RootExpr expr, Void param) {
-		this.checkType(expr.getExprs());
-		return expr.setType(this.env.getVoidType());
+		checkType(expr.getExprs());
+		return expr.setType(env.getVoidType());
 	}
 }

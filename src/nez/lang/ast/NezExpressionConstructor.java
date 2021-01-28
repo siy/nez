@@ -23,11 +23,11 @@ public class NezExpressionConstructor extends GrammarVisitorMap<ExpressionTransd
 
 	@Override
 	public Expression newInstance(Tree<?> node) {
-		return this.find(key(node)).accept(node, null);
+		return find(key(node)).accept(node, null);
 	}
 
 	public Expression newInstance(Tree<?> node, Expression next) {
-		return this.find(key(node)).accept(node, next);
+		return find(key(node)).accept(node, next);
 	}
 
 	public class TreeVisitor implements ExpressionTransducer {
@@ -71,7 +71,7 @@ public class NezExpressionConstructor extends GrammarVisitorMap<ExpressionTransd
 	public class _Class extends TreeVisitor {
 		@Override
 		public Expression accept(Tree<?> node, Expression e) {
-			UList<Expression> l = new UList<Expression>(new Expression[2]);
+			UList<Expression> l = new UList<>(new Expression[2]);
 			if (node.size() > 0) {
 				for (int i = 0; i < node.size(); i++) {
 					Tree<?> o = node.get(i);
@@ -129,9 +129,9 @@ public class NezExpressionConstructor extends GrammarVisitorMap<ExpressionTransd
 	public class _Choice extends TreeVisitor {
 		@Override
 		public Expression accept(Tree<?> node, Expression e) {
-			UList<Expression> l = new UList<Expression>(new Expression[node.size()]);
-			for (int i = 0; i < node.size(); i++) {
-				Expressions.addChoice(l, newInstance(node.get(i)));
+			UList<Expression> l = new UList<>(new Expression[node.size()]);
+			for (Tree<?> trees : node) {
+				Expressions.addChoice(l, newInstance(trees));
 			}
 			return Expressions.newChoice(l);
 		}
@@ -140,9 +140,9 @@ public class NezExpressionConstructor extends GrammarVisitorMap<ExpressionTransd
 	public class _Sequence extends TreeVisitor {
 		@Override
 		public Expression accept(Tree<?> node, Expression e) {
-			UList<Expression> l = new UList<Expression>(new Expression[node.size()]);
-			for (int i = 0; i < node.size(); i++) {
-				Expressions.addSequence(l, newInstance(node.get(i)));
+			UList<Expression> l = new UList<>(new Expression[node.size()]);
+			for (Tree<?> trees : node) {
+				Expressions.addSequence(l, newInstance(trees));
 			}
 			return Expressions.newPair(l);
 		}
@@ -182,7 +182,7 @@ public class NezExpressionConstructor extends GrammarVisitorMap<ExpressionTransd
 			if (node.size() == 2) {
 				int ntimes = StringUtils.parseInt(node.getText(1, ""), -1);
 				if (ntimes != 1) {
-					UList<Expression> l = new UList<Expression>(new Expression[ntimes]);
+					UList<Expression> l = new UList<>(new Expression[ntimes]);
 					for (int i = 0; i < ntimes; i++) {
 						Expressions.addSequence(l, newInstance(node.get(0)));
 					}

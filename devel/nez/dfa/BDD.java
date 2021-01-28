@@ -8,7 +8,7 @@ import java.util.TreeMap;
 public class BDD {
 	public static int MAX_TABLE_SIZE = 10000000;
 	private static int topOfNodeTable;
-	public static BDDNode[] nodeTable = null; // 0番地は0定数節点,1番地は1定数節点
+	public static BDDNode[] nodeTable; // 0番地は0定数節点,1番地は1定数節点
 	public static TreeMap<BDDNode, Integer> nodeTableCache;
 	public static TreeMap<BinaryOperatorMemoState, Integer> binaryOperatorCache;
 
@@ -20,14 +20,9 @@ public class BDD {
 			nodeTable[0] = new BDDNode(-1, -1, -1);
 			nodeTable[1] = new BDDNode(-1, -1, -1);
 			topOfNodeTable = 2;
-			nodeTableCache = new TreeMap<BDDNode, Integer>();
-			binaryOperatorCache = new TreeMap<BinaryOperatorMemoState, Integer>();
+			nodeTableCache = new TreeMap<>();
+			binaryOperatorCache = new TreeMap<>();
 		}
-	}
-
-	public BDD(BooleanExpression be) {
-		this();
-		addressOfNodeTable = build(be);
 	}
 
 	public int build(BooleanExpression be) {
@@ -119,7 +114,7 @@ public class BDD {
 			F = G;
 			G = tmp;
 			bnF = nodeTable[F].deepCopy();
-			bnG = nodeTable[G].deepCopy();
+			nodeTable[G].deepCopy();
 		}
 
 		// 3.F.vがG.vよりも上位のとき
@@ -143,9 +138,7 @@ public class BDD {
 	}
 
 	public boolean equals(BDD bdd) {
-		// System.out.println("bdd1 = " + this.addressOfNodeTable);
-		// System.out.println("bdd2 = " + bdd.addressOfNodeTable);
-		return this.addressOfNodeTable == bdd.addressOfNodeTable;
+		return addressOfNodeTable == bdd.addressOfNodeTable;
 	}
 
 	public static int getNodeTableSize() {

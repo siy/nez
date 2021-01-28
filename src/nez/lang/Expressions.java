@@ -19,15 +19,15 @@ public abstract class Expressions {
 
 	// ---------------------------------------------------------------------
 
-	public final static UList<Expression> newUList(int size) {
-		return new UList<Expression>(new Expression[size]);
+	public static UList<Expression> newUList(int size) {
+		return new UList<>(new Expression[size]);
 	}
 
-	public final static List<Expression> newList(int size) {
-		return new UList<Expression>(new Expression[size]);
+	public static List<Expression> newList(int size) {
+		return new UList<>(new Expression[size]);
 	}
 
-	public final static void addSequence(List<Expression> l, Expression e) {
+	public static void addSequence(List<Expression> l, Expression e) {
 		if (e instanceof Nez.Empty) {
 			return;
 		}
@@ -51,7 +51,7 @@ public abstract class Expressions {
 		l.add(e);
 	}
 
-	public final static void addChoice(List<Expression> l, Expression e) {
+	public static void addChoice(List<Expression> l, Expression e) {
 		if (e instanceof Nez.Choice) {
 			for (int i = 0; i < e.size(); i++) {
 				addChoice(l, e.get(i));
@@ -78,11 +78,11 @@ public abstract class Expressions {
 
 	// -----------------------------------------------------------------------
 
-	public final static NonTerminal newNonTerminal(Grammar g, String name) {
+	public static NonTerminal newNonTerminal(Grammar g, String name) {
 		return new NonTerminal(g, name);
 	}
 
-	public final static NonTerminal newNonTerminal(SourceLocation s, Grammar g, String name) {
+	public static NonTerminal newNonTerminal(SourceLocation s, Grammar g, String name) {
 		NonTerminal e = new NonTerminal(g, name);
 		e.setSourceLocation(s);
 		return e;
@@ -90,9 +90,9 @@ public abstract class Expressions {
 
 	// Immutable Expressions
 
-	private static Expression emptyExpression = new Nez.Empty();
-	private static Expression failExpression = new Nez.Fail();
-	private static Expression anyExpression = new Nez.Any();
+	private static final Expression emptyExpression = new Nez.Empty();
+	private static final Expression failExpression = new Nez.Fail();
+	private static final Expression anyExpression = new Nez.Any();
 
 	/**
 	 * Creates an new empty expression, equals to '' in Nez.
@@ -100,7 +100,7 @@ public abstract class Expressions {
 	 * @return
 	 */
 
-	public final static Expression newEmpty() {
+	public static Expression newEmpty() {
 		return emptyExpression;
 	}
 
@@ -111,7 +111,7 @@ public abstract class Expressions {
 	 * @return
 	 */
 
-	public final static Expression newEmpty(SourceLocation s) {
+	public static Expression newEmpty(SourceLocation s) {
 		Expression e = new Nez.Empty();
 		e.setSourceLocation(s);
 		return e;
@@ -123,7 +123,7 @@ public abstract class Expressions {
 	 * @return
 	 */
 
-	public final static Expression newFail() {
+	public static Expression newFail() {
 		return failExpression;
 	}
 
@@ -134,7 +134,7 @@ public abstract class Expressions {
 	 * @return
 	 */
 
-	public final static Expression newFail(SourceLocation s) {
+	public static Expression newFail(SourceLocation s) {
 		Expression e = new Nez.Fail();
 		e.setSourceLocation(s);
 		return e;
@@ -146,7 +146,7 @@ public abstract class Expressions {
 	 * Creates an any character expression, equals to . in Nez.
 	 */
 
-	public final static Expression newAny() {
+	public static Expression newAny() {
 		return anyExpression;
 	}
 
@@ -157,7 +157,7 @@ public abstract class Expressions {
 	 * @return
 	 */
 
-	public final static Expression newAny(SourceLocation s) {
+	public static Expression newAny(SourceLocation s) {
 		Expression e = new Nez.Any();
 		e.setSourceLocation(s);
 		return e;
@@ -170,7 +170,7 @@ public abstract class Expressions {
 	 * @return
 	 */
 
-	public final static Expression newByte(int c) {
+	public static Expression newByte(int c) {
 		return new Nez.Byte(c & 0xff);
 	}
 
@@ -182,7 +182,7 @@ public abstract class Expressions {
 	 * @return
 	 */
 
-	public final static Expression newByte(SourceLocation s, int c) {
+	public static Expression newByte(SourceLocation s, int c) {
 		Expression e = new Nez.Byte(c & 0xff);
 		e.setSourceLocation(s);
 		return e;
@@ -255,10 +255,10 @@ public abstract class Expressions {
 
 	public static Expression newMultiByte(byte[] utf8) {
 		if (utf8.length == 0) {
-			return Expressions.newEmpty();
+			return newEmpty();
 		}
 		if (utf8.length == 1) {
-			return Expressions.newByte(utf8[0]);
+			return newByte(utf8[0]);
 		}
 		return new Nez.MultiByte(utf8);
 	}
@@ -273,10 +273,10 @@ public abstract class Expressions {
 
 	public static Expression newMultiByte(SourceLocation s, byte[] utf8) {
 		if (utf8.length == 0) {
-			return Expressions.newEmpty(s);
+			return newEmpty(s);
 		}
 		if (utf8.length == 1) {
-			return Expressions.newByte(s, utf8[0]);
+			return newByte(s, utf8[0]);
 		}
 		Expression e = new Nez.MultiByte(utf8);
 		e.setSourceLocation(s);
@@ -304,7 +304,7 @@ public abstract class Expressions {
 	 * @return
 	 */
 
-	public final static Expression newOption(Expression p) {
+	public static Expression newOption(Expression p) {
 		return new Nez.Option(p);
 	}
 
@@ -316,7 +316,7 @@ public abstract class Expressions {
 	 * @return
 	 */
 
-	public final static Expression newOption(SourceLocation s, Expression p) {
+	public static Expression newOption(SourceLocation s, Expression p) {
 		Expression e = new Nez.Option(p);
 		e.setSourceLocation(s);
 		return e;
@@ -329,7 +329,7 @@ public abstract class Expressions {
 	 * @return
 	 */
 
-	public final static Expression newZeroMore(Expression p) {
+	public static Expression newZeroMore(Expression p) {
 		return new Nez.ZeroMore(p);
 	}
 
@@ -340,7 +340,7 @@ public abstract class Expressions {
 	 * @param p
 	 * @return
 	 */
-	public final static Expression newZeroMore(SourceLocation s, Expression p) {
+	public static Expression newZeroMore(SourceLocation s, Expression p) {
 		Expression e = new Nez.ZeroMore(p);
 		e.setSourceLocation(s);
 		return e;
@@ -353,7 +353,7 @@ public abstract class Expressions {
 	 * @return
 	 */
 
-	public final static Expression newOneMore(Expression p) {
+	public static Expression newOneMore(Expression p) {
 		return new Nez.OneMore(p);
 	}
 
@@ -364,7 +364,7 @@ public abstract class Expressions {
 	 * @return
 	 */
 
-	public final static Expression newOneMore(SourceLocation s, Expression p) {
+	public static Expression newOneMore(SourceLocation s, Expression p) {
 		Expression e = new Nez.OneMore(p);
 		e.setSourceLocation(s);
 		return e;
@@ -378,7 +378,7 @@ public abstract class Expressions {
 	 * @return
 	 */
 
-	public final static Expression newAnd(SourceLocation s, Expression p) {
+	public static Expression newAnd(SourceLocation s, Expression p) {
 		Expression e = new Nez.And(p);
 		e.setSourceLocation(s);
 		return e;
@@ -391,7 +391,7 @@ public abstract class Expressions {
 	 * @return
 	 */
 
-	public final static Expression newAnd(Expression p) {
+	public static Expression newAnd(Expression p) {
 		return new Nez.And(p);
 	}
 
@@ -403,7 +403,7 @@ public abstract class Expressions {
 	 * @return
 	 */
 
-	public final static Expression newNot(SourceLocation s, Expression p) {
+	public static Expression newNot(SourceLocation s, Expression p) {
 		Expression e = new Nez.Not(p);
 		e.setSourceLocation(s);
 		return e;
@@ -416,7 +416,7 @@ public abstract class Expressions {
 	 * @return
 	 */
 
-	public final static Expression newNot(Expression p) {
+	public static Expression newNot(Expression p) {
 		return new Nez.Not(p);
 	}
 
@@ -431,8 +431,8 @@ public abstract class Expressions {
 	 * @return
 	 */
 
-	public final static Expression newPair(SourceLocation s, Expression p, Expression p2) {
-		UList<Expression> l = new UList<Expression>(new Expression[2]);
+	public static Expression newPair(SourceLocation s, Expression p, Expression p2) {
+		UList<Expression> l = new UList<>(new Expression[2]);
 		addSequence(l, p);
 		addSequence(l, p2);
 		return newPair(l);
@@ -446,7 +446,7 @@ public abstract class Expressions {
 	 * @return
 	 */
 
-	public final static Expression newPair(List<Expression> l) {
+	public static Expression newPair(List<Expression> l) {
 		if (l.size() == 0) {
 			return newEmpty();
 		}
@@ -456,7 +456,7 @@ public abstract class Expressions {
 		return newPair(0, l);
 	}
 
-	private final static Expression newPair(int start, List<Expression> l) {
+	private static Expression newPair(int start, List<Expression> l) {
 		Expression first = l.get(start);
 		if (start + 1 == l.size()) {
 			return first;
@@ -464,7 +464,7 @@ public abstract class Expressions {
 		return pair(first, newPair(start + 1, l));
 	}
 
-	public final static Expression pair(Expression first, Expression second) {
+	public static Expression pair(Expression first, Expression second) {
 		if (first instanceof Nez.Fail || second instanceof Nez.Fail) {
 			return first;
 		}
@@ -484,8 +484,8 @@ public abstract class Expressions {
 	 * @return
 	 */
 
-	public final static Expression newPair(Expression... expressions) {
-		UList<Expression> l = new UList<Expression>(new Expression[expressions.length]);
+	public static Expression newPair(Expression... expressions) {
+		UList<Expression> l = new UList<>(new Expression[expressions.length]);
 		for (Expression e : expressions) {
 			addSequence(l, e);
 		}
@@ -494,14 +494,14 @@ public abstract class Expressions {
 
 	/* Pair */
 
-	public final static Expression first(Expression e) {
+	public static Expression first(Expression e) {
 		if (e instanceof Nez.Pair || e instanceof Nez.Sequence) {
 			return e.get(0);
 		}
 		return e;
 	}
 
-	public final static Expression next(Expression e) {
+	public static Expression next(Expression e) {
 		if (e instanceof Nez.Pair) {
 			return e.get(1);
 		}
@@ -519,8 +519,8 @@ public abstract class Expressions {
 		return null;
 	}
 
-	public final static List<Expression> flatten(Expression e) {
-		UList<Expression> l = Expressions.newUList(4);
+	public static List<Expression> flatten(Expression e) {
+		UList<Expression> l = newUList(4);
 		flatten(e, l);
 		return l;
 	}
@@ -553,7 +553,7 @@ public abstract class Expressions {
 	 * @return
 	 */
 
-	public final static Expression newSequence(List<Expression> l) {
+	public static Expression newSequence(List<Expression> l) {
 		if (l.size() == 0) {
 			return newEmpty();
 		}
@@ -578,8 +578,8 @@ public abstract class Expressions {
 	 * @return
 	 */
 
-	public final static Expression newSequence(Expression... expressions) {
-		UList<Expression> l = new UList<Expression>(new Expression[expressions.length]);
+	public static Expression newSequence(Expression... expressions) {
+		UList<Expression> l = new UList<>(new Expression[expressions.length]);
 		for (Expression e : expressions) {
 			addSequence(l, e);
 		}
@@ -595,7 +595,7 @@ public abstract class Expressions {
 	 * @return
 	 */
 
-	public final static Expression newChoice(List<Expression> l) {
+	public static Expression newChoice(List<Expression> l) {
 		int size = l.size();
 		for (int i = 0; i < size; i++) {
 			if (l.get(i) instanceof Nez.Empty) {
@@ -621,28 +621,28 @@ public abstract class Expressions {
 	 * @return
 	 */
 
-	public final static Expression newChoice(Expression p, Expression p2) {
+	public static Expression newChoice(Expression p, Expression p2) {
 		if (p == null) {
-			return p2 == null ? null : p2;
+			return p2;
 		}
 		if (p2 == null) {
 			return p;
 		}
-		UList<Expression> l = new UList<Expression>(new Expression[2]);
+		UList<Expression> l = new UList<>(new Expression[2]);
 		addChoice(l, p);
 		addChoice(l, p2);
 		return newChoice(l);
 	}
 
-	public final static Expression tryCommonFactoring(Nez.Choice choice) {
-		List<Expression> l = Expressions.newList(choice.size());
+	public static Expression tryCommonFactoring(Nez.Choice choice) {
+		List<Expression> l = newList(choice.size());
 		int[] indexes = new int[256];
 		Arrays.fill(indexes, -1);
 		tryCommonFactoring(choice, l, indexes);
 		for (int i = 0; i < l.size(); i++) {
 			l.set(i, tryChoiceCommonFactring(l.get(i)));
 		}
-		return Expressions.newChoice(l);
+		return newChoice(l);
 	}
 
 	private static void tryCommonFactoring(Nez.Choice choice, List<Expression> l, int[] indexes) {
@@ -651,7 +651,7 @@ public abstract class Expressions {
 				tryCommonFactoring((Nez.Choice) inner, l, indexes);
 				continue;
 			}
-			Expression first = Expressions.first(inner);
+			Expression first = first(inner);
 			if (first instanceof Nez.Byte) {
 				int ch = ((Nez.Byte) first).byteChar;
 				if (indexes[ch] == -1) {
@@ -659,12 +659,12 @@ public abstract class Expressions {
 					l.add(inner);
 				} else {
 					Expression prev = l.get(indexes[ch]);
-					Expression second = Expressions.newChoice(Expressions.next(prev), Expressions.next(inner));
-					prev = Expressions.newPair(prev.getSourceLocation(), first, second);
+					Expression second = newChoice(next(prev), next(inner));
+					prev = newPair(prev.getSourceLocation(), first, second);
 					l.set(indexes[ch], prev);
 				}
 			} else {
-				Expressions.addChoice(l, inner);
+				addChoice(l, inner);
 			}
 		}
 	}
@@ -682,52 +682,46 @@ public abstract class Expressions {
 		return e;
 	}
 
-	public final static Expression newDispatch(Expression[] inners, byte[] indexMap) {
+	public static Expression newDispatch(Expression[] inners, byte[] indexMap) {
 		return new Nez.Dispatch(inners, indexMap);
 	}
 
 	// AST Construction
 
-	public final static Expression newDetree(Expression p) {
+	public static Expression newDetree(Expression p) {
 		return new Nez.Detree(p);
 	}
 
-	public final static Expression newDetree(SourceLocation s, Expression p) {
+	public static Expression newDetree(SourceLocation s, Expression p) {
 		Expression e = new Nez.Detree(p);
 		e.setSourceLocation(s);
 		return e;
 	}
 
-	public final static Expression newLinkTree(Expression p) {
+	public static Expression newLinkTree(Expression p) {
 		return newLinkTree(null, null, p);
 	}
 
-	public final static Expression newLinkTree(SourceLocation s, Expression p) {
+	public static Expression newLinkTree(SourceLocation s, Expression p) {
 		return newLinkTree(s, null, p);
 	}
 
-	public final static Expression newLinkTree(Symbol label, Expression p) {
+	public static Expression newLinkTree(Symbol label, Expression p) {
 		return new Nez.LinkTree(label, p);
 	}
 
-	public final static Expression newLinkTree(SourceLocation s, Symbol label, Expression p) {
+	public static Expression newLinkTree(SourceLocation s, Symbol label, Expression p) {
 		Expression e = new Nez.LinkTree(label, p);
 		e.setSourceLocation(s);
 		return e;
 	}
-
-	// public final static Expression newTnew(SourcePosition s, boolean lefted,
-	// Symbol label, int shift) {
-	// return new Tnew(s, lefted, label, shift);
-	// }
 
 	/**
 	 * Creates a { expression
 	 * 
 	 * @return
 	 */
-
-	public final static Expression newBeginTree() {
+	public static Expression newBeginTree() {
 		return new Nez.BeginTree(0);
 	}
 
@@ -739,7 +733,7 @@ public abstract class Expressions {
 	 * @return
 	 */
 
-	public final static Expression newBeginTree(SourceLocation s, int shift) {
+	public static Expression newBeginTree(SourceLocation s, int shift) {
 		Expression e = new Nez.BeginTree(shift);
 		e.setSourceLocation(s);
 		return e;
@@ -750,7 +744,7 @@ public abstract class Expressions {
 	 * 
 	 * @return
 	 */
-	public final static Expression newEndTree() {
+	public static Expression newEndTree() {
 		return new Nez.EndTree(0);
 	}
 
@@ -762,13 +756,13 @@ public abstract class Expressions {
 	 * @return
 	 */
 
-	public final static Expression newEndTree(SourceLocation s, int shift) {
+	public static Expression newEndTree(SourceLocation s, int shift) {
 		Expression e = new Nez.EndTree(shift);
 		e.setSourceLocation(s);
 		return e;
 	}
 
-	public final static Expression newFoldTree(SourceLocation s, Symbol label, int shift) {
+	public static Expression newFoldTree(SourceLocation s, Symbol label, int shift) {
 		Expression e = new Nez.FoldTree(shift, label);
 		e.setSourceLocation(s);
 		return e;
@@ -781,7 +775,7 @@ public abstract class Expressions {
 	 * @return
 	 */
 
-	public final static Expression newTag(Symbol tag) {
+	public static Expression newTag(Symbol tag) {
 		return new Nez.Tag(tag);
 	}
 
@@ -793,7 +787,7 @@ public abstract class Expressions {
 	 * @return
 	 */
 
-	public final static Expression newTag(SourceLocation s, Symbol tag) {
+	public static Expression newTag(SourceLocation s, Symbol tag) {
 		Expression e = new Nez.Tag(tag);
 		e.setSourceLocation(s);
 		return e;
@@ -806,7 +800,7 @@ public abstract class Expressions {
 	 * @return
 	 */
 
-	public final static Expression newReplace(String v) {
+	public static Expression newReplace(String v) {
 		return new Nez.Replace(v);
 	}
 
@@ -818,7 +812,7 @@ public abstract class Expressions {
 	 * @return
 	 */
 
-	public final static Expression newReplace(SourceLocation s, String v) {
+	public static Expression newReplace(SourceLocation s, String v) {
 		Expression e = new Nez.Replace(v);
 		e.setSourceLocation(s);
 		return e;
@@ -832,8 +826,8 @@ public abstract class Expressions {
 	 * @param c
 	 * @return
 	 */
-	public final static Expression newIfCondition(String c) {
-		return Expressions.newIfCondition(null, c);
+	public static Expression newIfCondition(String c) {
+		return newIfCondition(null, c);
 	}
 
 	/**
@@ -844,7 +838,7 @@ public abstract class Expressions {
 	 * @return
 	 */
 
-	public final static Expression newIfCondition(SourceLocation s, String c) {
+	public static Expression newIfCondition(SourceLocation s, String c) {
 		boolean predicate = true;
 		if (c.startsWith("!")) {
 			predicate = false;
@@ -863,8 +857,8 @@ public abstract class Expressions {
 	 * @return
 	 */
 
-	public final static Expression newOnCondition(String c, Expression e) {
-		return Expressions.newOnCondition(null, c, e);
+	public static Expression newOnCondition(String c, Expression e) {
+		return newOnCondition(null, c, e);
 	}
 
 	/**
@@ -876,7 +870,7 @@ public abstract class Expressions {
 	 * @return
 	 */
 
-	public final static Expression newOnCondition(SourceLocation s, String c, Expression e) {
+	public static Expression newOnCondition(SourceLocation s, String c, Expression e) {
 		boolean predicate = true;
 		if (c.startsWith("!")) {
 			predicate = false;
@@ -895,7 +889,7 @@ public abstract class Expressions {
 	 * @param e
 	 * @return
 	 */
-	public final static Expression newBlockScope(Expression e) {
+	public static Expression newBlockScope(Expression e) {
 		return new Nez.BlockScope(e);
 	}
 
@@ -907,7 +901,7 @@ public abstract class Expressions {
 	 * @return
 	 */
 
-	public final static Expression newBlockScope(SourceLocation s, Expression e) {
+	public static Expression newBlockScope(SourceLocation s, Expression e) {
 		Expression p = new Nez.BlockScope(e);
 		p.setSourceLocation(s);
 		return p;
@@ -920,7 +914,7 @@ public abstract class Expressions {
 	 * @param e
 	 * @return
 	 */
-	public final static Expression newLocalScope(Symbol tableName, Expression e) {
+	public static Expression newLocalScope(Symbol tableName, Expression e) {
 		return new Nez.LocalScope(tableName, e);
 	}
 
@@ -933,7 +927,7 @@ public abstract class Expressions {
 	 * @return
 	 */
 
-	public final static Expression newLocalScope(SourceLocation s, Symbol tableName, Expression e) {
+	public static Expression newLocalScope(SourceLocation s, Symbol tableName, Expression e) {
 		Expression p = new Nez.LocalScope(tableName, e);
 		p.setSourceLocation(s);
 		return p;
@@ -946,7 +940,7 @@ public abstract class Expressions {
 	 * @return
 	 */
 
-	public final static Expression newSymbol(NonTerminal pat) {
+	public static Expression newSymbol(NonTerminal pat) {
 		return new Nez.SymbolAction(FunctionName.symbol, pat);
 	}
 
@@ -958,7 +952,7 @@ public abstract class Expressions {
 	 * @return
 	 */
 
-	public final static Expression newSymbol(SourceLocation s, NonTerminal pat) {
+	public static Expression newSymbol(SourceLocation s, NonTerminal pat) {
 		Expression p = new Nez.SymbolAction(FunctionName.symbol, pat);
 		p.setSourceLocation(s);
 		return p;
@@ -971,7 +965,7 @@ public abstract class Expressions {
 	 * @param tableName
 	 * @return
 	 */
-	public final static Expression newSymbolExists(Symbol tableName) {
+	public static Expression newSymbolExists(Symbol tableName) {
 		return new Nez.SymbolExists(tableName, null);
 	}
 
@@ -983,7 +977,7 @@ public abstract class Expressions {
 	 * @return
 	 */
 
-	public final static Expression newSymbolExists(SourceLocation s, Symbol tableName) {
+	public static Expression newSymbolExists(SourceLocation s, Symbol tableName) {
 		Expression p = new Nez.SymbolExists(tableName, null);
 		p.setSourceLocation(s);
 		return p;
@@ -998,7 +992,7 @@ public abstract class Expressions {
 	 * @return
 	 */
 
-	public final static Expression newSymbolExists(Symbol tableName, String symbol) {
+	public static Expression newSymbolExists(Symbol tableName, String symbol) {
 		return new Nez.SymbolExists(tableName, symbol);
 	}
 
@@ -1011,7 +1005,7 @@ public abstract class Expressions {
 	 * @return
 	 */
 
-	public final static Expression newSymbolExists(SourceLocation s, Symbol tableName, String symbol) {
+	public static Expression newSymbolExists(SourceLocation s, Symbol tableName, String symbol) {
 		Expression p = new Nez.SymbolExists(tableName, symbol);
 		p.setSourceLocation(s);
 		return p;
@@ -1020,11 +1014,10 @@ public abstract class Expressions {
 	/**
 	 * Creates a <match A> expression
 	 * 
-	 * @param table
 	 * @return
 	 */
 
-	public final static Expression newSymbolMatch(NonTerminal pat) {
+	public static Expression newSymbolMatch(NonTerminal pat) {
 		return new Nez.SymbolMatch(FunctionName.match, pat, null);
 	}
 
@@ -1032,10 +1025,9 @@ public abstract class Expressions {
 	 * Creates a <match A> expression
 	 * 
 	 * @param s
-	 * @param table
 	 * @return
 	 */
-	public final static Expression newSymbolMatch(SourceLocation s, NonTerminal pat) {
+	public static Expression newSymbolMatch(SourceLocation s, NonTerminal pat) {
 		Expression p = new Nez.SymbolMatch(FunctionName.match, pat, null);
 		p.setSourceLocation(s);
 		return p;
@@ -1048,7 +1040,7 @@ public abstract class Expressions {
 	 * @return
 	 */
 
-	public final static Expression newIsSymbol(NonTerminal pat) {
+	public static Expression newIsSymbol(NonTerminal pat) {
 		return new Nez.SymbolPredicate(FunctionName.is, pat, null);
 	}
 
@@ -1060,7 +1052,7 @@ public abstract class Expressions {
 	 * @return
 	 */
 
-	public final static Expression newIsSymbol(SourceLocation s, NonTerminal pat) {
+	public static Expression newIsSymbol(SourceLocation s, NonTerminal pat) {
 		Expression p = new Nez.SymbolPredicate(FunctionName.is, pat, null);
 		p.setSourceLocation(s);
 		return p;
@@ -1073,7 +1065,7 @@ public abstract class Expressions {
 	 * @return
 	 */
 
-	public final static Expression newIsaSymbol(NonTerminal pat) {
+	public static Expression newIsaSymbol(NonTerminal pat) {
 		return new Nez.SymbolPredicate(FunctionName.isa, pat, null);
 	}
 
@@ -1085,17 +1077,17 @@ public abstract class Expressions {
 	 * @return
 	 */
 
-	public final static Expression newIsaSymbol(SourceLocation s, NonTerminal pat) {
+	public static Expression newIsaSymbol(SourceLocation s, NonTerminal pat) {
 		Expression p = new Nez.SymbolPredicate(FunctionName.isa, pat, null);
 		p.setSourceLocation(s);
 		return p;
 	}
 
-	public final static Expression newScanf(String mask, Expression e) {
+	public static Expression newScanf(String mask, Expression e) {
 		return newScanf(null, mask, e);
 	}
 
-	public final static Expression newScanf(SourceLocation s, String mask, Expression e) {
+	public static Expression newScanf(SourceLocation s, String mask, Expression e) {
 		long bits = 0;
 		int shift = 0;
 		if (mask != null) {
@@ -1112,11 +1104,11 @@ public abstract class Expressions {
 		return p;
 	}
 
-	public final static Expression newRepeat(Expression e) {
+	public static Expression newRepeat(Expression e) {
 		return new Nez.Repeat(e);
 	}
 
-	public final static Expression newRepeat(SourceLocation s, Expression e) {
+	public static Expression newRepeat(SourceLocation s, Expression e) {
 		Expression p = new Nez.Repeat(e);
 		p.setSourceLocation(s);
 		return p;
@@ -1124,11 +1116,11 @@ public abstract class Expressions {
 
 	// -----------------------------------------------------------------------
 
-	public static final Expression newExpression(String text) {
-		return Expressions.newExpression(null, text);
+	public static Expression newExpression(String text) {
+		return newExpression(null, text);
 	}
 
-	public static final Expression newExpression(SourceLocation s, String text) {
+	public static Expression newExpression(SourceLocation s, String text) {
 		byte[] utf8 = StringUtils.utf8(text);
 		if (utf8.length == 0) {
 			return newEmpty(s);
@@ -1139,20 +1131,20 @@ public abstract class Expressions {
 		return newByteSequence(s, false, utf8);
 	}
 
-	public final static Expression newByteSequence(SourceLocation s, boolean binary, byte[] utf8) {
-		UList<Expression> l = new UList<Expression>(new Expression[utf8.length]);
-		for (int i = 0; i < utf8.length; i++) {
-			l.add(newByte(s, utf8[i]));
+	public static Expression newByteSequence(SourceLocation s, boolean binary, byte[] utf8) {
+		UList<Expression> l = new UList<>(new Expression[utf8.length]);
+		for (byte b : utf8) {
+			l.add(newByte(s, b));
 		}
 		return newPair(l);
 	}
 
-	public final static Expression newCharSet(SourceLocation s, String text) {
-		boolean b[] = StringUtils.parseByteMap(text);
+	public static Expression newCharSet(SourceLocation s, String text) {
+		boolean[] b = StringUtils.parseByteMap(text);
 		return newByteSet(s, b);
 	}
 
-	public final static Expression newCharSet(SourceLocation s, String t, String t2) {
+	public static Expression newCharSet(SourceLocation s, String t, String t2) {
 		int c = StringUtils.parseAscii(t);
 		int c2 = StringUtils.parseAscii(t2);
 		if (c != -1 && c2 != -1) {
@@ -1167,7 +1159,7 @@ public abstract class Expressions {
 		}
 	}
 
-	public final static Expression newByteRange(SourceLocation s, boolean binary, int c, int c2) {
+	public static Expression newByteRange(SourceLocation s, boolean binary, int c, int c2) {
 		if (c == c2) {
 			return newByte(s, c);
 		}
@@ -1176,13 +1168,13 @@ public abstract class Expressions {
 		return newByteSet(s, byteMap);
 	}
 
-	private final static Expression newUnicodeRange(SourceLocation s, int c, int c2) {
+	private static Expression newUnicodeRange(SourceLocation s, int c, int c2) {
 		byte[] b = StringUtils.utf8(String.valueOf((char) c));
 		byte[] b2 = StringUtils.utf8(String.valueOf((char) c2));
 		if (equalsBase(b, b2)) {
 			return newUnicodeRange(s, b, b2);
 		}
-		UList<Expression> l = new UList<Expression>(new Expression[b.length]);
+		UList<Expression> l = new UList<>(new Expression[b.length]);
 		b2 = b;
 		for (int pc = c + 1; pc <= c2; pc++) {
 			byte[] b3 = StringUtils.utf8(String.valueOf((char) pc));
@@ -1199,7 +1191,7 @@ public abstract class Expressions {
 		return newChoice(l);
 	}
 
-	private final static boolean equalsBase(byte[] b, byte[] b2) {
+	private static boolean equalsBase(byte[] b, byte[] b2) {
 		if (b.length == b2.length) {
 			switch (b.length) {
 			case 3:
@@ -1212,11 +1204,11 @@ public abstract class Expressions {
 		return false;
 	}
 
-	private final static Expression newUnicodeRange(SourceLocation s, byte[] b, byte[] b2) {
+	private static Expression newUnicodeRange(SourceLocation s, byte[] b, byte[] b2) {
 		if (b[b.length - 1] == b2[b.length - 1]) {
 			return newByteSequence(s, false, b);
 		} else {
-			UList<Expression> l = new UList<Expression>(new Expression[b.length]);
+			UList<Expression> l = new UList<>(new Expression[b.length]);
 			for (int i = 0; i < b.length - 1; i++) {
 				l.add(newByte(s, b[i]));
 			}
@@ -1225,45 +1217,45 @@ public abstract class Expressions {
 		}
 	}
 
-	public final static Expression newTree(SourceLocation s, Expression e) {
+	public static Expression newTree(SourceLocation s, Expression e) {
 		return newTree(s, false, null, e);
 	}
 
-	public final static Expression newTree(SourceLocation s, boolean lefted, Symbol label, Expression e) {
-		UList<Expression> l = new UList<Expression>(new Expression[e.size() + 3]);
-		Expressions.addSequence(l, lefted ? newFoldTree(s, label, 0) : newBeginTree(s, 0));
-		Expressions.addSequence(l, e);
-		Expressions.addSequence(l, Expressions.newEndTree(s, 0));
+	public static Expression newTree(SourceLocation s, boolean lefted, Symbol label, Expression e) {
+		UList<Expression> l = new UList<>(new Expression[e.size() + 3]);
+		addSequence(l, lefted ? newFoldTree(s, label, 0) : newBeginTree(s, 0));
+		addSequence(l, e);
+		addSequence(l, newEndTree(s, 0));
 		return newPair(l);
 	}
 
-	public final static Expression newLeftFoldOption(SourceLocation s, Symbol label, Expression e) {
-		UList<Expression> l = new UList<Expression>(new Expression[e.size() + 3]);
-		Expressions.addSequence(l, newFoldTree(s, label, 0));
-		Expressions.addSequence(l, e);
-		Expressions.addSequence(l, Expressions.newEndTree(s, 0));
-		return newOption(s, Expressions.newPair(l));
+	public static Expression newLeftFoldOption(SourceLocation s, Symbol label, Expression e) {
+		UList<Expression> l = new UList<>(new Expression[e.size() + 3]);
+		addSequence(l, newFoldTree(s, label, 0));
+		addSequence(l, e);
+		addSequence(l, newEndTree(s, 0));
+		return newOption(s, newPair(l));
 	}
 
-	public final static Expression newLeftFoldRepetition(SourceLocation s, Symbol label, Expression e) {
-		UList<Expression> l = new UList<Expression>(new Expression[e.size() + 3]);
-		Expressions.addSequence(l, newFoldTree(s, label, 0));
-		Expressions.addSequence(l, e);
-		Expressions.addSequence(l, Expressions.newEndTree(s, 0));
-		return newZeroMore(s, Expressions.newPair(l));
+	public static Expression newLeftFoldRepetition(SourceLocation s, Symbol label, Expression e) {
+		UList<Expression> l = new UList<>(new Expression[e.size() + 3]);
+		addSequence(l, newFoldTree(s, label, 0));
+		addSequence(l, e);
+		addSequence(l, newEndTree(s, 0));
+		return newZeroMore(s, newPair(l));
 	}
 
-	public final static Expression newLeftFoldRepetition1(SourceLocation s, Symbol label, Expression e) {
-		UList<Expression> l = new UList<Expression>(new Expression[e.size() + 3]);
-		Expressions.addSequence(l, newFoldTree(s, label, 0));
-		Expressions.addSequence(l, e);
-		Expressions.addSequence(l, Expressions.newEndTree(s, 0));
-		return newOneMore(s, Expressions.newPair(l));
+	public static Expression newLeftFoldRepetition1(SourceLocation s, Symbol label, Expression e) {
+		UList<Expression> l = new UList<>(new Expression[e.size() + 3]);
+		addSequence(l, newFoldTree(s, label, 0));
+		addSequence(l, e);
+		addSequence(l, newEndTree(s, 0));
+		return newOneMore(s, newPair(l));
 	}
 
 	/* Optimization */
 
-	public final static Expression resolveNonTerminal(Expression e) {
+	public static Expression resolveNonTerminal(Expression e) {
 		while (e instanceof NonTerminal) {
 			NonTerminal nterm = (NonTerminal) e;
 			e = nterm.deReference();
@@ -1271,17 +1263,17 @@ public abstract class Expressions {
 		return e;
 	}
 
-	public final static Expression tryConvertingByteSet(Nez.Choice choice) {
-		boolean byteMap[] = Bytes.newMap(false);
+	public static Expression tryConvertingByteSet(Nez.Choice choice) {
+		boolean[] byteMap = Bytes.newMap(false);
 		if (tryConvertingByteSet(choice, byteMap)) {
-			return Expressions.newByteSet(choice.getSourceLocation(), byteMap);
+			return newByteSet(choice.getSourceLocation(), byteMap);
 		}
 		return choice;
 	}
 
 	private static boolean tryConvertingByteSet(Nez.Choice choice, boolean[] byteMap) {
 		for (Expression e : choice) {
-			e = Expressions.resolveNonTerminal(e);
+			e = resolveNonTerminal(e);
 			if (e instanceof Nez.Choice) {
 				if (!tryConvertingByteSet((Nez.Choice) e, byteMap)) {
 					return false;
@@ -1301,12 +1293,12 @@ public abstract class Expressions {
 		return true;
 	}
 
-	public final static Expression tryConvertingMultiCharSequence(Nez.Pair e) {
+	public static Expression tryConvertingMultiCharSequence(Nez.Pair e) {
 		if (isFirstChar(e) && isSecondChar(e)) {
-			UList<Byte> bytes = new UList<Byte>(new Byte[8]);
-			Expression first = Expressions.first(e);
+			UList<Byte> bytes = new UList<>(new Byte[8]);
+			Expression first = first(e);
 			bytes.add((byte) ((Nez.Byte) first).byteChar);
-			Expression next = Expressions.next(e);
+			Expression next = next(e);
 			while (true) {
 				if (next instanceof Nez.Byte) {
 					bytes.add((byte) ((Nez.Byte) next).byteChar);
@@ -1327,11 +1319,11 @@ public abstract class Expressions {
 			for (int i = 0; i < bytes.size(); i++) {
 				byteSeq[i] = bytes.get(i);
 			}
-			first = Expressions.newMultiByte(e.getSourceLocation(), byteSeq);
+			first = newMultiByte(e.getSourceLocation(), byteSeq);
 			if (next == null) {
 				return first;
 			}
-			return Expressions.pair(first, next);
+			return pair(first, next);
 		}
 		return e;
 	}
@@ -1358,9 +1350,9 @@ public abstract class Expressions {
 	}
 
 	public static Expression newCoverage(String label, Expression e) {
-		List<Expression> l = Expressions.newList(e.size() + 3);
+		List<Expression> l = newList(e.size() + 3);
 		l.add(new Nez.Label(label, true));
-		Expressions.addSequence(l, e);
+		addSequence(l, e);
 		l.add(new Nez.Label(label, false));
 		return newPair(l);
 	}

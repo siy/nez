@@ -4,9 +4,9 @@ import nez.lang.Expression;
 
 public class Element extends Schema {
 
-	private boolean optional = false;
-	private String elementName;
-	private String structName;
+	private boolean optional;
+	private final String elementName;
+	private final String structName;
 
 	public Element(String elementName, String structName, Expression e, boolean optional) {
 		super(e);
@@ -16,7 +16,7 @@ public class Element extends Schema {
 	}
 
 	public String getElementName() {
-		return this.elementName;
+		return elementName;
 	}
 
 	public String getUniqueName() {
@@ -28,7 +28,7 @@ public class Element extends Schema {
 	}
 
 	public boolean isOptional() {
-		return this.optional;
+		return optional;
 	}
 
 }

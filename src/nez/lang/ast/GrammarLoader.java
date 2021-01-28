@@ -12,7 +12,7 @@ public final class GrammarLoader extends GrammarVisitorMap<GrammarLoaderVisitor>
 
 	public GrammarLoader(Grammar grammar, ParserStrategy strategy) {
 		super(grammar, strategy);
-		this.init(GrammarLoader.class, new Undefined());
+		init(GrammarLoader.class, new Undefined());
 	}
 
 	public void load(Tree<?> node) {
@@ -53,22 +53,11 @@ public final class GrammarLoader extends GrammarVisitorMap<GrammarLoaderVisitor>
 			Production rule = getGrammar().getProduction(localName);
 			if (rule != null) {
 				reportWarning(node, "duplicated rule name: " + localName);
-				rule = null;
 			}
 			Expression e = transducer.newInstance(node.get(_expr));
-			rule = getGrammar().addProduction(node.get(0), localName, e);
+			getGrammar().addProduction(node.get(0), localName, e);
 		}
 	}
-
-	// public final static Symbol _Integer = Symbol.tag("Integer");
-	// public final static Symbol _List = Symbol.tag("List");
-	// public final static Symbol _Name = Symbol.tag("Name");
-	// public final static Symbol _Format = Symbol.tag("Format");
-	//
-	// public final static Symbol _name = Symbol.tag("name");
-	// public final static Symbol _hash = Symbol.tag("hash"); // example
-	// public final static Symbol _name2 = Symbol.tag("name2"); // example
-	// public final static Symbol _text = Symbol.tag("text"); // example
 
 	public class _Example extends Undefined implements NezSymbols {
 		@Override
@@ -90,40 +79,8 @@ public final class GrammarLoader extends GrammarVisitorMap<GrammarLoaderVisitor>
 	public class Format extends Undefined implements NezSymbols {
 		@Override
 		public void accept(Tree<?> node) {
-			// String tag = node.getText(0, "token");
-			// int index = StringUtils.parseInt(node.getText(1, "*"), -1);
-			// Formatter fmt = toFormatter(node.get(2));
-			// // getGrammarFile().addFormatter(tag, index, fmt);
-		}
 
-		// Formatter toFormatter(Tree<?> node) {
-		// if (node.is(_List)) {
-		// ArrayList<Formatter> l = new ArrayList<Formatter>(node.size());
-		// for (Tree<?> t : node) {
-		// l.add(toFormatter(t));
-		// }
-		// return Formatter.newFormatter(l);
-		// }
-		// if (node.is(_Integer)) {
-		// return Formatter.newFormatter(StringUtils.parseInt(node.toText(),
-		// 0));
-		// }
-		// if (node.is(_Format)) {
-		// int s = StringUtils.parseInt(node.getText(0, "*"), -1);
-		// int e = StringUtils.parseInt(node.getText(2, "*"), -1);
-		// Formatter fmt = toFormatter(node.get(1));
-		// return Formatter.newFormatter(s, fmt, e);
-		// }
-		// if (node.is(_Name)) {
-		// Formatter fmt = Formatter.newAction(node.toText());
-		// if (fmt == null) {
-		// reportWarning(node, "undefined formatter action");
-		// fmt = Formatter.newFormatter("${" + node.toText() + "}");
-		// }
-		// return fmt;
-		// }
-		// return Formatter.newFormatter(node.toText());
-		// }
+		}
 	}
 
 	/**
@@ -159,7 +116,7 @@ public final class GrammarLoader extends GrammarVisitorMap<GrammarLoaderVisitor>
 	 *           path.substring(0, loc + 1) + path2; } } return path2; }
 	 **/
 
-	public final static String parseGrammarDescription(Source sc) {
+	public static String parseGrammarDescription(Source sc) {
 		StringBuilder sb = new StringBuilder();
 		long pos = 0;
 		boolean found = false;

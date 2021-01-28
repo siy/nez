@@ -24,7 +24,7 @@ public class ParserGrammarWriter {
 	}
 
 	protected String fileBase = "noname";
-	protected FileBuilder file = null;
+	protected FileBuilder file;
 
 	public final void init(Parser parser) {
 		this.parser = parser;
@@ -43,18 +43,18 @@ public class ParserGrammarWriter {
 			if (l > 0) {
 				urn = urn.substring(0, l);
 			}
-			this.setFileBase(urn);
+			setFileBase(urn);
 		}
-		this.setFileBuilder(this.fileExt);
+		setFileBuilder(fileExt);
 	}
 
 	public void setFileBuilder(String fileExt) {
-		if (this.file != null) {
-			this.file.writeNewLine();
-			this.file.close();
+		if (file != null) {
+			file.writeNewLine();
+			file.close();
 		}
 		if (fileExt != null) {
-			String filename = this.fileBase + fileExt;
+			String filename = fileBase + fileExt;
 			ConsoleUtils.println("generating %s ...", filename);
 			this.file = new FileBuilder(filename);
 		} else {
@@ -67,7 +67,7 @@ public class ParserGrammarWriter {
 	}
 
 	public void generate() {
-		for (Production p : this.grammar) {
+		for (Production p : grammar) {
 			String name = p.getUniqueName();
 			Expression e = p.getExpression();
 			file.writeIndent("%s = %s", name, e);
@@ -85,7 +85,7 @@ public class ParserGrammarWriter {
 			}
 			InputStream s = ParserGrammarWriter.class.getResourceAsStream(path);
 			BufferedReader reader = new BufferedReader(new InputStreamReader(s));
-			String line = null;
+			String line;
 			while ((line = reader.readLine()) != null) {
 				if (re != null) {
 					for (int i = 0; i < re.length; i += 2) {
@@ -111,7 +111,7 @@ public class ParserGrammarWriter {
 			}
 			InputStream s = ParserGrammarWriter.class.getResourceAsStream(path);
 			BufferedReader reader = new BufferedReader(new InputStreamReader(s));
-			String line = null;
+			String line;
 			while ((line = reader.readLine()) != null) {
 				if (re != null) {
 					for (int i = 0; i < re.length; i += 2) {

@@ -48,15 +48,15 @@ public class PEGTLTranslator extends ParserGrammarWriter {
 
 		protected String _Open() {
 			return "<";
-		};
+		}
 
 		protected String _Close() {
 			return ">";
-		};
+		}
 
 		protected String _Delim() {
 			return ",";
-		};
+		}
 
 		public void visitGrouping(Expression e) {
 			// W(_OpenGrouping());
@@ -159,12 +159,6 @@ public class PEGTLTranslator extends ParserGrammarWriter {
 		@Override
 		public void visitPreNew(Nez.BeginTree e) {
 			W("pegtl::success");
-			// if(e.lefted) {
-			// C("LCapture", e.shift);
-			// }
-			// else {
-			// C("NCapture", e.shift);
-			// }
 		}
 
 		@Override
@@ -182,17 +176,10 @@ public class PEGTLTranslator extends ParserGrammarWriter {
 		@Override
 		public void visitReplace(Nez.Replace e) {
 			W("pegtl::success");
-			// C("Replace", StringUtils.quoteString('"', e.value, '"'));
 		}
 
 		@Override
 		public void visitLink(Nez.LinkTree e) {
-			// if(e.index != -1) {
-			// C("Link", String.valueOf(e.index), e);
-			// }
-			// else {
-			// C("Link", e);
-			// }
 			visitExpression(e.get(0));
 		}
 
@@ -203,13 +190,6 @@ public class PEGTLTranslator extends ParserGrammarWriter {
 			} else {
 				W("pegtl::success");
 			}
-			// W("<");
-			// W(e.getPredicate());
-			// for(Expression se : e) {
-			// W(" ");
-			// visit(se);
-			// }
-			// W(">");
 		}
 
 		@Override

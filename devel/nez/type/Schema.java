@@ -16,8 +16,7 @@ public class Schema {
 	}
 
 	public final Type getType(String uname) {
-		Type t = nameMap.get(uname);
-		return t;
+		return nameMap.get(uname);
 	}
 
 	public final Type derefType(Type t) {
@@ -107,7 +106,7 @@ public class Schema {
 		return p;
 	}
 
-	public static abstract class AbstractType implements Type {
+	public abstract static class AbstractType implements Type {
 
 		abstract void format(StringBuilder sb);
 
@@ -119,7 +118,7 @@ public class Schema {
 		}
 	}
 
-	private static Property[] nullMember = new Property[0];
+	private static final Property[] nullMember = new Property[0];
 
 	public static class ObjectType extends AbstractType {
 		Schema space;
@@ -220,7 +219,7 @@ public class Schema {
 				return false;
 			}
 			if (o instanceof ReferenceType) {
-				return ((ReferenceType) o).equals(this);
+				return o.equals(this);
 			}
 			return false;
 		}
@@ -282,7 +281,7 @@ public class Schema {
 		}
 	}
 
-	private final static void formatType(Type t, StringBuilder sb) {
+	private static void formatType(Type t, StringBuilder sb) {
 		if (t instanceof AbstractType) {
 			((AbstractType) t).format(sb);
 		} else {
@@ -336,7 +335,7 @@ public class Schema {
 				return false;
 			}
 			if (o instanceof ReferenceType) {
-				return ((ReferenceType) o).equals(this);
+				return o.equals(this);
 			}
 			return false;
 		}
@@ -352,7 +351,7 @@ public class Schema {
 
 	}
 
-	public static abstract class UnaryType extends AbstractType {
+	public abstract static class UnaryType extends AbstractType {
 		public Type type;
 
 		protected void format(StringBuilder sb, String postfix) {
@@ -384,7 +383,7 @@ public class Schema {
 				return type.equals(((UnaryType) o).type);
 			}
 			if (o instanceof ReferenceType) {
-				return ((ReferenceType) o).equals(this);
+				return o.equals(this);
 			}
 			return false;
 		}
@@ -408,7 +407,7 @@ public class Schema {
 				return type.equals(((UnaryType) o).type);
 			}
 			if (o instanceof ReferenceType) {
-				return ((ReferenceType) o).equals(this);
+				return o.equals(this);
 			}
 			return false;
 		}
@@ -431,14 +430,14 @@ public class Schema {
 				return type.equals(((UnaryType) o).type);
 			}
 			if (o instanceof ReferenceType) {
-				return ((ReferenceType) o).equals(this);
+				return o.equals(this);
 			}
 			return false;
 		}
 
 	}
 
-	public final static Type newOptionType(Type t) {
+	public static Type newOptionType(Type t) {
 		if (t instanceof OptionType || t instanceof ZeroMoreType) {
 			return t;
 		}
@@ -455,7 +454,7 @@ public class Schema {
 		return new Schema.OptionType(t);
 	}
 
-	public final static Type newZeroMoreType(Type t) {
+	public static Type newZeroMoreType(Type t) {
 		if (t instanceof ZeroMoreType) {
 			return t;
 		}
@@ -472,7 +471,7 @@ public class Schema {
 		return new Schema.ZeroMoreType(t);
 	}
 
-	public final static Type newOneMoreType(Type t) {
+	public static Type newOneMoreType(Type t) {
 		if (t instanceof OneMoreType || t instanceof ZeroMoreType) {
 			return t;
 		}

@@ -28,11 +28,11 @@ public class CoverageProfiler {
 		}
 	}
 
-	UList<CoverageEntry> covList = new UList<CoverageEntry>(new CoverageEntry[128]);
+	UList<CoverageEntry> covList = new UList<>(new CoverageEntry[128]);
 	HashMap<String, CoverageEntry> covMap = new HashMap<>();
 
 	public final void initCoverage() {
-		covList = new UList<CoverageEntry>(new CoverageEntry[128]);
+		covList = new UList<>(new CoverageEntry[128]);
 		covMap = new HashMap<>();
 	}
 

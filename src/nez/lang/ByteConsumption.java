@@ -4,10 +4,10 @@ import nez.lang.Nez.Label;
 
 public class ByteConsumption extends Expression.Visitor {
 
-	static enum Result {
+	enum Result {
 		Unconsumed, //
 		Consumed, //
-		Undecided;
+		Undecided
 	}
 
 	public final boolean isConsumed(Production p) {
@@ -20,32 +20,20 @@ public class ByteConsumption extends Expression.Visitor {
 		return c == Result.Consumed;
 	}
 
-	public Result quickCheck(Production p) {
-		String uname = p.getUniqueName();
-		if (this.isVisited(uname)) {
-			return (Result) lookup(uname);
-		}
-		Result c = quickCheck(p.getExpression());
-		if (c != Result.Undecided) {
-			this.memo(uname, c);
-		}
-		return c;
-	}
-
 	public final Result quickCheck(Expression e) {
 		return (Result) e.visit(this, true);
 	}
 
 	public Result deepCheck(Production p) {
 		String uname = p.getUniqueName();
-		if (this.isVisited(uname)) {
+		if (isVisited(uname)) {
 			return (Result) lookup(uname);
 		}
 		Result c = quickCheck(p.getExpression());
-		this.memo(uname, c);
+		memo(uname, c);
 		if (c == Result.Undecided) {
 			c = deepCheck(p.getExpression());
-			this.memo(uname, c);
+			memo(uname, c);
 		}
 		return c;
 	}
@@ -63,7 +51,7 @@ public class ByteConsumption extends Expression.Visitor {
 		if ((Boolean) a) {
 			return Result.Undecided;
 		}
-		return this.deepCheck(e.getProduction());
+		return deepCheck(e.getProduction());
 	}
 
 	@Override

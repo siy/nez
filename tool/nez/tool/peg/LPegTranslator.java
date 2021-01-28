@@ -135,7 +135,7 @@ public class LPegTranslator extends ParserGrammarWriter {
 
 		@Override
 		public void visitByte(Nez.Byte e) {
-			file.write("lpeg.P" + this.stringfyByte(e.byteChar) + " ");
+			file.write("lpeg.P" + stringfyByte(e.byteChar) + " ");
 		}
 
 		private int searchEndChar(boolean[] b, int s) {
@@ -166,17 +166,17 @@ public class LPegTranslator extends ParserGrammarWriter {
 
 		@Override
 		public void visitByteSet(Nez.ByteSet e) {
-			boolean b[] = e.byteset;
+			boolean[] b = e.byteset;
 			for (int start = 0; start < 256; start++) {
 				if (b[start]) {
 					int end = searchEndChar(b, start + 1);
 					if (start == end) {
-						file.write("lpeg.P" + this.stringfyByte(start) + " ");
+						file.write("lpeg.P" + stringfyByte(start) + " ");
 					} else {
 						StringBuilder sb = new StringBuilder();
 						getRangeChar(start, sb);
 						getRangeChar(end, sb);
-						file.write("lpeg.R(\"" + sb.toString() + "\") ");
+						file.write("lpeg.R(\"" + sb + "\") ");
 						start = end;
 					}
 				}
@@ -202,10 +202,10 @@ public class LPegTranslator extends ParserGrammarWriter {
 												 * || e.get(0) instanceof
 												 * NewClosure
 												 */) {
-				this.visitExpression(e.get(0));
+				visitExpression(e.get(0));
 			} else {
 				file.write("(");
-				this.visitExpression(e.get(0));
+				visitExpression(e.get(0));
 				file.write(")");
 			}
 			if (suffix != null) {
@@ -215,27 +215,27 @@ public class LPegTranslator extends ParserGrammarWriter {
 
 		@Override
 		public void visitOption(Nez.Option e) {
-			this.visit(null, e, "^-1");
+			visit(null, e, "^-1");
 		}
 
 		@Override
 		public void visitZeroMore(Nez.ZeroMore e) {
-			this.visit(null, e, "^0");
+			visit(null, e, "^0");
 		}
 
 		@Override
 		public void visitOneMore(Nez.OneMore e) {
-			this.visit(null, e, "^1");
+			visit(null, e, "^1");
 		}
 
 		@Override
 		public void visitAnd(Nez.And e) {
-			this.visit("#", e, null);
+			visit("#", e, null);
 		}
 
 		@Override
 		public void visitNot(Nez.Not e) {
-			this.visit("-", e, null);
+			visit("-", e, null);
 		}
 
 		@Override
@@ -251,23 +251,19 @@ public class LPegTranslator extends ParserGrammarWriter {
 
 		@Override
 		public void visitLink(Nez.LinkTree e) {
-			// String predicate = "@";
-			// if(e.index != -1) {
-			// predicate += "[" + e.index + "]";
-			// }
-			// this.visit(predicate, e, null);
-			this.visitExpression(e.get(0));
+
+			visitExpression(e.get(0));
 		}
 
 		private int appendAsString(Nez.Pair l, int start) {
 			int end = l.size();
-			String s = "";
+			StringBuilder s = new StringBuilder();
 			for (int i = start; i < end; i++) {
 				Expression e = l.get(i);
 				if (e instanceof Nez.Byte) {
 					char c = (char) (((Nez.Byte) e).byteChar);
 					if (c >= ' ' && c < 127) {
-						s += c;
+						s.append(c);
 						continue;
 					}
 				}
@@ -275,7 +271,7 @@ public class LPegTranslator extends ParserGrammarWriter {
 				break;
 			}
 			if (s.length() > 1) {
-				file.write("lpeg.P" + StringUtils.quoteString('"', s, '"'));
+				file.write("lpeg.P" + StringUtils.quoteString('"', s.toString(), '"'));
 			}
 			return end - 1;
 		}
@@ -319,18 +315,6 @@ public class LPegTranslator extends ParserGrammarWriter {
 				file.write(" ) ");
 			}
 		}
-
-		// public void visitNewClosure(NewClosure e) {
-		// file.write("( ");
-		// this.visitSequenceImpl(e);
-		// file.write(" )");
-		// }
-		//
-		// public void visitLeftNew(LeftNewClosure e) {
-		// file.write("( ");
-		// this.visitSequenceImpl(e);
-		// file.write(" )");
-		// }
 
 		@Override
 		public void visitPreNew(Nez.BeginTree e) {

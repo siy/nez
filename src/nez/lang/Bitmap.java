@@ -1,7 +1,7 @@
 package nez.lang;
 
 public class Bitmap {
-	private int bits[];
+	private final int[] bits;
 
 	public Bitmap() {
 		bits = new int[8];

@@ -25,7 +25,7 @@ public abstract class Expression extends AbstractList<Expression> implements Sou
 
 	public abstract Object visit(Expression.Visitor v, Object a);
 
-	private SourceLocation s = null;
+	private SourceLocation s;
 
 	public final void setSourceLocation(SourceLocation s) {
 		if (s instanceof Expression) {
@@ -35,75 +35,75 @@ public abstract class Expression extends AbstractList<Expression> implements Sou
 	}
 
 	public final SourceLocation getSourceLocation() {
-		return this.s;
+		return s;
 	}
 
 	@Override
 	public Source getSource() {
-		if (this.s != null) {
-			return this.s.getSource();
+		if (s != null) {
+			return s.getSource();
 		}
 		return null;
 	}
 
 	@Override
 	public long getSourcePosition() {
-		if (this.s != null) {
-			this.s.getSourcePosition();
+		if (s != null) {
+			s.getSourcePosition();
 		}
 		return 0L;
 	}
 
 	@Override
 	public int getLineNum() {
-		if (this.s != null) {
-			this.s.getLineNum();
+		if (s != null) {
+			s.getLineNum();
 		}
 		return 0;
 	}
 
 	@Override
 	public int getColumn() {
-		if (this.s != null) {
-			this.s.getColumn();
+		if (s != null) {
+			s.getColumn();
 		}
 		return 0;
 	}
 
 	@Override
 	public String formatSourceMessage(String type, String msg) {
-		if (this.s != null) {
-			return this.s.formatSourceMessage(type, msg);
+		if (s != null) {
+			return s.formatSourceMessage(type, msg);
 		}
 		return "(" + type + ") " + msg;
 	}
 
 	// test
 
-	public static final boolean isByteConsumed(Expression e) {
+	public static boolean isByteConsumed(Expression e) {
 		return (e instanceof Nez.Byte || e instanceof Nez.ByteSet || e instanceof Nez.Any);
 	}
 
-	public static final boolean isPositionIndependentOperation(Expression e) {
+	public static boolean isPositionIndependentOperation(Expression e) {
 		return (e instanceof Nez.Tag || e instanceof Nez.Replace);
 	}
 
 	// convinient interface
 
 	public final Expression newEmpty() {
-		return Expressions.newEmpty(this.getSourceLocation());
+		return Expressions.newEmpty(getSourceLocation());
 	}
 
 	public final Expression newFailure() {
-		return Expressions.newFail(this.getSourceLocation());
+		return Expressions.newFail(getSourceLocation());
 	}
 
 	public final Expression newByteSet(boolean isBinary, boolean[] byteMap) {
-		return Expressions.newByteSet(this.getSourceLocation(), byteMap);
+		return Expressions.newByteSet(getSourceLocation(), byteMap);
 	}
 
 	public final Expression newPair(Expression e, Expression e2) {
-		return Expressions.newPair(this.getSourceLocation(), e, e2);
+		return Expressions.newPair(getSourceLocation(), e, e2);
 	}
 
 	public final Expression newPair(List<Expression> l) {
@@ -127,9 +127,9 @@ public abstract class Expression extends AbstractList<Expression> implements Sou
 		return sb.toString();
 	}
 
-	public static abstract class Visitor {
+	public abstract static class Visitor {
 
-		protected HashMap<String, Object> visited = null;
+		protected HashMap<String, Object> visited;
 
 		public Object lookup(String uname) {
 			if (visited != null) {
@@ -236,13 +236,13 @@ public abstract class Expression extends AbstractList<Expression> implements Sou
 
 	}
 
-	private final static ExpressionFormatter defaultFormatter = new ExpressionFormatter();
+	private static final ExpressionFormatter defaultFormatter = new ExpressionFormatter();
 
-	public final static void format(Expression e, StringBuilder sb) {
+	public static void format(Expression e, StringBuilder sb) {
 		defaultFormatter.format(sb, e);
 	}
 
-	public final static String Stringfy(Expression e) {
+	public static String Stringfy(Expression e) {
 		StringBuilder sb = new StringBuilder();
 		defaultFormatter.format(sb, e);
 		return sb.toString();
@@ -312,21 +312,21 @@ public abstract class Expression extends AbstractList<Expression> implements Sou
 		@Override
 		public Object visitPair(Nez.Pair e, Object a) {
 			StringBuilder sb = (StringBuilder) a;
-			this.formatSequence(sb, e, " ");
+			formatSequence(sb, e, " ");
 			return null;
 		}
 
 		@Override
 		public Object visitSequence(Nez.Sequence e, Object a) {
 			StringBuilder sb = (StringBuilder) a;
-			this.formatSequence(sb, e, " ");
+			formatSequence(sb, e, " ");
 			return null;
 		}
 
 		@Override
 		public Object visitChoice(Nez.Choice e, Object a) {
 			StringBuilder sb = (StringBuilder) a;
-			this.formatSequence(sb, e, " / ");
+			formatSequence(sb, e, " / ");
 			return null;
 		}
 
@@ -363,35 +363,35 @@ public abstract class Expression extends AbstractList<Expression> implements Sou
 		@Override
 		public Object visitOption(Nez.Option e, Object a) {
 			StringBuilder sb = (StringBuilder) a;
-			this.formatUnary(sb, null, e.get(0), "?");
+			formatUnary(sb, null, e.get(0), "?");
 			return null;
 		}
 
 		@Override
 		public Object visitZeroMore(Nez.ZeroMore e, Object a) {
 			StringBuilder sb = (StringBuilder) a;
-			this.formatUnary(sb, null, e.get(0), "*");
+			formatUnary(sb, null, e.get(0), "*");
 			return null;
 		}
 
 		@Override
 		public Object visitOneMore(Nez.OneMore e, Object a) {
 			StringBuilder sb = (StringBuilder) a;
-			this.formatUnary(sb, null, e.get(0), "+");
+			formatUnary(sb, null, e.get(0), "+");
 			return null;
 		}
 
 		@Override
 		public Object visitAnd(Nez.And e, Object a) {
 			StringBuilder sb = (StringBuilder) a;
-			this.formatUnary(sb, "&", e.get(0), null);
+			formatUnary(sb, "&", e.get(0), null);
 			return null;
 		}
 
 		@Override
 		public Object visitNot(Nez.Not e, Object a) {
 			StringBuilder sb = (StringBuilder) a;
-			this.formatUnary(sb, "!", e.get(0), null);
+			formatUnary(sb, "!", e.get(0), null);
 			return null;
 		}
 
@@ -422,7 +422,7 @@ public abstract class Expression extends AbstractList<Expression> implements Sou
 		@Override
 		public Object visitTag(Nez.Tag e, Object a) {
 			StringBuilder sb = (StringBuilder) a;
-			sb.append("#" + e.tag);
+			sb.append("#").append(e.tag);
 			return null;
 		}
 
@@ -441,7 +441,7 @@ public abstract class Expression extends AbstractList<Expression> implements Sou
 				sb.append(" ");
 			}
 			if (e.tag != null) {
-				sb.append("#" + e.tag);
+				sb.append("#").append(e.tag);
 				sb.append(" ");
 			}
 			sb.append("}");
@@ -451,7 +451,7 @@ public abstract class Expression extends AbstractList<Expression> implements Sou
 		@Override
 		public Object visitDetree(Nez.Detree e, Object a) {
 			StringBuilder sb = (StringBuilder) a;
-			this.formatUnary(sb, "~", e.get(0), null);
+			formatUnary(sb, "~", e.get(0), null);
 			return null;
 		}
 
@@ -473,42 +473,42 @@ public abstract class Expression extends AbstractList<Expression> implements Sou
 		@Override
 		public Object visitBlockScope(Nez.BlockScope e, Object a) {
 			StringBuilder sb = (StringBuilder) a;
-			this.formatFunction(e, null, sb);
+			formatFunction(e, null, sb);
 			return null;
 		}
 
 		@Override
 		public Object visitLocalScope(Nez.LocalScope e, Object a) {
 			StringBuilder sb = (StringBuilder) a;
-			this.formatFunction(e, e.tableName, sb);
+			formatFunction(e, e.tableName, sb);
 			return null;
 		}
 
 		@Override
 		public Object visitSymbolAction(Nez.SymbolAction e, Object a) {
 			StringBuilder sb = (StringBuilder) a;
-			this.formatFunction(e, null, sb);
+			formatFunction(e, null, sb);
 			return null;
 		}
 
 		@Override
 		public Object visitSymbolPredicate(Nez.SymbolPredicate e, Object a) {
 			StringBuilder sb = (StringBuilder) a;
-			this.formatFunction(e, e.tableName, sb);
+			formatFunction(e, e.tableName, sb);
 			return null;
 		}
 
 		@Override
 		public Object visitSymbolMatch(Nez.SymbolMatch e, Object a) {
 			StringBuilder sb = (StringBuilder) a;
-			this.formatFunction(e, e.tableName, sb);
+			formatFunction(e, e.tableName, sb);
 			return null;
 		}
 
 		@Override
 		public Object visitSymbolExists(Nez.SymbolExists e, Object a) {
 			StringBuilder sb = (StringBuilder) a;
-			this.formatFunction(e, symbol(e.tableName, e.symbol), sb); // FIXME
+			formatFunction(e, symbol(e.tableName, e.symbol), sb); // FIXME
 			return null;
 		}
 
@@ -519,28 +519,28 @@ public abstract class Expression extends AbstractList<Expression> implements Sou
 			if (e.mask != 0) {
 				mask = Long.toBinaryString(e.mask);
 			}
-			this.formatFunction(e, mask, sb);
+			formatFunction(e, mask, sb);
 			return null;
 		}
 
 		@Override
 		public Object visitRepeat(Repeat e, Object a) {
 			StringBuilder sb = (StringBuilder) a;
-			this.formatFunction(e, null, sb);
+			formatFunction(e, null, sb);
 			return null;
 		}
 
 		@Override
 		public Object visitIf(Nez.IfCondition e, Object a) {
 			StringBuilder sb = (StringBuilder) a;
-			this.formatFunction(e, condition(e.predicate, e.flagName), sb);
+			formatFunction(e, condition(e.predicate, e.flagName), sb);
 			return null;
 		}
 
 		@Override
 		public Object visitOn(Nez.OnCondition e, Object a) {
 			StringBuilder sb = (StringBuilder) a;
-			this.formatFunction(e, condition(e.predicate, e.flagName), sb);
+			formatFunction(e, condition(e.predicate, e.flagName), sb);
 			return null;
 		}
 
@@ -582,12 +582,12 @@ public abstract class Expression extends AbstractList<Expression> implements Sou
 		}
 	}
 
-	public static abstract class DuplicateVisitor extends Visitor {
+	public abstract static class DuplicateVisitor extends Visitor {
 
-		protected boolean enforcedSequence = false;
-		protected boolean enforcedPair = false;
+		protected boolean enforcedSequence;
+		protected boolean enforcedPair;
 
-		protected boolean enableImmutableDuplication = false;
+		protected boolean enableImmutableDuplication;
 
 		public Expression visit(Expression e) {
 			SourceLocation s = e.getSourceLocation();
@@ -605,13 +605,6 @@ public abstract class Expression extends AbstractList<Expression> implements Sou
 		private Expression sub(Expression e, int i) {
 			return visit(e.get(i));
 		}
-
-		// @Override
-		// public Expression visitNonTerminal(NonTerminal e, Object a) {
-		// NonTerminal e2 = null; // FIXME
-		// e2.setSourceLocation(e.getSourceLocation());
-		// return e2;
-		// }
 
 		@Override
 		public Expression visitEmpty(Nez.Empty e, Object a) {
@@ -666,8 +659,8 @@ public abstract class Expression extends AbstractList<Expression> implements Sou
 			if (enforcedSequence) {
 				List<Expression> l = Expressions.flatten(e);
 				UList<Expression> l2 = Expressions.newUList(l.size());
-				for (int i = 0; i < l.size(); i++) {
-					Expressions.addSequence(l2, visit(l.get(i)));
+				for (Expression expression : l) {
+					Expressions.addSequence(l2, visit(expression));
 				}
 				return new Nez.Sequence(l2.compactArray());
 			}
@@ -679,8 +672,8 @@ public abstract class Expression extends AbstractList<Expression> implements Sou
 			if (enforcedPair) {
 				List<Expression> l = Expressions.flatten(e);
 				UList<Expression> l2 = Expressions.newUList(l.size());
-				for (int i = 0; i < l.size(); i++) {
-					Expressions.addSequence(l2, visit(l.get(i)));
+				for (Expression expression : l) {
+					Expressions.addSequence(l2, visit(expression));
 				}
 				return Expressions.newPair(l2);
 			}
@@ -908,37 +901,37 @@ public abstract class Expression extends AbstractList<Expression> implements Sou
 
 		@Override
 		public Expression visitOption(Nez.Option e, Object a) {
-			e.set(0, this.visitInner(e.get(0), a));
+			e.set(0, visitInner(e.get(0), a));
 			return e;
 		}
 
 		@Override
 		public Expression visitZeroMore(Nez.ZeroMore e, Object a) {
-			e.set(0, this.visitInner(e.get(0), a));
+			e.set(0, visitInner(e.get(0), a));
 			return e;
 		}
 
 		@Override
 		public Expression visitOneMore(Nez.OneMore e, Object a) {
-			e.set(0, this.visitInner(e.get(0), a));
+			e.set(0, visitInner(e.get(0), a));
 			return e;
 		}
 
 		@Override
 		public Expression visitAnd(Nez.And e, Object a) {
-			e.set(0, this.visitInner(e.get(0), a));
+			e.set(0, visitInner(e.get(0), a));
 			return e;
 		}
 
 		@Override
 		public Expression visitNot(Nez.Not e, Object a) {
-			e.set(0, this.visitInner(e.get(0), a));
+			e.set(0, visitInner(e.get(0), a));
 			return e;
 		}
 
 		@Override
 		public Expression visitDetree(Nez.Detree e, Object a) {
-			e.set(0, this.visitInner(e.get(0), a));
+			e.set(0, visitInner(e.get(0), a));
 			return e;
 		}
 
@@ -959,7 +952,7 @@ public abstract class Expression extends AbstractList<Expression> implements Sou
 
 		@Override
 		public Expression visitLinkTree(Nez.LinkTree e, Object a) {
-			e.set(0, this.visitInner(e.get(0), a));
+			e.set(0, visitInner(e.get(0), a));
 			return e;
 		}
 
@@ -975,19 +968,19 @@ public abstract class Expression extends AbstractList<Expression> implements Sou
 
 		@Override
 		public Expression visitBlockScope(Nez.BlockScope e, Object a) {
-			e.set(0, this.visitInner(e.get(0), a));
+			e.set(0, visitInner(e.get(0), a));
 			return e;
 		}
 
 		@Override
 		public Expression visitLocalScope(Nez.LocalScope e, Object a) {
-			e.set(0, this.visitInner(e.get(0), a));
+			e.set(0, visitInner(e.get(0), a));
 			return e;
 		}
 
 		@Override
 		public Expression visitSymbolAction(Nez.SymbolAction e, Object a) {
-			e.set(0, this.visitInner(e.get(0), a));
+			e.set(0, visitInner(e.get(0), a));
 			return e;
 		}
 
@@ -998,7 +991,7 @@ public abstract class Expression extends AbstractList<Expression> implements Sou
 
 		@Override
 		public Expression visitSymbolPredicate(Nez.SymbolPredicate e, Object a) {
-			e.set(0, this.visitInner(e.get(0), a));
+			e.set(0, visitInner(e.get(0), a));
 			return e;
 		}
 
@@ -1009,13 +1002,13 @@ public abstract class Expression extends AbstractList<Expression> implements Sou
 
 		@Override
 		public Expression visitScan(Nez.Scan e, Object a) {
-			e.set(0, this.visitInner(e.get(0), a));
+			e.set(0, visitInner(e.get(0), a));
 			return e;
 		}
 
 		@Override
 		public Expression visitRepeat(Nez.Repeat e, Object a) {
-			e.set(0, this.visitInner(e.get(0), a));
+			e.set(0, visitInner(e.get(0), a));
 			return e;
 		}
 
@@ -1026,7 +1019,7 @@ public abstract class Expression extends AbstractList<Expression> implements Sou
 
 		@Override
 		public Expression visitOn(Nez.OnCondition e, Object a) {
-			e.set(0, this.visitInner(e.get(0), a));
+			e.set(0, visitInner(e.get(0), a));
 			return e;
 		}
 
@@ -1038,13 +1031,13 @@ public abstract class Expression extends AbstractList<Expression> implements Sou
 		@Override
 		public Object visitDispatch(Dispatch e, Object a) {
 			for (int i = 1; i < e.inners.length; i++) {
-				e.inners[i] = this.visitInner(e.inners[i], a);
+				e.inners[i] = visitInner(e.inners[i], a);
 			}
 			return e;
 		}
 	}
 
-	public static abstract class AnalyzeVisitor<T> extends Expression.Visitor implements PropertyAnalyzer<T> {
+	public abstract static class AnalyzeVisitor<T> extends Expression.Visitor implements PropertyAnalyzer<T> {
 		protected T defaultResult;
 		protected T undecided;
 
@@ -1057,12 +1050,12 @@ public abstract class Expression extends AbstractList<Expression> implements Sou
 		@SuppressWarnings("unchecked")
 		public T analyze(Production p) {
 			String uname = p.getUniqueName();
-			Object v = this.lookup(uname);
+			Object v = lookup(uname);
 			if (v == null) {
-				this.visited(uname);
+				visited(uname);
 				v = p.getExpression().visit(this, null);
 				if (undecided != v) {
-					this.memo(uname, v);
+					memo(uname, v);
 				}
 			}
 			return (T) v;
@@ -1092,7 +1085,7 @@ public abstract class Expression extends AbstractList<Expression> implements Sou
 		@Override
 		public Object visitNonTerminal(NonTerminal e, Object a) {
 			Production p = e.getProduction();
-			return this.analyze(p);
+			return analyze(p);
 		}
 
 		@Override

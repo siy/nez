@@ -5,10 +5,10 @@ import java.util.HashMap;
 import nez.util.UList;
 
 public class Symbol {
-	private static HashMap<String, Symbol> tagIdMap = new HashMap<String, Symbol>();
-	private static UList<Symbol> tagNameList = new UList<Symbol>(new Symbol[64]);
+	private static final HashMap<String, Symbol> tagIdMap = new HashMap<>();
+	private static final UList<Symbol> tagNameList = new UList<>(new Symbol[64]);
 
-	public final static Symbol unique(String s) {
+	public static Symbol unique(String s) {
 		Symbol tag = tagIdMap.get(s);
 		if (tag == null) {
 			tag = new Symbol(tagIdMap.size(), s);
@@ -18,19 +18,16 @@ public class Symbol {
 		return tag;
 	}
 
-	public final static int uniqueId(String symbol) {
+	public static int uniqueId(String symbol) {
 		return unique(symbol).id;
 	}
 
-	public final static Symbol tag(int tagId) {
+	public static Symbol tag(int tagId) {
 		return tagNameList.ArrayValues[tagId];
 	}
 
-	public final static Symbol Null = unique("");
-	public final static Symbol MetaSymbol = unique("$");
-	// public final static Symbol tokenTag = unique(""); // for compatibility
-	// Cnez
-	// public final static Symbol treeTag = unique("");
+	public static final Symbol Null = unique("");
+	public static final Symbol MetaSymbol = unique("$");
 
 	final int id;
 	final String symbol;
@@ -41,7 +38,7 @@ public class Symbol {
 	}
 
 	public final int id() {
-		return this.id;
+		return id;
 	}
 
 	public final String getSymbol() {
@@ -50,6 +47,6 @@ public class Symbol {
 
 	@Override
 	public String toString() {
-		return this.symbol;
+		return symbol;
 	}
 }

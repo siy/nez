@@ -11,18 +11,18 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 public class NFA {
-	private HashSet<State> allStates = null;
-	private TreeSet<Transition> stateTransitionFunction = null;
-	private HashSet<State> initialStates = null;
-	private HashSet<State> acceptingStates = null;
+	private HashSet<State> allStates;
+	private TreeSet<Transition> stateTransitionFunction;
+	private HashSet<State> initialStates;
+	private HashSet<State> acceptingStates;
 
-	private TreeMap<TauKey, HashSet<State>> tau = null;
+	private final TreeMap<TauKey, HashSet<State>> tau = null;
 
 	public NFA() {
-		allStates = new HashSet<State>();
-		stateTransitionFunction = new TreeSet<Transition>();
-		initialStates = new HashSet<State>();
-		acceptingStates = new HashSet<State>();
+		allStates = new HashSet<>();
+		stateTransitionFunction = new TreeSet<>();
+		initialStates = new HashSet<>();
+		acceptingStates = new HashSet<>();
 	}
 
 	public NFA(HashSet<State> allStates, TreeSet<Transition> stateTransitionFunction, HashSet<State> initialStates, HashSet<State> acceptingStates) {
@@ -71,13 +71,13 @@ public class NFA {
 
 	public String encode(HashSet<State> states) {
 		StringBuilder sb = new StringBuilder();
-		ArrayList<Integer> stateList = new ArrayList<Integer>();
+		ArrayList<Integer> stateList = new ArrayList<>();
 		for (State state : states) {
 			stateList.add(state.getID());
 		}
 		Collections.sort(stateList);
-		for (int i = 0; i < stateList.size(); i++) {
-			sb.append(String.valueOf(stateList.get(i)) + ":");
+		for (Integer integer : stateList) {
+			sb.append(integer).append(":");
 		}
 		return sb.toString();
 	}
@@ -89,14 +89,14 @@ public class NFA {
 			System.out.println("ERROR : det : NFA is null");
 			return null;
 		}
-		HashSet<State> allStates = new HashSet<State>();
-		TreeSet<Transition> stateTransitionFunction = new TreeSet<Transition>();
-		State initialState = null;
-		HashSet<State> acceptingStates = new HashSet<State>();
+		HashSet<State> allStates = new HashSet<>();
+		TreeSet<Transition> stateTransitionFunction = new TreeSet<>();
+		State initialState;
+		HashSet<State> acceptingStates = new HashSet<>();
 
-		ArrayList<ArrayList<Transition>> adjacencyList = new ArrayList<ArrayList<Transition>>();
+		ArrayList<ArrayList<Transition>> adjacencyList = new ArrayList<>();
 		for (int i = 0; i < getAllStates().size(); i++) {
-			adjacencyList.add(new ArrayList<Transition>());
+			adjacencyList.add(new ArrayList<>());
 		}
 		for (Transition transition : getStateTransitionFunction()) {
 			int src = transition.getSrc();
@@ -105,8 +105,8 @@ public class NFA {
 		}
 
 		int stateID = 0;
-		Deque<HashSet<State>> deq = new ArrayDeque<HashSet<State>>();
-		TreeMap<String, State> dfaStateTable = new TreeMap<String, State>();
+		Deque<HashSet<State>> deq = new ArrayDeque<>();
+		TreeMap<String, State> dfaStateTable = new TreeMap<>();
 
 		deq.addLast(getInitialStates());
 		// System.out.println("inital = " + getInitialStates());
@@ -129,7 +129,7 @@ public class NFA {
 		while (!deq.isEmpty()) {
 			HashSet<State> states = deq.poll();
 			for (int sigma = 0; sigma < 256; sigma++) {
-				HashSet<State> newStates = new HashSet<State>();
+				HashSet<State> newStates = new HashSet<>();
 				for (State state : states) {
 					for (int i = 0; i < adjacencyList.get(state.getID()).size(); i++) {
 						if (adjacencyList.get(state.getID()).get(i).getLabel() != sigma) {
@@ -170,8 +170,7 @@ public class NFA {
 		while (update) {
 			update = false;
 			ArrayList<Integer> iset = nextSet.toArrayList();
-			for (int i = 0; i < iset.size(); i++) {
-				int v = iset.get(i);
+			for (int v : iset) {
 				for (TauKey key : graph.get(v)) {
 					if (key.getSigma() != AFA.epsilon) {
 						continue;
@@ -199,11 +198,10 @@ public class NFA {
 	public BitSet move(BitSet bset, char c) {
 		BitSet nextSet = bset.copy();
 		ArrayList<Integer> iset = nextSet.toArrayList();
-		for (int i = 0; i < iset.size(); i++) {
-			nextSet.remove(iset.get(i));
+		for (Integer integer : iset) {
+			nextSet.remove(integer);
 		}
-		for (int i = 0; i < iset.size(); i++) {
-			int v = iset.get(i);
+		for (int v : iset) {
 			for (TauKey key : graph.get(v)) {
 				if (key.getSigma() != AFA.anyCharacter && key.getSigma() != c) {
 					continue;
@@ -215,12 +213,12 @@ public class NFA {
 		return nextSet;
 	}
 
-	private ArrayList<ArrayList<TauKey>> graph = null;
+	private ArrayList<ArrayList<TauKey>> graph;
 
 	private void initGraph() {
-		graph = new ArrayList<ArrayList<TauKey>>();
+		graph = new ArrayList<>();
 		for (int i = 0; i < allStates.size(); i++) {
-			graph.add(new ArrayList<TauKey>());
+			graph.add(new ArrayList<>());
 		}
 		for (Transition transit : stateTransitionFunction) {
 			graph.get(transit.getSrc()).add(new TauKey(new State(transit.getDst()), transit.getLabel()));
@@ -229,13 +227,13 @@ public class NFA {
 
 	public DFA subsetConstruction() {
 		initGraph();
-		HashSet<State> S = new HashSet<State>();
-		TreeSet<Transition> tau = new TreeSet<Transition>();
-		State f = null;
-		HashSet<State> F = new HashSet<State>();
+		HashSet<State> S = new HashSet<>();
+		TreeSet<Transition> tau = new TreeSet<>();
+		State f;
+		HashSet<State> F = new HashSet<>();
 		int newID = 0;
-		Map<String, Integer> table = new HashMap<String, Integer>();
-		Deque<BitSet> deq = new ArrayDeque<BitSet>();
+		Map<String, Integer> table = new HashMap<>();
+		Deque<BitSet> deq = new ArrayDeque<>();
 		{
 			BitSet set = new BitSet();
 			for (State state : initialStates) {
@@ -260,7 +258,7 @@ public class NFA {
 				// for (char c = 'a'; c <= 'd'; c++) {
 				BitSet nextSet = move(bset, c);
 				nextSet = epsilonTransit(nextSet);
-				int nextID = -1;
+				int nextID;
 				boolean firstTime = false;
 				if (table.containsKey(nextSet.toString())) {
 					nextID = table.get(nextSet.toString());

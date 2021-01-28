@@ -14,7 +14,7 @@ public class ParserGrammarFunc extends ProductionCode<MozInst> {
 	int refcount;
 	boolean inlining;
 	boolean state;
-	MemoPoint memoPoint = null;
+	MemoPoint memoPoint;
 
 	ParserGrammarFunc(String uname, Production p, Production pp, int init) {
 		super(null);
@@ -26,7 +26,7 @@ public class ParserGrammarFunc extends ProductionCode<MozInst> {
 	}
 
 	public Expression getExpression() {
-		return this.parserProduction.getExpression();
+		return parserProduction.getExpression();
 	}
 
 	public void incCount() {
@@ -38,18 +38,18 @@ public class ParserGrammarFunc extends ProductionCode<MozInst> {
 	}
 
 	public final int getCount() {
-		return this.refcount;
+		return refcount;
 	}
 
 	public final MemoPoint getMemoPoint() {
-		return this.memoPoint;
+		return memoPoint;
 	}
 
 	public final boolean isStateful() {
-		return this.state;
+		return state;
 	}
 
 	public final boolean isInlined() {
-		return this.inlining;
+		return inlining;
 	}
 }

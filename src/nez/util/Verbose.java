@@ -6,12 +6,12 @@ import nez.Version;
 import nez.lang.Expression;
 
 public class Verbose {
-	public static boolean enabled = false;
+	public static boolean enabled;
 	/* obsolete */
-	public static boolean BacktrackActivity = false;
-	public static boolean PackratParsing = false;
+	public static boolean BacktrackActivity;
+	public static boolean PackratParsing;
 
-	public final static void println(String s) {
+	public static void println(String s) {
 		if (enabled) {
 			ConsoleUtils.begin(34);
 			ConsoleUtils.println(s);
@@ -19,13 +19,13 @@ public class Verbose {
 		}
 	}
 
-	public final static void println(String fmt, Object... args) {
+	public static void println(String fmt, Object... args) {
 		if (enabled) {
 			println(String.format(fmt, args));
 		}
 	}
 
-	public final static void print(String s) {
+	public static void print(String s) {
 		if (enabled) {
 			ConsoleUtils.begin(34);
 			ConsoleUtils.print(s);
@@ -33,7 +33,7 @@ public class Verbose {
 		}
 	}
 
-	public final static void print(String fmt, Object... args) {
+	public static void print(String fmt, Object... args) {
 		if (enabled) {
 			print(String.format(fmt, args));
 		}
@@ -61,9 +61,9 @@ public class Verbose {
 		println("[TODO] " + String.format(fmt, args));
 	}
 
-	public final static void printElapsedTime(String msg, long t1, long t2) {
+	public static void printElapsedTime(String msg, long t1, long t2) {
 		if (enabled) {
-			double d = (t2 - t1) / 1000000;
+			double d = (t2 - t1) / 1_000_000.0;
 			if (d > 0.1) {
 				println("%s : %f[ms]", msg, d);
 			}
@@ -71,25 +71,15 @@ public class Verbose {
 	}
 
 	public static void noticeOptimize(String key, Expression p) {
-		// if (enabled) {
-		// ConsoleUtils.println("optimizing " + key + "\n\t" + p);
-		// }
 	}
 
-	public static void noticeOptimize(String key, Expression p, Expression pp) {
-		// if (enabled) {
-		// ConsoleUtils.println("optimizing " + key + "\n\t" + p + "\n\t => " +
-		// pp);
-		// }
-	}
-
-	public final static void debug(Object s) {
+	public static void debug(Object s) {
 		if (Version.ReleasePreview) {
 			ConsoleUtils.println("debug: " + s);
 		}
 	}
 
-	public final static void FIXME(Object s) {
+	public static void FIXME(Object s) {
 		if (Version.ReleasePreview) {
 			ConsoleUtils.println("FIXME: " + s);
 		}

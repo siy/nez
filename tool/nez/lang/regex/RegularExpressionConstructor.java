@@ -24,11 +24,11 @@ public class RegularExpressionConstructor extends GrammarVisitorMap<ExpressionTr
 
 	@Override
 	public Expression newInstance(Tree<?> node) {
-		return this.find(key(node)).accept(node, null);
+		return find(key(node)).accept(node, null);
 	}
 
 	public Expression pi(Tree<?> node, Expression next) {
-		return this.find(key(node)).accept(node, next);
+		return find(key(node)).accept(node, next);
 	}
 
 	public class TreeVisitor implements ExpressionTransducer {
@@ -48,8 +48,7 @@ public class RegularExpressionConstructor extends GrammarVisitorMap<ExpressionTr
 			Expression ne = Expressions.newNonTerminal(e, getGrammar(), ruleName);
 			getGrammar().addProduction(ruleName, pi(e.get(0), k));
 			Expression zeroMore = Expressions.newZeroMore(null, newPair(Expressions.newNot(null, ne), toAny(null)));
-			Expression main = newPair(zeroMore, Expressions.newOneMore(null, newPair(ne, zeroMore)));
-			return main;
+			return newPair(zeroMore, Expressions.newOneMore(null, newPair(ne, zeroMore)));
 		}
 	}
 
@@ -102,7 +101,7 @@ public class RegularExpressionConstructor extends GrammarVisitorMap<ExpressionTr
 		}
 	}
 
-	int NonTerminalCount = 0;
+	int NonTerminalCount;
 
 	// pi(e*?, k) = A, A <- k / pi(e, A)
 	public class LazyQuantifiers extends TreeVisitor {
@@ -148,7 +147,7 @@ public class RegularExpressionConstructor extends GrammarVisitorMap<ExpressionTr
 	public class NTimesRepetition extends TreeVisitor {
 		@Override
 		public Expression accept(Tree<?> e, Expression k) {
-			final int N = e.getInt(1, 0);
+			int N = e.getInt(1, 0);
 			Expression ne = k;
 			for (int i = 0; i < N; i++) {
 				ne = pi(e.get(0), ne);
@@ -169,7 +168,7 @@ public class RegularExpressionConstructor extends GrammarVisitorMap<ExpressionTr
 	public class NtoMTimesRepetition extends TreeVisitor {
 		@Override
 		public Expression accept(Tree<?> e, Expression k) {
-			final int DIF = e.getInt(2, 0) - e.getInt(1, 0);
+			int DIF = e.getInt(2, 0) - e.getInt(1, 0);
 			String ruleName = "Repetition" + NonTerminalCount++;
 			Expression ne = Expressions.newNonTerminal(e, getGrammar(), ruleName);
 			getGrammar().addProduction(ruleName, k);
@@ -213,7 +212,7 @@ public class RegularExpressionConstructor extends GrammarVisitorMap<ExpressionTr
 		@Override
 		public Expression accept(Tree<?> e, Expression k) {
 			if (k == null) {
-				UList<Expression> l = new UList<Expression>(new Expression[e.size()]);
+				UList<Expression> l = new UList<>(new Expression[e.size()]);
 				byteMap = new boolean[257];
 				for (Tree<?> subnode : e) {
 					Expressions.addChoice(l, newInstance(subnode));
@@ -272,14 +271,6 @@ public class RegularExpressionConstructor extends GrammarVisitorMap<ExpressionTr
 		}
 	}
 
-	// TODO modify implementation
-	// public Expression piStartOfString(Tree<?> e, Expression k) {
-	// if (isSOS) {
-	// return pi(e.get(0), k);
-	// }
-	// return ExpressionCommons.newFailure(null);
-	// }
-
 	public class EndOfString extends TreeVisitor {
 		@Override
 		public Expression accept(Tree<?> e, Expression k) {
@@ -287,9 +278,7 @@ public class RegularExpressionConstructor extends GrammarVisitorMap<ExpressionTr
 		}
 	}
 
-	boolean byteMap[];
-
-	// boolean useByteMap = true;
+	boolean[] byteMap;
 
 	public class Empty extends TreeVisitor {
 		@Override
@@ -298,24 +287,10 @@ public class RegularExpressionConstructor extends GrammarVisitorMap<ExpressionTr
 		}
 	}
 
-	// public class _Choice extends TreeVisitor {
-	// @Override
-	// public Expression accept(Tree<?> node, Expression e, Expression k) {
-	// UList<Expression> l = new UList<Expression>(new Expression[2]);
-	// Expressions.addChoice(l, e);
-	// if (k != null) {
-	// Expressions.addChoice(l, k);
-	// } else {
-	// Expressions.addChoice(l, toEmpty(node));
-	// }
-	// return Expressions.newChoice(l);
-	// }
-	// }
-
 	public class _Seq extends TreeVisitor {
 		@Override
 		public Expression accept(Tree<?> e, Expression k) {
-			UList<Expression> l = new UList<Expression>(new Expression[2]);
+			UList<Expression> l = new UList<>(new Expression[2]);
 			Expressions.addSequence(l, newInstance(e));
 			if (k != null) {
 				Expressions.addSequence(l, k);
@@ -324,27 +299,27 @@ public class RegularExpressionConstructor extends GrammarVisitorMap<ExpressionTr
 		}
 	}
 
-	private final Expression toEmpty(Tree<?> node) {
+	private Expression toEmpty(Tree<?> node) {
 		return find("Empty").accept(node, null);
 	}
 
-	private final Expression toAny(Tree<?> node) {
+	private Expression toAny(Tree<?> node) {
 		return find("Any").accept(node, null);
 	}
 
-	private final Expression toCharacterSet(Tree<?> node) {
+	private Expression toCharacterSet(Tree<?> node) {
 		return find("CharacterSet").accept(node, null);
 	}
 
-	private final Expression piRepetition(Tree<?> node, Expression k) {
+	private Expression piRepetition(Tree<?> node, Expression k) {
 		return find("Repetition").accept(node, k);
 	}
 
-	private final Expression toSeq(Tree<?> node, Expression k) {
+	private Expression toSeq(Tree<?> node, Expression k) {
 		return find("Seq").accept(node, k);
 	}
 
-	private final Expression newPair(Expression e, Expression k) {
+	private Expression newPair(Expression e, Expression k) {
 		List<Expression> l = Expressions.newList(2);
 		Expressions.addSequence(l, e);
 		if (k != null) {
@@ -353,7 +328,7 @@ public class RegularExpressionConstructor extends GrammarVisitorMap<ExpressionTr
 		return Expressions.newPair(l);
 	}
 
-	private final Expression newChoice(Expression e, Expression k) {
+	private Expression newChoice(Expression e, Expression k) {
 		List<Expression> l = Expressions.newList(2);
 		Expressions.addChoice(l, e);
 		if (k != null) {

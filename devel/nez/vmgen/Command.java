@@ -14,7 +14,7 @@ import nez.util.UList;
 public class Command extends nez.main.Command {
 	@Override
 	public void exec() throws IOException {
-		if (!this.hasInputSource()) {
+		if (!hasInputSource()) {
 			ConsoleUtils.exit(1, "no a vmnez file");
 		}
 		ParserGenerator generator = new ParserGenerator();
@@ -31,11 +31,11 @@ public class Command extends nez.main.Command {
 		generatePEG();
 	}
 
-	final static Symbol _Opcode = Symbol.unique("Opcode");
-	final static Symbol _Oprand = Symbol.unique("Oprand");
-	final static Symbol _name = Symbol.unique("name");
-	final static Symbol _params = Symbol.unique("params");
-	final static Symbol _code = Symbol.unique("code");
+	static final Symbol _Opcode = Symbol.unique("Opcode");
+	static final Symbol _Oprand = Symbol.unique("Oprand");
+	static final Symbol _name = Symbol.unique("name");
+	static final Symbol _params = Symbol.unique("params");
+	static final Symbol _code = Symbol.unique("code");
 
 	FileBuilder file = new FileBuilder();
 	UList<MyTree> oprands = new UList<>(new MyTree[10]);
@@ -143,7 +143,7 @@ public class Command extends nez.main.Command {
 	}
 
 	public static class MyTree extends Tree<MyTree> {
-		int id = 0;
+		int id;
 
 		public MyTree() {
 			super(Symbol.Null, null, 0, 0, null, null);
@@ -160,21 +160,21 @@ public class Command extends nez.main.Command {
 
 		@Override
 		public void link(int n, Symbol label, Object child) {
-			this.set(n, label, (MyTree) child);
+			set(n, label, (MyTree) child);
 		}
 
 		@Override
 		public MyTree newInstance(Symbol tag, int size, Object value) {
-			return new MyTree(tag, this.getSource(), this.getSourcePosition(), 0, size, value);
+			return new MyTree(tag, getSource(), getSourcePosition(), 0, size, value);
 		}
 
 		@Override
 		protected MyTree dupImpl() {
-			return new MyTree(this.getTag(), this.getSource(), this.getSourcePosition(), this.getLength(), this.size(), getValue());
+			return new MyTree(getTag(), getSource(), getSourcePosition(), getLength(), size(), getValue());
 		}
 
 		public final String getName() {
-			return this.getText(_name, "");
+			return getText(_name, "");
 		}
 	}
 

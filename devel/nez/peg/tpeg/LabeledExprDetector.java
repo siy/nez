@@ -16,7 +16,7 @@ public class LabeledExprDetector extends BaseVisitor<Boolean, Void> {
 	@Override
 	public Boolean visitSequenceExpr(SequenceExpr expr, Void param) {
 		for (TypedPEG e : expr.getExprs()) {
-			if (this.visit(e)) {
+			if (visit(e)) {
 				return true;
 			}
 		}

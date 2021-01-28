@@ -58,8 +58,7 @@ public class Mangler {
 	static LType[] flattenUnionElements(LType[] types) throws IllegalArgumentException {
 		Set<LType> typeSet = new TreeSet<>();
 
-		LinkedList<LType> queue = new LinkedList<>();
-		queue.addAll(Arrays.asList(types));
+		LinkedList<LType> queue = new LinkedList<>(Arrays.asList(types));
 		while (!queue.isEmpty()) {
 			LType type = queue.removeFirst();
 			if (type instanceof LType.UnionType) {
@@ -71,7 +70,7 @@ public class Mangler {
 			}
 		}
 
-		final int size = typeSet.size();
+		int size = typeSet.size();
 		if (size < 2) {
 			throw new IllegalArgumentException("need at least 2 element");
 		}
@@ -126,7 +125,7 @@ public class Mangler {
 		return sBuilder.toString();
 	}
 
-	private static int demangle(final String mangledName, int index, final StringBuilder sb) {
+	private static int demangle(String mangledName, int index, StringBuilder sb) {
 		assert index < mangledName.length();
 		char ch = mangledName.charAt(index);
 		switch (ch) {
@@ -166,8 +165,8 @@ public class Mangler {
 	 *            for demangled result. must be 1 length array.
 	 * @return index of next character
 	 */
-	private static int demangleNumber(final String mangledName, int index, final int[] result) {
-		final int size = mangledName.length();
+	private static int demangleNumber(String mangledName, int index, int[] result) {
+		int size = mangledName.length();
 		StringBuilder sb = new StringBuilder();
 		for (; index < size; index++) {
 			char ch = mangledName.charAt(index);

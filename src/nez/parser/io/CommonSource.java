@@ -11,8 +11,8 @@ import nez.util.FileBuilder;
 
 public abstract class CommonSource implements Source {
 
-	private String resourceName;
-	protected long startLineNum = 1;
+	private final String resourceName;
+	protected long startLineNum;
 
 	protected CommonSource(String resourceName, long linenum) {
 		this.resourceName = resourceName;
@@ -41,7 +41,7 @@ public abstract class CommonSource implements Source {
 
 	@Override
 	public Source subSource(long startIndex, long endIndex) {
-		return new StringSource(this.getResourceName(), this.linenum(startIndex), subByte(startIndex, endIndex), false);
+		return new StringSource(getResourceName(), linenum(startIndex), subByte(startIndex, endIndex), false);
 	}
 
 	@Override
@@ -51,7 +51,7 @@ public abstract class CommonSource implements Source {
 	public final int column(long pos) {
 		int count = 0;
 		for (long p = pos - 1; p >= 0; p--) {
-			if (this.byteAt(pos) == '\n') {
+			if (byteAt(pos) == '\n') {
 				break;
 			}
 		}
@@ -60,18 +60,10 @@ public abstract class CommonSource implements Source {
 
 	/* handling input stream */
 
-	// final String getFilePath(String fileName) {
-	// int loc = this.getResourceName().lastIndexOf("/");
-	// if(loc > 0) {
-	// return this.getResourceName().substring(0, loc+1) + fileName;
-	// }
-	// return fileName;
-	// }
-
-	private final long getLineStartPosition(long fromPostion) {
+	private long getLineStartPosition(long fromPostion) {
 		long startIndex = fromPostion;
-		if (!(startIndex < this.length())) {
-			startIndex = this.length() - 1;
+		if (!(startIndex < length())) {
+			startIndex = length() - 1;
 		}
 		if (startIndex < 0) {
 			startIndex = 0;
@@ -88,39 +80,40 @@ public abstract class CommonSource implements Source {
 	}
 
 	public final String getIndentText(long fromPosition) {
-		long startPosition = this.getLineStartPosition(fromPosition);
-		long i = startPosition;
-		String indent = "";
-		for (; i < fromPosition; i++) {
-			int ch = this.byteAt(i);
+		long startPosition = getLineStartPosition(fromPosition);
+		StringBuilder indent = new StringBuilder();
+
+		long i;
+		for (i = startPosition; i < fromPosition; i++) {
+			int ch = byteAt(i);
 			if (ch != ' ' && ch != '\t') {
 				if (i + 1 != fromPosition) {
 					for (long j = i; j < fromPosition; j++) {
-						indent = indent + " ";
+						indent.append(" ");
 					}
 				}
 				break;
 			}
 		}
-		indent = this.subString(startPosition, i) + indent;
-		return indent;
+		indent.insert(0, subString(startPosition, i));
+		return indent.toString();
 	}
 
 	public final String formatPositionMessage(String messageType, long pos, String message) {
-		return "(" + FileBuilder.extractFileName(this.getResourceName()) + ":" + this.linenum(pos) + ") [" + messageType + "] " + message;
+		return "(" + FileBuilder.extractFileName(getResourceName()) + ":" + linenum(pos) + ") [" + messageType + "] " + message;
 	}
 
 	@Override
 	public final String formatPositionLine(String messageType, long pos, String message) {
-		return this.formatPositionMessage(messageType, pos, message) + this.getTextAround(pos, "\n ");
+		return formatPositionMessage(messageType, pos, message) + getTextAround(pos, "\n ");
 	}
 
-	private final String getTextAround(long pos, String delim) {
-		int ch = 0;
+	private String getTextAround(long pos, String delim) {
+		int ch;
 		if (pos < 0) {
 			pos = 0;
 		}
-		while ((this.eof(pos) || this.byteAt(pos) == 0) && pos > 0) {
+		while ((eof(pos) || byteAt(pos) == 0) && pos > 0) {
 			pos -= 1;
 		}
 		long startIndex = pos;
@@ -136,7 +129,7 @@ public abstract class CommonSource implements Source {
 			startIndex = startIndex - 1;
 		}
 		long endIndex = pos + 1;
-		if (endIndex < this.length()) {
+		if (endIndex < length()) {
 			while ((ch = byteAt(endIndex)) != 0 /* this.EOF() */) {
 				if (ch == '\n' || endIndex - startIndex > 78 && ch < 128) {
 					break;
@@ -144,7 +137,7 @@ public abstract class CommonSource implements Source {
 				endIndex = endIndex + 1;
 			}
 		} else {
-			endIndex = this.length();
+			endIndex = length();
 		}
 		StringBuilder source = new StringBuilder();
 		StringBuilder marker = new StringBuilder();
@@ -173,18 +166,18 @@ public abstract class CommonSource implements Source {
 				}
 			}
 		}
-		return delim + source.toString() + delim + marker.toString();
+		return delim + source + delim + marker;
 	}
 
-	public final static Source newStringSource(String str) {
+	public static Source newStringSource(String str) {
 		return new StringSource(str);
 	}
 
-	public final static Source newStringSource(String resource, long linenum, String str) {
+	public static Source newStringSource(String resource, long linenum, String str) {
 		return new StringSource(resource, linenum, str);
 	}
 
-	public final static Source newFileSource(String fileName) throws IOException {
+	public static Source newFileSource(String fileName) throws IOException {
 		File f = new File(fileName);
 		if (!f.isFile()) {
 			InputStream Stream = CommonSource.class.getResourceAsStream("/nez/lib/" + fileName);

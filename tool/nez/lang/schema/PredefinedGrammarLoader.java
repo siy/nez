@@ -19,8 +19,8 @@ public abstract class PredefinedGrammarLoader extends Expressions {
 	}
 
 	public final void load(String start) {
-		Class<?> c = this.getClass();
-		Method startMethod = null;
+		Class<?> c = getClass();
+		Method startMethod;
 		try {
 			startMethod = c.getMethod("p" + start);
 			addProduction(start, startMethod);
@@ -44,11 +44,7 @@ public abstract class PredefinedGrammarLoader extends Expressions {
 		try {
 			Expression e = (Expression) m.invoke(this);
 			grammar.addProduction(e.getSourceLocation(), name, e);
-		} catch (IllegalAccessException e1) {
-			Verbose.traceException(e1);
-		} catch (IllegalArgumentException e1) {
-			Verbose.traceException(e1);
-		} catch (InvocationTargetException e1) {
+		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e1) {
 			Verbose.traceException(e1);
 		}
 	}
@@ -58,7 +54,7 @@ public abstract class PredefinedGrammarLoader extends Expressions {
 	}
 
 	protected final Expression newChoice(Expression... seq) {
-		UList<Expression> l = new UList<Expression>(new Expression[8]);
+		UList<Expression> l = new UList<>(new Expression[8]);
 		for (Expression p : seq) {
 			Expressions.addChoice(l, p);
 		}

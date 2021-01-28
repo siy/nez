@@ -8,7 +8,7 @@ import nez.junks.TreeVisitor;
 import nez.util.FileBuilder;
 
 public class NezFileFormatter extends TreeVisitor {
-	private FileBuilder f;
+	private final FileBuilder f;
 
 	public NezFileFormatter() {
 		f = new FileBuilder(null);
@@ -61,13 +61,13 @@ public class NezFileFormatter extends TreeVisitor {
 		visit("p", node);
 	}
 
-	public final static Symbol _name = Symbol.unique("name");
-	public final static Symbol _expr = Symbol.unique("expr");
-	public final static Symbol _symbol = Symbol.unique("symbol");
+	public static final Symbol _name = Symbol.unique("name");
+	public static final Symbol _expr = Symbol.unique("expr");
+	public static final Symbol _symbol = Symbol.unique("symbol");
 
-	public final static Symbol _Production = Symbol.unique("Production");
-	public final static Symbol _Example = Symbol.unique("Example");
-	public final static Symbol _Format = Symbol.unique("Format");
+	public static final Symbol _Production = Symbol.unique("Production");
+	public static final Symbol _Example = Symbol.unique("Example");
+	public static final Symbol _Format = Symbol.unique("Format");
 
 	public boolean pSource(Tree<?> node) {
 		ArrayList<Tree<?>> l = new ArrayList<>(node.size() * 2);
@@ -137,12 +137,12 @@ public class NezFileFormatter extends TreeVisitor {
 		return start + node.getLength();
 	}
 
-	public final static Symbol _NonTerminal = Symbol.unique("NonTerminal");
+	public static final Symbol _NonTerminal = Symbol.unique("NonTerminal");
 
-	public final static Symbol _Choice = Symbol.unique("Choice");
-	public final static Symbol _Sequence = Symbol.unique("Sequence");
-	public final static Symbol _List = Symbol.unique("List");
-	public final static Symbol _Class = Symbol.unique("Class");
+	public static final Symbol _Choice = Symbol.unique("Choice");
+	public static final Symbol _Sequence = Symbol.unique("Sequence");
+	public static final Symbol _List = Symbol.unique("List");
+	public static final Symbol _Class = Symbol.unique("Class");
 
 	//
 	// public final static Tag _anno = Tag.tag("anno");
@@ -151,7 +151,7 @@ public class NezFileFormatter extends TreeVisitor {
 		Tree<?> nameNode = node.get(_name);
 		Tree<?> exprNode = node.get(_expr);
 		String name = nameNode.is(_NonTerminal) ? nameNode.toText() : "\"" + nameNode.toText() + "\"";
-		String format = "%-" + this.prodLength + "s";
+		String format = "%-" + prodLength + "s";
 		writeIndent(String.format(format, name));
 		String delim = "= ";
 		if (exprNode.is(_Choice)) {
@@ -196,8 +196,7 @@ public class NezFileFormatter extends TreeVisitor {
 	public boolean pClass(Tree<?> node) {
 		f.write("[");
 		if (node.size() > 0) {
-			for (int i = 0; i < node.size(); i++) {
-				Tree<?> o = node.get(i);
+			for (Tree<?> o : node) {
 				if (o.is(_List)) { // range
 					f.write(o.getText(0, ""));
 					f.write("-");
@@ -225,22 +224,22 @@ public class NezFileFormatter extends TreeVisitor {
 
 	public boolean pChoice(Tree<?> node) {
 		boolean spacing = false;
-		for (int i = 0; i < node.size(); i++) {
+		for (Tree<?> trees : node) {
 			if (spacing) {
 				f.write(" / ");
 			}
-			spacing = pExpression(node.get(i));
+			spacing = pExpression(trees);
 		}
 		return spacing;
 	}
 
 	public boolean pSequence(Tree<?> node) {
 		boolean spacing = false;
-		for (int i = 0; i < node.size(); i++) {
+		for (Tree<?> trees : node) {
 			if (spacing) {
 				f.write(" ");
 			}
-			Tree<?> sub = node.get(i);
+			Tree<?> sub = trees;
 			if (sub.is(_Choice)) {
 				f.write("(");
 			}
@@ -320,7 +319,7 @@ public class NezFileFormatter extends TreeVisitor {
 	public boolean pLeftFold(Tree<?> node) {
 		Symbol tag = parseLabelNode(node);
 		Tree<?> exprNode = node.get(_expr, null);
-		String label = tag == null ? "$" : "$" + tag.toString();
+		String label = tag == null ? "$" : "$" + tag;
 		if (exprNode != null) {
 			f.write("{" + label + " ");
 			pExpression(exprNode);
@@ -414,9 +413,9 @@ public class NezFileFormatter extends TreeVisitor {
 		throw new RuntimeException("undefined node");
 	}
 
-	public final static Symbol _hash = Symbol.unique("hash"); // example
-	public final static Symbol _name2 = Symbol.unique("name2"); // example
-	public final static Symbol _text = Symbol.unique("text"); // example
+	public static final Symbol _hash = Symbol.unique("hash"); // example
+	public static final Symbol _name2 = Symbol.unique("name2"); // example
+	public static final Symbol _text = Symbol.unique("text"); // example
 
 	public boolean pExample(Tree<?> node) {
 		Tree<?> nameNode = node.get(_name);
@@ -438,11 +437,10 @@ public class NezFileFormatter extends TreeVisitor {
 		return true;
 	}
 
-	public final static Symbol _size = Symbol.unique("hash"); // format
-	public final static Symbol _format = Symbol.unique("format"); // format
+	public static final Symbol _size = Symbol.unique("hash"); // format
+	public static final Symbol _format = Symbol.unique("format"); // format
 
 	public boolean pFormat(Tree<?> node) {
-		// System.out.println("node:" + node);
 		writeIndent("format #" + node.getText(_name, ""));
 		f.write("[" + node.getText(_size, "*") + "] ");
 		Tree<?> formatNode = node.get(_format);
@@ -450,83 +448,8 @@ public class NezFileFormatter extends TreeVisitor {
 		return true;
 	}
 
-	// @Override
-	// Formatter toFormatter(AbstractTree<?> node) {
-	// if (node.is(_List)) {
-	// ArrayList<Formatter> l = new ArrayList<Formatter>(node.size());
-	// for (AbstractTree<?> t : node) {
-	// l.add(toFormatter(t));
-	// }
-	// return Formatter.newFormatter(l);
-	// }
-	// if (node.is(_Integer)) {
-	// return Formatter.newFormatter(StringUtils.parseInt(node.toText(), 0));
-	// }
-	// if (node.is(_Format)) {
-	// int s = StringUtils.parseInt(node.getText(0, "*"), -1);
-	// int e = StringUtils.parseInt(node.getText(2, "*"), -1);
-	// Formatter fmt = toFormatter(node.get(1));
-	// return Formatter.newFormatter(s, fmt, e);
-	// }
-	// if (node.is(_Name)) {
-	// Formatter fmt = Formatter.newAction(node.toText());
-	// if (fmt == null) {
-	// this.reportWarning(node, "undefined formatter action");
-	// fmt = Formatter.newFormatter("${" + node.toText() + "}");
-	// }
-	// return fmt;
-	// }
-	// return Formatter.newFormatter(node.toText());
-	// }
-
 	/* import */
 	public boolean pImport(Tree<?> node) {
-		// // System.out.println("DEBUG? parsed: " + node);
-		// String ns = null;
-		// String name = node.getText(0, "*");
-		// int loc = name.indexOf('.');
-		// if (loc >= 0) {
-		// ns = name.substring(0, loc);
-		// name = name.substring(loc + 1);
-		// }
-		// String urn = path(node.getSource().getResourceName(), node.getText(1,
-		// ""));
-		// try {
-		// GrammarFile source = GrammarFile.loadNezFile(urn,
-		// NezOption.newDefaultOption());
-		// if (name.equals("*")) {
-		// int c = 0;
-		// for (String n : source.getNonterminalList()) {
-		// Production p = source.getProduction(n);
-		// if (p.isPublic()) {
-		// checkDuplicatedName(node.get(0));
-		// this.getGrammarFile().inportProduction(ns, p);
-		// c++;
-		// }
-		// }
-		// if (c == 0) {
-		// this.reportError(node.get(0),
-		// "nothing imported (no public production exisits)");
-		// }
-		// } else {
-		// Production p = source.getProduction(name);
-		// if (p == null) {
-		// this.reportError(node.get(0), "undefined production: " + name);
-		// return false;
-		// }
-		// this.getGrammarFile().inportProduction(ns, p);
-		// }
-		// return true;
-		// } catch (IOException e) {
-		// this.reportError(node.get(1), "unfound: " + urn);
-		// } catch (NullPointerException e) {
-		// /*
-		// * This is for a bug unhandling IOException at
-		// * java.io.Reader.<init>(Reader.java:78)
-		// */
-		// this.reportError(node.get(1), "unfound: " + urn);
-		// }
 		return true;
 	}
-
 }

@@ -85,10 +85,10 @@ public class PEGTranslator extends ParserGrammarWriter {
 			Expression inner = e.get(0);
 			if (inner instanceof Nez.Choice || inner instanceof Nez.Sequence) {
 				W("(");
-				this.visitExpression(e.get(0));
+				visitExpression(e.get(0));
 				W(")");
 			} else {
-				this.visitExpression(e.get(0));
+				visitExpression(e.get(0));
 			}
 			if (suffix != null) {
 				W(suffix);
@@ -138,25 +138,6 @@ public class PEGTranslator extends ParserGrammarWriter {
 				c++;
 			}
 		}
-
-		// @Override
-		// public void visitSequence(Nez.Sequence p) {
-		// int c = 0;
-		// List<Expression> l = p.toList();
-		// for (Expression e : l) {
-		// if (c > 0) {
-		// W(" ");
-		// }
-		// if (e instanceof Nez.Choice) {
-		// W("(");
-		// visitExpression(e);
-		// W(")");
-		// } else {
-		// visitExpression(e);
-		// }
-		// c++;
-		// }
-		// }
 
 		@Override
 		public void visitChoice(Nez.Choice p) {

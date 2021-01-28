@@ -7,16 +7,16 @@ import java.util.TreeSet;
 import nez.parser.io.StringSource;
 
 public class DFA {
-	private HashSet<State> S = null;
-	public TreeSet<Transition> tau = null;
-	private State f = null;
-	private HashSet<State> F = null;
+	private final HashSet<State> S;
+	public TreeSet<Transition> tau;
+	private State f;
+	private final HashSet<State> F;
 
 	public DFA() {
-		S = new HashSet<State>();
-		tau = new TreeSet<Transition>();
+		S = new HashSet<>();
+		tau = new TreeSet<>();
 		f = new State();
-		F = new HashSet<State>();
+		F = new HashSet<>();
 	}
 
 	public DFA(HashSet<State> S, TreeSet<Transition> tau, State f, HashSet<State> F) {
@@ -34,27 +34,27 @@ public class DFA {
 	}
 
 	public HashSet<State> getS() {
-		return this.S;
+		return S;
 	}
 
 	public TreeSet<Transition> getTau() {
-		return this.tau;
+		return tau;
 	}
 
 	public State getf() {
-		return this.f;
+		return f;
 	}
 
 	public HashSet<State> getF() {
-		return this.F;
+		return F;
 	}
 
 	public ArrayList<ArrayList<Transition>> toAdjacencyList() {
-		ArrayList<ArrayList<Transition>> adjacencyList = new ArrayList<ArrayList<Transition>>();
+		ArrayList<ArrayList<Transition>> adjacencyList = new ArrayList<>();
 		for (int i = 0; i < S.size(); i++) {
-			adjacencyList.add(new ArrayList<Transition>());
+			adjacencyList.add(new ArrayList<>());
 		}
-		for (Transition transition : this.tau) {
+		for (Transition transition : tau) {
 			int src = transition.getSrc();
 			int dst = transition.getDst();
 			adjacencyList.get(src).add(new Transition(src, dst, transition.getLabel(), -1));
@@ -64,10 +64,10 @@ public class DFA {
 
 	// DFA から逆向きのオートマトン(NFA)を生成する
 	public NFA rev(DFA dfa) {
-		HashSet<State> allStates = new HashSet<State>();
-		TreeSet<Transition> stateTransitionFunction = new TreeSet<Transition>();
-		HashSet<State> initialStates = new HashSet<State>();
-		HashSet<State> acceptingStates = new HashSet<State>();
+		HashSet<State> allStates = new HashSet<>();
+		TreeSet<Transition> stateTransitionFunction = new TreeSet<>();
+		HashSet<State> initialStates = new HashSet<>();
+		HashSet<State> acceptingStates = new HashSet<>();
 
 		for (State state : dfa.getS()) {
 			allStates.add(new State(state.getID()));

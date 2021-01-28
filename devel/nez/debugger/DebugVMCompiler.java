@@ -25,7 +25,7 @@ public class DebugVMCompiler extends Expression.Visitor {
 	ParserGrammar peg;
 	IRBuilder builder;
 	GrammarAnalyzer analyzer;
-	HashMap<Expression, DebugVMInstruction> altInstructionMap = new HashMap<Expression, DebugVMInstruction>();
+	HashMap<Expression, DebugVMInstruction> altInstructionMap = new HashMap<>();
 	ParserStrategy strategy;
 
 	public DebugVMCompiler(ParserStrategy option) {
@@ -34,29 +34,28 @@ public class DebugVMCompiler extends Expression.Visitor {
 	}
 
 	public Module compile(ParserGrammar grammar) {
-		this.builder.setGrammar(grammar);
+		builder.setGrammar(grammar);
 		this.analyzer = new GrammarAnalyzer(grammar);
-		this.analyzer.analyze();
+		analyzer.analyze();
 		for (Production p : grammar) {
-			this.visitProduction(p);
+			visitProduction(p);
 		}
-		// ConsoleUtils.println(this.builder.getModule().stringfy(new
-		// StringBuilder()));
-		return this.builder.buildInstructionSequence();
+
+		return builder.buildInstructionSequence();
 	}
 
 	public Module getModule() {
-		return this.builder.getModule();
+		return builder.getModule();
 	}
 
 	public MozInst visitProduction(Production p) {
-		this.builder.setFunction(new Function(p));
-		this.builder.setInsertPoint(new BasicBlock());
+		builder.setFunction(new Function(p));
+		builder.setInsertPoint(new BasicBlock());
 		BasicBlock fbb = new BasicBlock();
-		this.builder.pushFailureJumpPoint(fbb);
+		builder.pushFailureJumpPoint(fbb);
 		p.getExpression().visit(this, null);
-		this.builder.setInsertPoint(this.builder.popFailureJumpPoint());
-		this.builder.createIret(p);
+		builder.setInsertPoint(builder.popFailureJumpPoint());
+		builder.createIret(p);
 		return null;
 	}
 
@@ -64,15 +63,14 @@ public class DebugVMCompiler extends Expression.Visitor {
 		return (MozInst) e.visit(this, next);
 	}
 
-	ArrayList<Byte> charList = new ArrayList<Byte>();
+	ArrayList<Byte> charList = new ArrayList<>();
 
 	public boolean optimizeString(Nez.Pair seq) {
-		for (int i = 0; i < seq.size(); i++) {
-			Expression e = seq.get(i);
+		for (Expression e : seq) {
 			if (e instanceof Nez.Byte) {
 				charList.add((byte) ((Nez.Byte) e).byteChar);
-			} else if (e instanceof Nez.Sequence) {
-				if (!this.optimizeString((Nez.Pair) e)) {
+			} else if (e instanceof Sequence) {
+				if (!optimizeString((Nez.Pair) e)) {
 					return false;
 				}
 			} else {
@@ -86,8 +84,7 @@ public class DebugVMCompiler extends Expression.Visitor {
 
 	public boolean optimizeCharSet(Nez.Choice p) {
 		boolean[] map = Bytes.newMap(false);
-		for (int i = 0; i < p.size(); i++) {
-			Expression e = p.get(i);
+		for (Expression e : p) {
 			if (e instanceof Nez.Byte) {
 				map[((Nez.Byte) e).byteChar] = true;
 			} else if (e instanceof Nez.ByteSet) {
@@ -101,15 +98,15 @@ public class DebugVMCompiler extends Expression.Visitor {
 				return false;
 			}
 		}
-		this.builder.createIcharclass(p, this.builder.jumpFailureJump(), map);
+		builder.createIcharclass(p, builder.jumpFailureJump(), map);
 		return true;
 	}
 
 	@Override
 	public MozInst visitNonTerminal(NonTerminal p, Object next) {
 		BasicBlock rbb = new BasicBlock();
-		this.builder.createIcall(p, rbb, this.builder.jumpFailureJump());
-		this.builder.setInsertPoint(rbb);
+		builder.createIcall(p, rbb, builder.jumpFailureJump());
+		builder.setInsertPoint(rbb);
 		return null;
 	}
 
@@ -120,35 +117,35 @@ public class DebugVMCompiler extends Expression.Visitor {
 
 	@Override
 	public MozInst visitFail(Nez.Fail p, Object next) {
-		this.builder.createIfail(p);
+		builder.createIfail(p);
 		return null;
 	}
 
 	@Override
 	public MozInst visitAny(Nez.Any p, Object next) {
-		this.builder.createIany(p, this.builder.jumpFailureJump());
-		this.builder.setInsertPoint(new BasicBlock());
+		builder.createIany(p, builder.jumpFailureJump());
+		builder.setInsertPoint(new BasicBlock());
 		return null;
 	}
 
 	@Override
 	public MozInst visitByte(Nez.Byte p, Object next) {
-		this.builder.createIchar(p, this.builder.jumpFailureJump());
-		this.builder.setInsertPoint(new BasicBlock());
+		builder.createIchar(p, builder.jumpFailureJump());
+		builder.setInsertPoint(new BasicBlock());
 		return null;
 	}
 
 	@Override
 	public MozInst visitByteSet(Nez.ByteSet p, Object next) {
-		this.builder.createIcharclass(p, this.builder.jumpFailureJump());
-		this.builder.setInsertPoint(new BasicBlock());
+		builder.createIcharclass(p, builder.jumpFailureJump());
+		builder.setInsertPoint(new BasicBlock());
 		return null;
 	}
 
 	@Override
 	public MozInst visitMultiByte(Nez.MultiByte p, Object next) {
-		this.builder.createIstr(p, this.builder.jumpFailureJump(), p.byteseq);
-		this.builder.setInsertPoint(new BasicBlock());
+		builder.createIstr(p, builder.jumpFailureJump(), p.byteseq);
+		builder.setInsertPoint(new BasicBlock());
 		return null;
 	}
 
@@ -156,33 +153,33 @@ public class DebugVMCompiler extends Expression.Visitor {
 	public MozInst visitOption(Nez.Option p, Object next) {
 		BasicBlock fbb = new BasicBlock();
 		BasicBlock mergebb = new BasicBlock();
-		this.builder.pushFailureJumpPoint(fbb);
-		this.builder.createIpush(p);
+		builder.pushFailureJumpPoint(fbb);
+		builder.createIpush(p);
 		p.get(0).visit(this, next);
-		this.builder.createIpop(p);
-		this.builder.createIjump(p, mergebb);
-		this.builder.setInsertPoint(this.builder.popFailureJumpPoint());
-		this.builder.createIsucc(p);
-		this.builder.createIpeek(p);
-		this.builder.createIpop(p);
-		this.builder.setInsertPoint(mergebb);
+		builder.createIpop(p);
+		builder.createIjump(p, mergebb);
+		builder.setInsertPoint(builder.popFailureJumpPoint());
+		builder.createIsucc(p);
+		builder.createIpeek(p);
+		builder.createIpop(p);
+		builder.setInsertPoint(mergebb);
 		return null;
 	}
 
 	@Override
 	public MozInst visitZeroMore(Nez.ZeroMore p, Object next) {
 		BasicBlock topBB = new BasicBlock();
-		this.builder.setInsertPoint(topBB);
+		builder.setInsertPoint(topBB);
 		BasicBlock fbb = new BasicBlock();
-		this.builder.pushFailureJumpPoint(fbb);
-		this.builder.createIpush(p);
+		builder.pushFailureJumpPoint(fbb);
+		builder.createIpush(p);
 		p.get(0).visit(this, next);
-		this.builder.createIpop(p);
-		this.builder.createIjump(p, topBB);
-		this.builder.setInsertPoint(this.builder.popFailureJumpPoint());
-		this.builder.createIsucc(p);
-		this.builder.createIpeek(p);
-		this.builder.createIpop(p);
+		builder.createIpop(p);
+		builder.createIjump(p, topBB);
+		builder.setInsertPoint(builder.popFailureJumpPoint());
+		builder.createIsucc(p);
+		builder.createIpeek(p);
+		builder.createIpop(p);
 		return null;
 	}
 
@@ -190,73 +187,73 @@ public class DebugVMCompiler extends Expression.Visitor {
 	public MozInst visitOneMore(Nez.OneMore p, Object next) {
 		p.get(0).visit(this, next);
 		BasicBlock topBB = new BasicBlock();
-		this.builder.setInsertPoint(topBB);
+		builder.setInsertPoint(topBB);
 		BasicBlock fbb = new BasicBlock();
-		this.builder.pushFailureJumpPoint(fbb);
-		this.builder.createIpush(p);
+		builder.pushFailureJumpPoint(fbb);
+		builder.createIpush(p);
 		p.get(0).visit(this, next);
-		this.builder.createIpop(p);
-		this.builder.createIjump(p, topBB);
-		this.builder.setInsertPoint(this.builder.popFailureJumpPoint());
-		this.builder.createIsucc(p);
-		this.builder.createIpeek(p);
-		this.builder.createIpop(p);
+		builder.createIpop(p);
+		builder.createIjump(p, topBB);
+		builder.setInsertPoint(builder.popFailureJumpPoint());
+		builder.createIsucc(p);
+		builder.createIpeek(p);
+		builder.createIpop(p);
 		return null;
 	}
 
 	@Override
 	public MozInst visitAnd(Nez.And p, Object next) {
 		BasicBlock fbb = new BasicBlock();
-		this.builder.pushFailureJumpPoint(fbb);
-		this.builder.createIpush(p);
+		builder.pushFailureJumpPoint(fbb);
+		builder.createIpush(p);
 		p.get(0).visit(this, next);
-		this.builder.setInsertPoint(this.builder.popFailureJumpPoint());
-		this.builder.createIpeek(p);
-		this.builder.createIpop(p);
-		this.builder.createIiffail(p, this.builder.jumpFailureJump());
-		this.builder.setInsertPoint(new BasicBlock());
+		builder.setInsertPoint(builder.popFailureJumpPoint());
+		builder.createIpeek(p);
+		builder.createIpop(p);
+		builder.createIiffail(p, builder.jumpFailureJump());
+		builder.setInsertPoint(new BasicBlock());
 		return null;
 	}
 
 	@Override
 	public MozInst visitNot(Nez.Not p, Object next) {
 		BasicBlock fbb = new BasicBlock();
-		this.builder.pushFailureJumpPoint(fbb);
-		this.builder.createIpush(p);
+		builder.pushFailureJumpPoint(fbb);
+		builder.createIpush(p);
 		p.get(0).visit(this, next);
-		this.builder.createIfail(p);
-		this.builder.createIpeek(p);
-		this.builder.createIpop(p);
-		this.builder.createIjump(p, this.builder.jumpPrevFailureJump());
-		this.builder.setInsertPoint(this.builder.popFailureJumpPoint());
-		this.builder.createIsucc(p);
-		this.builder.createIpeek(p);
-		this.builder.createIpop(p);
+		builder.createIfail(p);
+		builder.createIpeek(p);
+		builder.createIpop(p);
+		builder.createIjump(p, builder.jumpPrevFailureJump());
+		builder.setInsertPoint(builder.popFailureJumpPoint());
+		builder.createIsucc(p);
+		builder.createIpeek(p);
+		builder.createIpop(p);
 		return null;
 	}
 
 	@Override
 	public MozInst visitPair(Nez.Pair p, Object next) {
-		this.charList.clear();
-		boolean opt = this.optimizeString(p);
+		charList.clear();
+		boolean opt = optimizeString(p);
 		if (opt) {
-			byte[] utf8 = new byte[this.charList.size()];
+			byte[] utf8 = new byte[charList.size()];
 			for (int i = 0; i < utf8.length; i++) {
-				utf8[i] = this.charList.get(i);
+				utf8[i] = charList.get(i);
 			}
-			this.builder.createIstr(p, this.builder.jumpFailureJump(), utf8);
+			builder.createIstr(p, builder.jumpFailureJump(), utf8);
 			return null;
 		}
-		for (int i = 0; i < p.size(); i++) {
-			p.get(i).visit(this, next);
+		for (Expression expression : p) {
+			expression.visit(this, next);
 		}
 		return null;
 	}
 
 	@Override
 	public Object visitSequence(Sequence p, Object next) {
-		for (int i = 0; i < p.size(); i++) {
-			p.get(i).visit(this, next);
+		for (Expression expression : p) {
+			expression.visit(this, next);
 		}
 		return null;
 	}
@@ -264,76 +261,72 @@ public class DebugVMCompiler extends Expression.Visitor {
 	@Override
 	public MozInst visitChoice(Nez.Choice p, Object next) {
 		if (!optimizeCharSet(p)) {
-			BasicBlock fbb = null;
+			BasicBlock fbb;
 			BasicBlock mergebb = new BasicBlock();
-			this.builder.createIaltstart(p);
-			this.builder.createIpush(p.get(0));
+			builder.createIaltstart(p);
+			builder.createIpush(p.get(0));
 			for (int i = 0; i < p.size(); i++) {
 				fbb = new BasicBlock();
-				this.builder.pushFailureJumpPoint(fbb);
-				this.altInstructionMap.put(p.get(i), this.builder.createIalt(p));
+				builder.pushFailureJumpPoint(fbb);
+				altInstructionMap.put(p.get(i), builder.createIalt(p));
 				p.get(i).visit(this, next);
+				builder.createIaltend(p, i == p.size() - 1, i);
+				builder.createIpop(p.get(i));
+				builder.createIjump(p.get(i), mergebb);
+				builder.setInsertPoint(builder.popFailureJumpPoint());
 				if (i == p.size() - 1) {
-					this.builder.createIaltend(p, true, i);
+					builder.createIpop(p.get(i));
+					builder.createIaltfin(p);
 				} else {
-					this.builder.createIaltend(p, false, i);
-				}
-				this.builder.createIpop(p.get(i));
-				this.builder.createIjump(p.get(i), mergebb);
-				this.builder.setInsertPoint(this.builder.popFailureJumpPoint());
-				if (i != p.size() - 1) {
-					this.builder.createIsucc(p.get(i + 1));
-					this.builder.createIpeek(p.get(i + 1));
-				} else {
-					this.builder.createIpop(p.get(i));
-					this.builder.createIaltfin(p);
+					builder.createIsucc(p.get(i + 1));
+					builder.createIpeek(p.get(i + 1));
 				}
 			}
-			this.builder.createIjump(p.get(p.size() - 1), this.builder.jumpFailureJump());
-			this.builder.setInsertPoint(mergebb);
-			this.builder.createIaltfin(p);
+			builder.createIjump(p.get(p.size() - 1), builder.jumpFailureJump());
+			builder.setInsertPoint(mergebb);
+			builder.createIaltfin(p);
 		}
 		return null;
 	}
 
 	@Override
 	public MozInst visitBeginTree(Nez.BeginTree p, Object next) {
-		this.leftedStack.push(false);
-		if (this.strategy.TreeConstruction) {
-			this.builder.createInew(p);
+		leftedStack.push(false);
+		if (strategy.TreeConstruction) {
+			builder.createInew(p);
 		}
 		return null;
 	}
 
 	@Override
 	public MozInst visitFoldTree(Nez.FoldTree p, Object next) {
-		this.leftedStack.push(true);
-		if (this.strategy.TreeConstruction) {
+		leftedStack.push(true);
+		if (strategy.TreeConstruction) {
 			BasicBlock fbb = new BasicBlock();
-			this.builder.pushFailureJumpPoint(fbb);
-			this.builder.createImark(p);
-			this.builder.createIleftnew(p);
+			builder.pushFailureJumpPoint(fbb);
+			builder.createImark(p);
+			builder.createIleftnew(p);
 		}
 
 		return null;
 	}
 
-	Stack<Boolean> leftedStack = new Stack<Boolean>();
+	Stack<Boolean> leftedStack = new Stack<>();
 
 	@Override
 	public MozInst visitLinkTree(Nez.LinkTree p, Object next) {
-		if (this.strategy.TreeConstruction) {
+		if (strategy.TreeConstruction) {
 			BasicBlock fbb = new BasicBlock();
 			BasicBlock endbb = new BasicBlock();
-			this.builder.pushFailureJumpPoint(fbb);
-			this.builder.createImark(p);
+			builder.pushFailureJumpPoint(fbb);
+			builder.createImark(p);
 			p.get(0).visit(this, next);
-			this.builder.createIcommit(p);
-			this.builder.createIjump(p, endbb);
-			this.builder.setInsertPoint(this.builder.popFailureJumpPoint());
-			this.builder.createIabort(p);
-			this.builder.createIjump(p, this.builder.jumpFailureJump());
-			this.builder.setInsertPoint(endbb);
+			builder.createIcommit(p);
+			builder.createIjump(p, endbb);
+			builder.setInsertPoint(builder.popFailureJumpPoint());
+			builder.createIabort(p);
+			builder.createIjump(p, builder.jumpFailureJump());
+			builder.setInsertPoint(endbb);
 		} else {
 			p.get(0).visit(this, next);
 		}
@@ -347,18 +340,18 @@ public class DebugVMCompiler extends Expression.Visitor {
 		int len = node.toText().length();
 		CommonTree newNode = new CommonTree(node.getTag(), node.getSource(), node.getSourcePosition() + len - 1, (int) (node.getSourcePosition() + len), 0, null);
 		p = (Nez.EndTree) Expressions.newEndTree(newNode, p.shift);
-		if (this.strategy.TreeConstruction) {
-			if (this.leftedStack.pop()) {
+		if (strategy.TreeConstruction) {
+			if (leftedStack.pop()) {
 				BasicBlock endbb = new BasicBlock();
-				this.builder.createIcapture(p);
-				this.builder.createIpop(p);
-				this.builder.createIjump(p, endbb);
-				this.builder.setInsertPoint(this.builder.popFailureJumpPoint());
-				this.builder.createIabort(p);
-				this.builder.createIjump(p, this.builder.jumpFailureJump());
-				this.builder.setInsertPoint(endbb);
+				builder.createIcapture(p);
+				builder.createIpop(p);
+				builder.createIjump(p, endbb);
+				builder.setInsertPoint(builder.popFailureJumpPoint());
+				builder.createIabort(p);
+				builder.createIjump(p, builder.jumpFailureJump());
+				builder.setInsertPoint(endbb);
 			} else {
-				this.builder.createIcapture(p);
+				builder.createIcapture(p);
 			}
 		}
 		return null;
@@ -366,16 +359,16 @@ public class DebugVMCompiler extends Expression.Visitor {
 
 	@Override
 	public MozInst visitTag(Nez.Tag p, Object next) {
-		if (this.strategy.TreeConstruction) {
-			this.builder.createItag(p);
+		if (strategy.TreeConstruction) {
+			builder.createItag(p);
 		}
 		return null;
 	}
 
 	@Override
 	public MozInst visitReplace(Nez.Replace p, Object next) {
-		if (this.strategy.TreeConstruction) {
-			this.builder.createIreplace(p);
+		if (strategy.TreeConstruction) {
+			builder.createIreplace(p);
 		}
 		return null;
 	}
@@ -389,15 +382,15 @@ public class DebugVMCompiler extends Expression.Visitor {
 	public MozInst visitBlockScope(Nez.BlockScope p, Object next) {
 		BasicBlock fbb = new BasicBlock();
 		BasicBlock endbb = new BasicBlock();
-		this.builder.pushFailureJumpPoint(fbb);
-		this.builder.createIbeginscope(p);
+		builder.pushFailureJumpPoint(fbb);
+		builder.createIbeginscope(p);
 		p.get(0).visit(this, next);
-		this.builder.createIendscope(p);
-		this.builder.createIjump(p, endbb);
-		this.builder.setInsertPoint(this.builder.popFailureJumpPoint());
-		this.builder.createIendscope(p);
-		this.builder.createIjump(p, this.builder.jumpFailureJump());
-		this.builder.setInsertPoint(endbb);
+		builder.createIendscope(p);
+		builder.createIjump(p, endbb);
+		builder.setInsertPoint(builder.popFailureJumpPoint());
+		builder.createIendscope(p);
+		builder.createIjump(p, builder.jumpFailureJump());
+		builder.setInsertPoint(endbb);
 		return null;
 	}
 
@@ -405,15 +398,15 @@ public class DebugVMCompiler extends Expression.Visitor {
 	public MozInst visitSymbolAction(Nez.SymbolAction p, Object next) {
 		BasicBlock fbb = new BasicBlock();
 		BasicBlock endbb = new BasicBlock();
-		this.builder.pushFailureJumpPoint(fbb);
-		this.builder.createIpush(p);
+		builder.pushFailureJumpPoint(fbb);
+		builder.createIpush(p);
 		p.get(0).visit(this, next);
-		this.builder.createIdef(p);
-		this.builder.createIjump(p, endbb);
-		this.builder.setInsertPoint(this.builder.popFailureJumpPoint());
-		this.builder.createIpop(p);
-		this.builder.createIjump(p, this.builder.jumpFailureJump());
-		this.builder.setInsertPoint(endbb);
+		builder.createIdef(p);
+		builder.createIjump(p, endbb);
+		builder.setInsertPoint(builder.popFailureJumpPoint());
+		builder.createIpop(p);
+		builder.createIjump(p, builder.jumpFailureJump());
+		builder.setInsertPoint(endbb);
 		return null;
 	}
 
@@ -425,23 +418,22 @@ public class DebugVMCompiler extends Expression.Visitor {
 	@Override
 	public MozInst visitSymbolPredicate(Nez.SymbolPredicate p, Object next) {
 		if (p.op == FunctionName.is) {
-			this.builder.createIis(p, this.builder.jumpFailureJump());
-			this.builder.setInsertPoint(new BasicBlock());
+			builder.createIis(p, builder.jumpFailureJump());
 		} else {
-			this.builder.pushFailureJumpPoint(new BasicBlock());
-			this.builder.createIpush(p);
+			builder.pushFailureJumpPoint(new BasicBlock());
+			builder.createIpush(p);
 			p.get(0).visit(this, next);
-			this.builder.setInsertPoint(this.builder.popFailureJumpPoint());
-			this.builder.createIisa(p, this.builder.jumpFailureJump());
-			this.builder.setInsertPoint(new BasicBlock());
+			builder.setInsertPoint(builder.popFailureJumpPoint());
+			builder.createIisa(p, builder.jumpFailureJump());
 		}
+		builder.setInsertPoint(new BasicBlock());
 		return null;
 	}
 
 	@Override
 	public MozInst visitSymbolExists(Nez.SymbolExists existsSymbol, Object next) {
-		this.builder.createIexists(existsSymbol, this.builder.jumpFailureJump());
-		this.builder.setInsertPoint(new BasicBlock());
+		builder.createIexists(existsSymbol, builder.jumpFailureJump());
+		builder.setInsertPoint(new BasicBlock());
 		return null;
 	}
 
@@ -449,15 +441,15 @@ public class DebugVMCompiler extends Expression.Visitor {
 	public MozInst visitLocalScope(Nez.LocalScope localTable, Object next) {
 		BasicBlock fbb = new BasicBlock();
 		BasicBlock endbb = new BasicBlock();
-		this.builder.pushFailureJumpPoint(fbb);
-		this.builder.createIbeginlocalscope(localTable);
+		builder.pushFailureJumpPoint(fbb);
+		builder.createIbeginlocalscope(localTable);
 		localTable.get(0).visit(this, next);
-		this.builder.createIendscope(localTable);
-		this.builder.createIjump(localTable, endbb);
-		this.builder.setInsertPoint(this.builder.popFailureJumpPoint());
-		this.builder.createIendscope(localTable);
-		this.builder.createIjump(localTable, this.builder.jumpFailureJump());
-		this.builder.setInsertPoint(endbb);
+		builder.createIendscope(localTable);
+		builder.createIjump(localTable, endbb);
+		builder.setInsertPoint(builder.popFailureJumpPoint());
+		builder.createIendscope(localTable);
+		builder.createIjump(localTable, builder.jumpFailureJump());
+		builder.setInsertPoint(endbb);
 		return null;
 	}
 

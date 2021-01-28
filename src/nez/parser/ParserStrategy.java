@@ -18,42 +18,42 @@ public class ParserStrategy {
 
 	/* Grammars */
 	public boolean TreeConstruction = true;
-	public boolean DefaultCondition = false;
+	public boolean DefaultCondition;
 	// public boolean SymbolTable = true;
-	public boolean BinaryGrammar = false;
-	public boolean PEGCompatible = false;
+	public boolean BinaryGrammar;
+	public boolean PEGCompatible;
 
 	/* Optimization */
 	public boolean Optimization = true;
 	public boolean Oinline = true;
-	public boolean Oalias = false;
+	public boolean Oalias;
 
 	public boolean Olex = true;
 	public boolean Ostring = true;
 	public int Prediction = 2;
-	public boolean Odfa = false;
+	public boolean Odfa;
 
 	public boolean Oorder = true;
-	public boolean Detree = false;
+	public boolean Detree;
 	/* Classic */
-	public boolean Moz = false;
+	public boolean Moz;
 
 	/* PackratParsing */
 	public boolean PackratParsing = true;
 	public int SlidingWindow = 64;
 	public double TreeFactor = 3.00;
 	public double MemoLimit = 0.5;
-	public boolean StatefulPackratParsing = false;
+	public boolean StatefulPackratParsing;
 
 	/* Generator */
 	public boolean VerboseCode = true;
-	public boolean SSE = false;
+	public boolean SSE;
 
 	/* Profiling */
-	public boolean Coverage = false;
-	public boolean Profiling = false;
-	public boolean Wnone = false;
-	public boolean Wall = false;
+	public boolean Coverage;
+	public boolean Profiling;
+	public boolean Wnone;
+	public boolean Wall;
 
 	public ParserStrategy() {
 		init();
@@ -62,7 +62,7 @@ public class ParserStrategy {
 	public ParserStrategy(String arguments) {
 		init();
 		for (String option : arguments.split(" ")) {
-			this.setOption(option);
+			setOption(option);
 		}
 	}
 
@@ -72,10 +72,10 @@ public class ParserStrategy {
 			String name = option.substring(0, loc);
 			String value = option.substring(loc + 1);
 			if (value.equals("true")) {
-				return this.setValue(name, true);
+				return setValue(name, true);
 			}
 			if (value.equals("false")) {
-				return this.setValue(name, false);
+				return setValue(name, false);
 			}
 			try {
 				int nvalue = Integer.parseInt(value);
@@ -87,20 +87,20 @@ public class ParserStrategy {
 				return setValue(name, nvalue);
 			} catch (Exception e) {
 			}
-			return this.setValue(name, value);
+			return setValue(name, value);
 		}
 		if (option.startsWith("-")) {
-			return this.setValue(option.substring(1), false);
+			return setValue(option.substring(1), false);
 		}
 		if (option.startsWith("+")) {
-			return this.setValue(option.substring(1), true);
+			return setValue(option.substring(1), true);
 		}
 		return false;
 	}
 
 	private boolean setValue(String name, Object value) {
 		try {
-			Field f = this.getClass().getField(name);
+			Field f = getClass().getField(name);
 			f.set(this, value);
 			return true;
 		} catch (Exception e) {
@@ -115,7 +115,7 @@ public class ParserStrategy {
 		StringBuilder sb = new StringBuilder();
 		sb.append("[");
 		int c = 0;
-		Field[] fields = this.getClass().getFields();
+		Field[] fields = getClass().getFields();
 		for (Field f : fields) {
 			if (c > 0) {
 				sb.append(",");
@@ -138,7 +138,7 @@ public class ParserStrategy {
 	@Override
 	public final ParserStrategy clone() {
 		ParserStrategy s = new ParserStrategy();
-		Field[] fields = this.getClass().getFields();
+		Field[] fields = getClass().getFields();
 		for (Field f : fields) {
 			if (Modifier.isPublic(f.getModifiers())) {
 				try {
@@ -151,15 +151,15 @@ public class ParserStrategy {
 		return s;
 	}
 
-	public final static ParserStrategy nullCheck(ParserStrategy strategy) {
+	public static ParserStrategy nullCheck(ParserStrategy strategy) {
 		return strategy == null ? newDefaultStrategy() : strategy;
 	}
 
-	public final static ParserStrategy newDefaultStrategy() {
+	public static ParserStrategy newDefaultStrategy() {
 		return new ParserStrategy();
 	}
 
-	public final static ParserStrategy newSafeStrategy() {
+	public static ParserStrategy newSafeStrategy() {
 		ParserStrategy s = new ParserStrategy();
 		s.Moz = false;
 		s.Prediction = 1;
@@ -175,8 +175,8 @@ public class ParserStrategy {
 
 	void init() {
 		if (Wnone) {
-			this.logs = new ArrayList<String>();
-			this.checks = new HashSet<String>();
+			this.logs = new ArrayList<>();
+			this.checks = new HashSet<>();
 		} else {
 			this.logs = null;
 			this.checks = null;
@@ -184,22 +184,22 @@ public class ParserStrategy {
 	}
 
 	private void log(String msg) {
-		if (this.checks != null && !this.checks.contains(msg)) {
-			this.checks.add(msg);
-			this.logs.add(msg);
+		if (checks != null && !checks.contains(msg)) {
+			checks.add(msg);
+			logs.add(msg);
 		}
 	}
 
 	public void report() {
-		for (String s : this.logs) {
-			if (!this.Wall) {
-				if (s.indexOf("notice") != -1) {
+		for (String s : logs) {
+			if (!Wall) {
+				if (s.contains("notice")) {
 					continue; // skip notice
 				}
 			}
 			ConsoleUtils.println(s);
 		}
-		this.init();
+		init();
 	}
 
 	public final void reportError(SourceLocation s, String message) {
@@ -250,7 +250,7 @@ public class ParserStrategy {
 	}
 
 	public ParserInstance newParserContext(Source source, int memoPointSize, Tree<?> prototype) {
-		MemoTable table = MemoTable.newTable(this.SlidingWindow, memoPointSize);
+		MemoTable table = MemoTable.newTable(SlidingWindow, memoPointSize);
 		MozMachine machine = new MozMachine(source);
 		machine.init(table, prototype);
 		return new ParserInstance(source, machine);
@@ -260,7 +260,7 @@ public class ParserStrategy {
 
 	private CoverageProfiler cov;
 
-	public final CoverageProfiler getCoverageProfier() {
+	public final CoverageProfiler getCoverageProfiler() {
 		if (Coverage) {
 			if (cov == null) {
 				cov = new CoverageProfiler();

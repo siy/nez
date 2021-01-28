@@ -11,7 +11,7 @@ import nez.util.Verbose;
 
 public class TreeVisitor {
 	private final Class<?> treeType;
-	private HashMap<String, Method> methodMap = new HashMap<String, Method>();
+	private final HashMap<String, Method> methodMap = new HashMap<>();
 
 	protected TreeVisitor(Class<?> treeType) {
 		this.treeType = treeType;
@@ -27,11 +27,7 @@ public class TreeVisitor {
 		if (m != null) {
 			try {
 				return m.invoke(this, node);
-			} catch (IllegalAccessException e) {
-				Verbose.traceException(e);
-			} catch (IllegalArgumentException e) {
-				Verbose.traceException(e);
-			} catch (InvocationTargetException e) {
+			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 				Verbose.traceException(e);
 			}
 		}
@@ -40,7 +36,7 @@ public class TreeVisitor {
 
 	protected final Method findMethod(String method, Symbol tag) {
 		String key = method + tag.getSymbol();
-		Method m = this.methodMap.get(key);
+		Method m = methodMap.get(key);
 		if (m == null) {
 			try {
 				m = getClassMethod(method, tag);
@@ -51,14 +47,14 @@ public class TreeVisitor {
 				Verbose.traceException(e);
 				return null;
 			}
-			this.methodMap.put(key, m);
+			methodMap.put(key, m);
 		}
 		return m;
 	}
 
 	protected Method getClassMethod(String method, Symbol tag) throws NoSuchMethodException, SecurityException {
 		String name = method + tag.getSymbol();
-		return this.getClass().getMethod(name, this.treeType);
+		return getClass().getMethod(name, treeType);
 	}
 
 	protected Object visitUndefinedNode(Tree<?> node) {
@@ -72,11 +68,7 @@ public class TreeVisitor {
 		if (m != null) {
 			try {
 				return m.invoke(this, node, p1);
-			} catch (IllegalAccessException e) {
-				Verbose.traceException(e);
-			} catch (IllegalArgumentException e) {
-				Verbose.traceException(e);
-			} catch (InvocationTargetException e) {
+			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 				Verbose.traceException(e);
 			}
 		}
@@ -85,25 +77,22 @@ public class TreeVisitor {
 
 	protected final Method findMethod(String method, Symbol tag, Class<?> c1) {
 		String key = method + tag.getSymbol() + c1.getName();
-		Method m = this.methodMap.get(key);
+		Method m = methodMap.get(key);
 		if (m == null) {
 			try {
 				m = getClassMethod(method, tag, c1);
-			} catch (NoSuchMethodException e) {
-				Verbose.traceException(e);
-				return null;
-			} catch (SecurityException e) {
+			} catch (NoSuchMethodException | SecurityException e) {
 				Verbose.traceException(e);
 				return null;
 			}
-			this.methodMap.put(key, m);
+			methodMap.put(key, m);
 		}
 		return m;
 	}
 
 	protected Method getClassMethod(String method, Symbol tag, Class<?> c1) throws NoSuchMethodException, SecurityException {
 		String name = method + tag.getSymbol();
-		return this.getClass().getMethod(name, this.treeType, c1);
+		return getClass().getMethod(name, treeType, c1);
 	}
 
 	protected Object visitUndefinedNode(Tree<?> node, Object p1) {

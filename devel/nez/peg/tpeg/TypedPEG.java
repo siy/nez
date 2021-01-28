@@ -219,7 +219,7 @@ public abstract class TypedPEG {
 			}
 
 			// freeze
-			this.exprs = Collections.unmodifiableList(this.exprs);
+			this.exprs = Collections.unmodifiableList(exprs);
 		}
 
 		/**
@@ -243,19 +243,19 @@ public abstract class TypedPEG {
 			super(new LongRange(leftExpr.getRange().pos, rightExpr.getRange().len));
 
 			if (leftExpr instanceof ChoiceExpr) {
-				this.exprs.addAll(((ChoiceExpr) leftExpr).getExprs());
+				exprs.addAll(((ChoiceExpr) leftExpr).getExprs());
 			} else {
-				this.exprs.add(Objects.requireNonNull(leftExpr));
+				exprs.add(Objects.requireNonNull(leftExpr));
 			}
 
 			if (rightExpr instanceof ChoiceExpr) {
-				this.exprs.addAll(((ChoiceExpr) rightExpr).getExprs());
+				exprs.addAll(((ChoiceExpr) rightExpr).getExprs());
 			} else {
-				this.exprs.add(Objects.requireNonNull(rightExpr));
+				exprs.add(Objects.requireNonNull(rightExpr));
 			}
 
 			// freeze
-			this.exprs = Collections.unmodifiableList(this.exprs);
+			this.exprs = Collections.unmodifiableList(exprs);
 		}
 
 		/**
@@ -309,7 +309,7 @@ public abstract class TypedPEG {
 		}
 
 		public LType getExprType() {
-			return this.getExpr().getType();
+			return getExpr().getType();
 		}
 
 		@Override
@@ -365,7 +365,7 @@ public abstract class TypedPEG {
 
 		public RootExpr(LongRange range, RuleExpr[] exprs) {
 			super(range);
-			this.exprs = Collections.unmodifiableList(Arrays.asList(exprs));
+			this.exprs = List.of(exprs);
 		}
 
 		/**

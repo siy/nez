@@ -40,7 +40,7 @@ public class SchemaTransformer {
 		}
 
 		Task pop() {
-			return this.prev;
+			return prev;
 		}
 
 		ObjectType baseType(Type t) {
@@ -56,8 +56,7 @@ public class SchemaTransformer {
 			}
 			ObjectType objectType = baseType(castType);
 			Type derefType = schema.derefType(grammarType);
-			// System.out.println("CAST: " + castType + " base: " + objectType);
-			// System.out.println("EXPR: " + t + " => " + derefType);
+
 			if (objectType.isSingleType()) {
 				return containSingleType(objectType, derefType);
 			}
@@ -140,14 +139,14 @@ public class SchemaTransformer {
 			sb.append(p.getLocalName());
 			sb.append("#");
 			sb.append(baseType(castType).getTag());
-			if (this.getProperty() != null) {
+			if (getProperty() != null) {
 				sb.append("$");
-				sb.append(this.getProperty().getLabel());
+				sb.append(getProperty().getLabel());
 			}
 			return sb.toString();
 		}
 
-		Symbol replaceTag = null;
+		Symbol replaceTag;
 
 		void beginReplace() {
 			if (castType == null) {
@@ -160,7 +159,7 @@ public class SchemaTransformer {
 			replaceTag = null;
 		}
 
-		Property member = null;
+		Property member;
 
 		public void beginProperty(Property p) {
 			this.member = p;
@@ -171,7 +170,7 @@ public class SchemaTransformer {
 		}
 
 		public Property getProperty() {
-			return this.member;
+			return member;
 		}
 
 		int recording = -1;
@@ -197,7 +196,7 @@ public class SchemaTransformer {
 	}
 
 	private void perror(Expression e, String msg) {
-		ConsoleUtils.perror(this.grammar, ConsoleUtils.Red, e.formatSourceMessage("error", msg));
+		ConsoleUtils.perror(grammar, ConsoleUtils.Red, e.formatSourceMessage("error", msg));
 	}
 
 	class TransformerVisitor extends Expression.DuplicateVisitor {
@@ -223,7 +222,7 @@ public class SchemaTransformer {
 			}
 		}
 
-		private final Expression transform(Expression e) {
+		private Expression transform(Expression e) {
 			return (Expression) e.visit(this, null);
 		}
 
@@ -425,8 +424,8 @@ public class SchemaTransformer {
 		}
 	}
 
-	public final static Symbol _member = Symbol.unique("_");
-	public final static Symbol _key = Symbol.unique("key");
-	public final static Symbol _value = Symbol.unique("value");
+	public static final Symbol _member = Symbol.unique("_");
+	public static final Symbol _key = Symbol.unique("key");
+	public static final Symbol _value = Symbol.unique("value");
 
 }

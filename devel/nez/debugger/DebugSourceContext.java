@@ -9,8 +9,8 @@ import nez.util.ConsoleUtils;
 
 public abstract class DebugSourceContext extends Context {
 
-	private String fileName;
-	protected long startLineNum = 1;
+	private final String fileName;
+	protected long startLineNum;
 
 	protected DebugSourceContext(String fileName, long linenum) {
 		this.fileName = fileName;
@@ -41,21 +41,13 @@ public abstract class DebugSourceContext extends Context {
 
 	@Override
 	public Source subSource(long startIndex, long endIndex) {
-		return new StringSource(this.getResourceName(), this.linenum(startIndex), subByte(startIndex, endIndex), false);
+		return new StringSource(getResourceName(), linenum(startIndex), subByte(startIndex, endIndex), false);
 	}
 
-	// final String getFilePath(String fileName) {
-	// int loc = this.getResourceName().lastIndexOf("/");
-	// if(loc > 0) {
-	// return this.getResourceName().substring(0, loc+1) + fileName;
-	// }
-	// return fileName;
-	// }
-
-	private final long getLineStartPosition(long fromPostion) {
+	private long getLineStartPosition(long fromPostion) {
 		long startIndex = fromPostion;
-		if (!(startIndex < this.length())) {
-			startIndex = this.length() - 1;
+		if (!(startIndex < length())) {
+			startIndex = length() - 1;
 		}
 		if (startIndex < 0) {
 			startIndex = 0;
@@ -72,35 +64,35 @@ public abstract class DebugSourceContext extends Context {
 	}
 
 	public final String getIndentText(long fromPosition) {
-		long startPosition = this.getLineStartPosition(fromPosition);
-		long i = startPosition;
-		String indent = "";
-		for (; i < fromPosition; i++) {
-			int ch = this.byteAt(i);
+		long startPosition = getLineStartPosition(fromPosition);
+		long i;
+		StringBuilder indent = new StringBuilder();
+		for (i = startPosition; i < fromPosition; i++) {
+			int ch = byteAt(i);
 			if (ch != ' ' && ch != '\t') {
 				if (i + 1 != fromPosition) {
 					for (long j = i; j < fromPosition; j++) {
-						indent = indent + " ";
+						indent.append(" ");
 					}
 				}
 				break;
 			}
 		}
-		indent = this.subString(startPosition, i) + indent;
-		return indent;
+		indent.insert(0, subString(startPosition, i));
+		return indent.toString();
 	}
 
 	public final String formatPositionMessage(String messageType, long pos, String message) {
-		return "(" + this.getResourceName() + ":" + this.linenum(pos) + ") [" + messageType + "] " + message;
+		return "(" + getResourceName() + ":" + linenum(pos) + ") [" + messageType + "] " + message;
 	}
 
 	@Override
 	public final String formatPositionLine(String messageType, long pos, String message) {
-		return this.formatPositionMessage(messageType, pos, message) + this.getTextAround(pos, "\n ");
+		return formatPositionMessage(messageType, pos, message) + getTextAround(pos, "\n ");
 	}
 
 	public final String formatDebugPositionMessage(long pos, String message) {
-		return "(" + this.getResourceName() + ":" + this.linenum(pos) + ")" + message;
+		return "(" + getResourceName() + ":" + linenum(pos) + ")" + message;
 	}
 
 	// @Override
@@ -111,15 +103,15 @@ public abstract class DebugSourceContext extends Context {
 	// FIXME
 
 	public final String formatDebugPositionLine(long pos, String message) {
-		return this.formatDebugPositionMessage(pos, message) + this.getTextAround(pos, "\n ");
+		return formatDebugPositionMessage(pos, message) + getTextAround(pos, "\n ");
 	}
 
 	public final String getTextLine(long pos) {
-		int ch = 0;
+		int ch;
 		if (pos < 0) {
 			pos = 0;
 		}
-		while (this.byteAt(pos) == 0 && pos > 0) {
+		while (byteAt(pos) == 0 && pos > 0) {
 			pos -= 1;
 		}
 		long startIndex = pos;
@@ -135,7 +127,7 @@ public abstract class DebugSourceContext extends Context {
 			startIndex = startIndex - 1;
 		}
 		long endIndex = pos + 1;
-		if (endIndex < this.length()) {
+		if (endIndex < length()) {
 			while ((ch = byteAt(endIndex)) != 0) {
 				if (ch == '\n' || endIndex - startIndex > 78 && ch < 128) {
 					break;
@@ -143,7 +135,7 @@ public abstract class DebugSourceContext extends Context {
 				endIndex = endIndex + 1;
 			}
 		} else {
-			endIndex = this.length();
+			endIndex = length();
 		}
 		StringBuilder source = new StringBuilder();
 		for (long i = startIndex; i < endIndex; i++) {
@@ -157,12 +149,12 @@ public abstract class DebugSourceContext extends Context {
 		return source.toString();
 	}
 
-	private final String getTextAround(long pos, String delim) {
-		int ch = 0;
+	private String getTextAround(long pos, String delim) {
+		int ch;
 		if (pos < 0) {
 			pos = 0;
 		}
-		while (this.byteAt(pos) == 0 && pos > 0) {
+		while (byteAt(pos) == 0 && pos > 0) {
 			pos -= 1;
 		}
 		long startIndex = pos;
@@ -178,7 +170,7 @@ public abstract class DebugSourceContext extends Context {
 			startIndex = startIndex - 1;
 		}
 		long endIndex = pos + 1;
-		if (endIndex < this.length()) {
+		if (endIndex < length()) {
 			while ((ch = byteAt(endIndex)) != 0) {
 				if (ch == '\n' || endIndex - startIndex > 78 && ch < 128) {
 					break;
@@ -186,7 +178,7 @@ public abstract class DebugSourceContext extends Context {
 				endIndex = endIndex + 1;
 			}
 		} else {
-			endIndex = this.length();
+			endIndex = length();
 		}
 		StringBuilder source = new StringBuilder();
 		StringBuilder marker = new StringBuilder();
@@ -215,18 +207,18 @@ public abstract class DebugSourceContext extends Context {
 				}
 			}
 		}
-		return delim + source.toString() + delim + marker.toString();
+		return delim + source + delim + marker;
 	}
 
-	public final static DebugSourceContext newStringContext(String str) {
+	public static DebugSourceContext newStringContext(String str) {
 		return new DebugStringContext(str);
 	}
 
-	public final static DebugSourceContext newStringSourceContext(String resource, long linenum, String str) {
+	public static DebugSourceContext newStringSourceContext(String resource, long linenum, String str) {
 		return new DebugStringContext(resource, linenum, str);
 	}
 
-	public final static DebugSourceContext newDebugFileContext(String fileName) throws IOException {
+	public static DebugSourceContext newDebugFileContext(String fileName) throws IOException {
 		File f = new File(fileName);
 		if (!f.isFile()) {
 			ConsoleUtils.exit(1, "error: Input of Debugger is file");

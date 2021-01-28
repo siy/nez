@@ -10,31 +10,31 @@ public class CharReader {
 	}
 
 	final boolean hasChar() {
-		return (pos < this.text.length());
+		return (pos < text.length());
 	}
 
 	public final char readChar() {
-		if (this.pos < this.text.length()) {
-			char ch = this.read(this.pos);
+		if (pos < text.length()) {
+			char ch = read(pos);
 			if (ch == '\\') {
-				char ch1 = this.read(this.pos + 1);
+				char ch1 = read(pos + 1);
 				if (ch1 == 'u' || ch1 == 'U') {
-					ch = StringUtils.parseHex4(this.read(this.pos + 2), this.read(this.pos + 3), this.read(this.pos + 4), this.read(this.pos + 5));
-					this.pos = this.pos + 5;
+					ch = StringUtils.parseHex4(read(pos + 2), read(pos + 3), read(pos + 4), read(pos + 5));
+					this.pos = pos + 5;
 				} else {
-					ch = this.readEsc(ch1);
-					this.pos = this.pos + 1;
+					ch = readEsc(ch1);
+					this.pos = pos + 1;
 				}
 			}
-			this.pos = this.pos + 1;
+			this.pos = pos + 1;
 			return ch;
 		}
 		return '\0';
 	}
 
 	private char read(int pos) {
-		if (pos < this.text.length()) {
-			return this.text.charAt(pos);
+		if (pos < text.length()) {
+			return text.charAt(pos);
 		}
 		return 0;
 	}

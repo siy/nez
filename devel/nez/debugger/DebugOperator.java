@@ -16,16 +16,16 @@ public abstract class DebugOperator {
 
 	@Override
 	public String toString() {
-		return this.type.toString();
+		return type.toString();
 	}
 }
 
 class Print extends DebugOperator {
-	static int printProduction = 0;
+	static int printProduction;
 	static int printPos = 1;
 	static int printNode = 2;
 	static int printCallers = 3;
-	int type = 0;
+	int type;
 
 	public Print() {
 		super(DebugOperation.Print);
@@ -46,9 +46,8 @@ class Print extends DebugOperator {
 }
 
 class BackTrace extends DebugOperator {
-	static int callStackTrace = 0;
 	static int longestTrace = 1;
-	int type = 0;
+	int type;
 
 	public BackTrace() {
 		super(DebugOperation.BackTrace);
@@ -184,7 +183,7 @@ class StartPosition extends DebugOperator {
 }
 
 class Consume extends DebugOperator {
-	long pos;
+	final long pos;
 
 	public Consume(long pos) {
 		super(DebugOperation.Consume);

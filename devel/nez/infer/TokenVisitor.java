@@ -11,19 +11,15 @@ import nez.util.ConsoleUtils;
 public class TokenVisitor extends TreeVisitorMap<InferenceVisitor> {
 	List<TokenSequence> sequenceList;
 	int currentSequenceNumber;
-	int totalNumOfChunk = 0;
+	int totalNumOfChunk;
 
 	public TokenVisitor() {
 		init(TokenVisitor.class, new Undefined());
-		this.sequenceList = new ArrayList<TokenSequence>();
+		this.sequenceList = new ArrayList<>();
 		this.currentSequenceNumber = 0;
 	}
 
-	// public final Token[] getTokenList() {
-	// return (Token[]) this.tokenMap.values().toArray();
-	// }
-
-	public class Undefined implements InferenceVisitor, InferenceTokenSymbol {
+	public static class Undefined implements InferenceVisitor, InferenceTokenSymbol {
 		@Override
 		public void accept(Tree<?> node) {
 			ConsoleUtils.println(node.formatSourceMessage("error", "unsupproted tag in PEG Learning System #" + node));
@@ -31,15 +27,15 @@ public class TokenVisitor extends TreeVisitorMap<InferenceVisitor> {
 
 		@Override
 		public void accept(Tree<?> node, TokenSequence seq) {
-			this.accept(node);
+			accept(node);
 		}
 	}
 
-	private final void visit(Tree<?> node) {
+	private void visit(Tree<?> node) {
 		find(node.getTag().toString()).accept(node);
 	}
 
-	private final void visit(Tree<?> node, TokenSequence seq) {
+	private void visit(Tree<?> node, TokenSequence seq) {
 		find(node.getTag().toString()).accept(node, seq);
 	}
 
@@ -49,7 +45,7 @@ public class TokenVisitor extends TreeVisitorMap<InferenceVisitor> {
 			visit(chunk);
 			currentSequenceNumber = 0;
 		}
-		return this.sequenceList;
+		return sequenceList;
 	}
 
 	public class Chunk extends Undefined {
@@ -126,7 +122,7 @@ public class TokenVisitor extends TreeVisitorMap<InferenceVisitor> {
 	public class Time extends SimpleToken {
 	}
 
-	private final void extendSequenceList(int newSize) {
+	private void extendSequenceList(int newSize) {
 		int listSize = sequenceList.size();
 		while (newSize > listSize++) {
 			sequenceList.add(new TokenSequence());
@@ -136,14 +132,14 @@ public class TokenVisitor extends TreeVisitorMap<InferenceVisitor> {
 }
 
 interface InferenceVisitor {
-	public void accept(Tree<?> node);
+	void accept(Tree<?> node);
 
-	public void accept(Tree<?> node, TokenSequence seq);
+	void accept(Tree<?> node, TokenSequence seq);
 }
 
 interface InferenceTokenSymbol {
-	public final static Symbol _name = Symbol.unique("name");
-	public final static Symbol _value = Symbol.unique("value");
-	public final static Symbol _open = Symbol.unique("open");
-	public final static Symbol _close = Symbol.unique("close");
+	Symbol _name = Symbol.unique("name");
+	Symbol _value = Symbol.unique("value");
+	Symbol _open = Symbol.unique("open");
+	Symbol _close = Symbol.unique("close");
 }

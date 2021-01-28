@@ -35,12 +35,12 @@ public class StringSource extends CommonSource {
 			this.length = buffer.length - 1;
 		} else {
 			this.inputs = new byte[buffer.length + 1];
-			System.arraycopy(buffer, 0, this.inputs, 0, buffer.length);
+			System.arraycopy(buffer, 0, inputs, 0, buffer.length);
 		}
 		this.length = inputs.length - 1;
 	}
 
-	private final byte[] toZeroTerminalByteSequence(String s) {
+	private byte[] toZeroTerminalByteSequence(String s) {
 		byte[] b = StringUtils.utf8(s);
 		byte[] b2 = new byte[b.length + 1];
 		System.arraycopy(b, 0, b2, 0, b.length);
@@ -49,26 +49,26 @@ public class StringSource extends CommonSource {
 
 	@Override
 	public final long length() {
-		return this.length;
+		return length;
 	}
 
 	@Override
 	public final int byteAt(long pos) {
-		return this.inputs[(int) pos] & 0xff;
+		return inputs[(int) pos] & 0xff;
 	}
 
 	@Override
 	public final boolean eof(long pos) {
-		return pos >= this.length;
+		return pos >= length;
 	}
 
 	@Override
 	public final boolean match(long pos, byte[] text) {
-		if (pos + text.length > this.length) {
+		if (pos + text.length > length) {
 			return false;
 		}
 		for (int i = 0; i < text.length; i++) {
-			if (text[i] != this.inputs[(int) pos + i]) {
+			if (text[i] != inputs[(int) pos + i]) {
 				return false;
 			}
 		}
@@ -78,14 +78,14 @@ public class StringSource extends CommonSource {
 	@Override
 	public final byte[] subByte(long startIndex, long endIndex) {
 		byte[] b = new byte[(int) (endIndex - startIndex)];
-		System.arraycopy(this.inputs, (int) (startIndex), b, 0, b.length);
+		System.arraycopy(inputs, (int) (startIndex), b, 0, b.length);
 		return b;
 	}
 
 	@Override
 	public final String subString(long startIndex, long endIndex) {
 		try {
-			return new String(this.inputs, (int) (startIndex), (int) (endIndex - startIndex), StringUtils.DefaultEncoding);
+			return new String(inputs, (int) (startIndex), (int) (endIndex - startIndex), StringUtils.DefaultEncoding);
 		} catch (UnsupportedEncodingException e) {
 		}
 		return null;
@@ -94,19 +94,19 @@ public class StringSource extends CommonSource {
 	@Override
 	public Source subSource(long startIndex, long endIndex) {
 		byte[] b = new byte[(int) (endIndex - startIndex) + 1];
-		System.arraycopy(this.inputs, (int) (startIndex), b, 0, b.length);
-		return new StringSource(this.getResourceName(), this.linenum(startIndex), b, true);
+		System.arraycopy(inputs, (int) (startIndex), b, 0, b.length);
+		return new StringSource(getResourceName(), linenum(startIndex), b, true);
 	}
 
 	@Override
 	public final long linenum(long pos) {
-		long count = this.startLineNum;
+		long count = startLineNum;
 		int end = (int) pos;
-		if (end >= this.inputs.length) {
-			end = this.inputs.length;
+		if (end >= inputs.length) {
+			end = inputs.length;
 		}
 		for (int i = 0; i < end; i++) {
-			if (this.inputs[i] == '\n') {
+			if (inputs[i] == '\n') {
 				count++;
 			}
 		}
@@ -115,7 +115,7 @@ public class StringSource extends CommonSource {
 
 	/* utils */
 
-	public final static CommonSource loadClassPath(String fileName, String[] classPath) throws IOException {
+	public static CommonSource loadClassPath(String fileName, String[] classPath) throws IOException {
 		File f = new File(fileName);
 		if (f.isFile()) {
 			return loadStream(f.getAbsolutePath(), new FileInputStream(f));
@@ -130,7 +130,7 @@ public class StringSource extends CommonSource {
 		throw new FileNotFoundException(fileName);
 	}
 
-	private final static CommonSource loadStream(String urn, InputStream stream) throws IOException {
+	private static CommonSource loadStream(String urn, InputStream stream) throws IOException {
 		BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
 		StringBuilder builder = new StringBuilder();
 		String line = reader.readLine();

@@ -4,11 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Cluster {
-	private static final double clusterTolerance = 0.01;
-	private List<Token> tokenList;
-
-	public Cluster() {
-	}
+	private final List<Token> tokenList;
 
 	public Cluster(Token firstToken) {
 		this.tokenList = new ArrayList<>();
@@ -16,15 +12,15 @@ public class Cluster {
 	}
 
 	public Token getToken(int index) {
-		return this.tokenList.get(index);
+		return tokenList.get(index);
 	}
 
 	public List<Token> getTokenList() {
-		return this.tokenList;
+		return tokenList;
 	}
 
 	public void addToken(Token t) {
-		this.tokenList.add(t);
+		tokenList.add(t);
 	}
 
 }

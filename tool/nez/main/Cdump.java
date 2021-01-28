@@ -15,9 +15,6 @@ public class Cdump extends Command {
 	@Override
 	public void exec() throws IOException {
 		if (!hasInputSource()) {
-			// Grammar g0 = newGrammar();
-			// ConsoleUtils.println("Specified grammar");
-			// dumpGrammar(g0);
 			Parser p = newParser();
 			Grammar g1 = p.getCompiledGrammar();
 			ConsoleUtils.println("Compiled grammar");
@@ -26,8 +23,8 @@ public class Cdump extends Command {
 	}
 
 	private void dumpGrammar(Grammar grammar) throws IOException {
-		final ByteConsumption consumed = new ByteConsumption();
-		final Map<String, Integer> refCounts = Productions.countNonterminalReference(grammar);
+		ByteConsumption consumed = new ByteConsumption();
+		Map<String, Integer> refCounts = Productions.countNonterminalReference(grammar);
 		for (Production p : grammar) {
 			String uname = p.getUniqueName();
 			ConsoleUtils.println(uname);

@@ -16,10 +16,10 @@ import nez.util.Verbose;
 
 public class ParserGrammar extends Grammar {
 	HashMap<String, ParserGrammarFunc> funcMap;
-	public List<MemoPoint> memoPointList = null;
+	public List<MemoPoint> memoPointList;
 
 	ParserGrammar(Production start, ParserStrategy strategy, TreeMap<String, Boolean> boolMap) {
-		this.funcMap = new HashMap<String, ParserGrammarFunc>();
+		this.funcMap = new HashMap<>();
 		// new MozGrammarChecker(this, boolMap, start, strategy);
 	}
 
@@ -48,47 +48,8 @@ public class ParserGrammar extends Grammar {
 	}
 
 	/* Acceptance */
-	//
-	// public ParserGrammarFunc getParseFunc(String name) {
-	// return this.funcMap.get(name);
-	// }
-
-	// public ParserGrammarFunc setParseFunc(String uname, Production p,
-	// Production parserProduction, int init) {
-	// ParserGrammarFunc f = new ParserGrammarFunc(uname, p, parserProduction,
-	// init);
-	// this.funcMap.put(uname, f);
-	// return f;
-	// }
-
-	// public void setParseFunc(ParserGrammarFunc f) {
-	// this.funcMap.put(f.name, f);
-	// }
-
-	// void memo(ParserStrategy strategy) {
-	// memoPointList = null;
-	// if (strategy.PackratParsing) {
-	// memoPointList = new UList<MemoPoint>(new MemoPoint[4]);
-	// }
-	// if (strategy.Oinline) {
-	// for (Entry<String, ParserGrammarFunc> e : funcMap.entrySet()) {
-	// this.checkInlining(e.getValue());
-	// }
-	// }
-	// if (memoPointList != null) {
-	// for (Entry<String, ParserGrammarFunc> e : funcMap.entrySet()) {
-	// this.checkMemoizing(e.getValue());
-	// }
-	// }
-	// }
 
 	void checkInlining(ParserGrammarFunc f) {
-		// if (f.refcount == 1 || GrammarOptimizer2.isSingleCharacter(f.e)) {
-		// if (Verbose.PackratParsing) {
-		// Verbose.println("Inlining: " + f.name);
-		// }
-		// f.inlining = true;
-		// }
 	}
 
 	void checkMemoizing(ParserGrammarFunc f) {

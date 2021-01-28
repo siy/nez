@@ -1,21 +1,21 @@
 package nez.lang;
 
 public class NonTerminal extends Expression {
-	private Grammar grammar;
-	private String localName;
-	private String uniqueName;
-	private Production deref = null;
+	private final Grammar grammar;
+	private final String localName;
+	private final String uniqueName;
+	private final Production deref = null;
 
 	public NonTerminal(Grammar g, String ruleName) {
 		this.grammar = g;
 		this.localName = ruleName;
-		this.uniqueName = this.grammar.uniqueName(this.localName);
+		this.uniqueName = grammar.uniqueName(localName);
 	}
 
 	@Override
 	public final boolean equals(Object o) {
 		if (o instanceof NonTerminal) {
-			return this.localName.equals(((NonTerminal) o).getLocalName());
+			return localName.equals(((NonTerminal) o).getLocalName());
 		}
 		return false;
 	}
@@ -33,18 +33,18 @@ public class NonTerminal extends Expression {
 	}
 
 	public final String getUniqueName() {
-		return this.uniqueName;
+		return uniqueName;
 	}
 
 	public final Production getProduction() {
 		if (deref != null) {
 			return deref;
 		}
-		return this.grammar.getProduction(this.localName);
+		return grammar.getProduction(localName);
 	}
 
 	public final Expression deReference() {
-		Production r = this.grammar.getProduction(this.localName);
+		Production r = grammar.getProduction(localName);
 		return (r != null) ? r.getExpression() : null;
 	}
 
@@ -64,7 +64,7 @@ public class NonTerminal extends Expression {
 	}
 
 	public final NonTerminal newNonTerminal(String localName) {
-		return Expressions.newNonTerminal(this.getSourceLocation(), this.getGrammar(), localName);
+		return Expressions.newNonTerminal(getSourceLocation(), getGrammar(), localName);
 	}
 
 }

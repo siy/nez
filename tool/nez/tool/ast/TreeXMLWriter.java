@@ -26,7 +26,7 @@ public class TreeXMLWriter extends TreeWriter {
 			if (s.equals("")) {
 				file.write("/>");
 			} else {
-				if (!this.dataOption) {
+				if (!dataOption) {
 					file.write(" pos=\"" + node.getSourcePosition() + "\"");
 					file.write(" line=\"" + node.getLineNum() + "\"");
 					file.write(" column=\"" + node.getColumn() + "\"");
@@ -37,8 +37,7 @@ public class TreeXMLWriter extends TreeWriter {
 			}
 			return;
 		}
-		for (int i = 0; i < node.size(); i++) {
-			Tree<?> sub = node.get(i);
+		for (Tree<?> sub : node) {
 			String stag = sub.getTag().toString();
 			if (stag.startsWith("@")) {
 				file.write(" ");
@@ -53,7 +52,7 @@ public class TreeXMLWriter extends TreeWriter {
 			Tree<?> sub = node.get(i);
 			String stag = sub.getTag().toString();
 			if (!stag.startsWith("@")) {
-				this.writeXML(node.getLabel(i), stag, sub);
+				writeXML(node.getLabel(i), stag, sub);
 			}
 		}
 		file.decIndent();

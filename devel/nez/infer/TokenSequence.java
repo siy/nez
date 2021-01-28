@@ -6,11 +6,11 @@ import java.util.Map.Entry;
 
 public class TokenSequence {
 	protected Map<String, Token> tokenMap;
-	private int tokenCount = 0;
-	private int maxTokenCount = 0;
+	private int tokenCount;
+	private int maxTokenCount;
 
 	public TokenSequence() {
-		this.tokenMap = new HashMap<String, Token>();
+		this.tokenMap = new HashMap<>();
 	}
 
 	public Map<String, Token> getTokenMap() {
@@ -18,18 +18,8 @@ public class TokenSequence {
 	}
 
 	public int getMaxTokenSize() {
-		return this.maxTokenCount;
+		return maxTokenCount;
 	}
-
-	// public final void transaction(String label) {
-	// if (!tokenMap.containsKey(label)) {
-	// Token token = new Token(label, this.totalNumOfChunks);
-	// token.getHistogram().update(tokenCount++);
-	// tokenMap.put(label, token);
-	// } else {
-	// tokenMap.get(label).getHistogram().update(tokenCount++);
-	// }
-	// }
 
 	public final void transaction(String label, Token token) {
 		if (!tokenMap.containsKey(label)) {
@@ -41,9 +31,9 @@ public class TokenSequence {
 	}
 
 	public final Token[] getTokenList() {
-		Token[] tokenList = new Token[this.tokenMap.size()];
+		Token[] tokenList = new Token[tokenMap.size()];
 		int index = 0;
-		for (Entry<String, Token> entry : this.tokenMap.entrySet()) {
+		for (Entry<String, Token> entry : tokenMap.entrySet()) {
 			tokenList[index++] = entry.getValue();
 		}
 		normalizeAllHistograms(tokenList);
@@ -51,14 +41,14 @@ public class TokenSequence {
 	}
 
 	public final void commitAllHistograms() {
-		for (Entry<String, Token> token : this.tokenMap.entrySet()) {
+		for (Entry<String, Token> token : tokenMap.entrySet()) {
 			token.getValue().getHistogram().commit();
 		}
-		this.maxTokenCount = this.maxTokenCount < tokenCount ? tokenCount : maxTokenCount;
+		this.maxTokenCount = Math.max(maxTokenCount, tokenCount);
 		tokenCount = 0;
 	}
 
-	private final void normalizeAllHistograms(Token[] tokenList) {
+	private void normalizeAllHistograms(Token[] tokenList) {
 		for (Token token : tokenList) {
 			token.getHistogram().normalize();
 		}

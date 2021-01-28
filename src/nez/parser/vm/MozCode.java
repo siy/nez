@@ -16,15 +16,15 @@ public class MozCode extends ParserCode<MozInst> {
 	}
 
 	UList<MozInst> codeList() {
-		return this.codeList;
+		return codeList;
 	}
 
 	@Override
 	public Object exec(ParserInstance context) {
 		long startPosition = context.getPosition();
 		MozMachine machine = (MozMachine) context.getRuntime();
-		MozInst code = this.getStartInstruction();
-		boolean result = false;
+		MozInst code = getStartInstruction();
+		boolean result;
 		try {
 			while (true) {
 				code = code.execMoz(machine);
@@ -36,9 +36,9 @@ public class MozCode extends ParserCode<MozInst> {
 	}
 
 	public boolean run(MozInst code, MozMachine sc) {
-		boolean result = false;
+		boolean result;
 		String u = "Start";
-		UList<String> stack = new UList<String>(new String[128]);
+		UList<String> stack = new UList<>(new String[128]);
 		stack.add("Start");
 		try {
 			while (true) {
@@ -72,9 +72,7 @@ public class MozCode extends ParserCode<MozInst> {
 			inst.id = codeList.size();
 			codeList.add(inst);
 			layoutCode(inst.next);
-			// if (inst.next != null && inst.id + 1 != inst.next.id) {
-			// MozInst.joinPoint(inst.next);
-			// }
+
 			layoutCode(inst.branch());
 			if (inst instanceof Moz86.Dispatch) {
 				Moz86.Dispatch match = (Moz86.Dispatch) inst;
@@ -87,12 +85,12 @@ public class MozCode extends ParserCode<MozInst> {
 
 	public final void encode(MozWriter coder) {
 		if (coder != null) {
-			coder.setHeader(codeList.size(), this.getInstructionSize(), this.getMemoPointSize());
+			coder.setHeader(codeList.size(), getInstructionSize(), getMemoPointSize());
 			coder.setInstructions(codeList.ArrayValues, codeList.size());
 		}
 	}
 
-	public final static void writeMozCode(Parser parser, String path) {
+	public static void writeMozCode(Parser parser, String path) {
 		ParserMachineCompiler compile = ParserMachineCompiler.newCompiler(parser.getParserStrategy());
 		MozCode code = compile.compile(parser.getGrammar());
 		MozWriter c = new MozWriter();

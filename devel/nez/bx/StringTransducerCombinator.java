@@ -78,7 +78,7 @@ class NodeStringTransducer extends StringTransducer {
 	@Override
 	protected <E extends Tree<E>> void formatTo(Tree<E> node, StringTransducerBuilder stream) {
 		int size = node.size();
-		int index = NodeStringTransducer.index(this.index, size);
+		int index = index(this.index, size);
 		if (0 <= index && index < size) {
 			Tree<E> sub = node.get(index);
 			StringTransducer st = stream.lookup(sub);
@@ -101,8 +101,8 @@ class RangeNodeStringTransducer extends StringTransducer {
 	@Override
 	protected <E extends Tree<E>> void formatTo(Tree<E> node, StringTransducerBuilder stream) {
 		int size = node.size();
-		int s = NodeStringTransducer.index(this.start, size);
-		int e = NodeStringTransducer.index(this.end, size);
+		int s = NodeStringTransducer.index(start, size);
+		int e = NodeStringTransducer.index(end, size);
 		if (e > size) {
 			e = size;
 		}

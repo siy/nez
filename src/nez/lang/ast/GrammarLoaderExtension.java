@@ -11,10 +11,10 @@ public abstract class GrammarLoaderExtension implements GrammarLoaderVisitor {
 	}
 
 	public final Grammar getGrammar() {
-		return this.loader.getGrammar();
+		return loader.getGrammar();
 	}
 
 	public final ParserStrategy getStrategy() {
-		return this.loader.getStrategy();
+		return loader.getStrategy();
 	}
 }

@@ -28,20 +28,20 @@ public class GrammarVisitorMap<T> extends TreeVisitorMap<T> {
 	}
 
 	public final void reportError(SourceLocation s, String fmt, Object... args) {
-		if (this.strategy != null) {
-			this.strategy.reportError(s, fmt, args);
+		if (strategy != null) {
+			strategy.reportError(s, fmt, args);
 		}
 	}
 
 	public final void reportWarning(SourceLocation s, String fmt, Object... args) {
-		if (this.strategy != null) {
-			this.strategy.reportWarning(s, fmt, args);
+		if (strategy != null) {
+			strategy.reportWarning(s, fmt, args);
 		}
 	}
 
 	public final void reportNotice(SourceLocation s, String fmt, Object... args) {
-		if (this.strategy != null) {
-			this.strategy.reportNotice(s, fmt, args);
+		if (strategy != null) {
+			strategy.reportNotice(s, fmt, args);
 		}
 	}
 

@@ -7,17 +7,17 @@ import nez.lang.Bytes;
 
 public abstract class StringUtils {
 
-	public final static String DefaultEncoding = "UTF8";
+	public static final String DefaultEncoding = "UTF8";
 
-	private final static int E = 1;
+	private static final int E = 1;
 
-	final static int[] utf8LengthMatrix = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	static final int[] utf8LengthMatrix = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E,
 			E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3,
 			3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, E, E, 0 /* EOF */
 	};
 
-	public final static String newString(byte[] utf8) {
+	public static String newString(byte[] utf8) {
 		try {
 			return new String(utf8, DefaultEncoding);
 		} catch (UnsupportedEncodingException e) {
@@ -26,7 +26,7 @@ public abstract class StringUtils {
 		return new String(utf8);
 	}
 
-	public final static byte[] utf8(String text) {
+	public static byte[] utf8(String text) {
 		try {
 			return text.getBytes(DefaultEncoding);
 		} catch (UnsupportedEncodingException e) {
@@ -35,7 +35,7 @@ public abstract class StringUtils {
 		return text.getBytes();
 	}
 
-	public final static byte[] utf8(String text, int padding) {
+	public static byte[] utf8(String text, int padding) {
 		byte[] u = utf8(text);
 		if (padding > 0) {
 			byte[] n = new byte[u.length + padding];
@@ -45,30 +45,22 @@ public abstract class StringUtils {
 		return u;
 	}
 
-	// public final static int lengthOfUtf8(int ch) {
-	// return StringUtils.utf8LengthMatrix[ch];
-	// }
-	//
-	// public final static int lengthOfUtf8(byte ch) {
-	// return StringUtils.utf8LengthMatrix[ch & 0xff];
-	// }
-
 	/* format */
 
-	public final static void formatByte(StringBuilder sb, boolean quoted, int byteChar, String fmt, String escaped) {
+	public static void formatByte(StringBuilder sb, boolean quoted, int byteChar, String fmt, String escaped) {
 		switch (byteChar) {
-		case '\n':
-			sb.append(quoted ? "'\\n'" : "\\n");
-			return;
-		case '\t':
-			sb.append(quoted ? "'\\t'" : "\\t");
-			return;
-		case '\r':
-			sb.append(quoted ? "'\\r'" : "\\r");
-			return;
-		case '\\':
-			sb.append(quoted ? "'\\\\'" : "\\\\");
-			return;
+			case '\n':
+				sb.append(quoted ? "'\\n'" : "\\n");
+				return;
+			case '\t':
+				sb.append(quoted ? "'\\t'" : "\\t");
+				return;
+			case '\r':
+				sb.append(quoted ? "'\\r'" : "\\r");
+				return;
+			case '\\':
+				sb.append(quoted ? "'\\\\'" : "\\\\");
+				return;
 		}
 		if (Character.isISOControl(byteChar) || byteChar > 127) {
 			sb.append(String.format(fmt/* "0x%02x" */, byteChar));
@@ -86,11 +78,11 @@ public abstract class StringUtils {
 		}
 	}
 
-	public final static void formatByte(StringBuilder sb, int byteChar) {
+	public static void formatByte(StringBuilder sb, int byteChar) {
 		formatByte(sb, true, byteChar, "0x%02x", "");
 	}
 
-	public final static void formatByteSet(StringBuilder sb, boolean[] b) {
+	public static void formatByteSet(StringBuilder sb, boolean[] b) {
 		sb.append("[");
 		for (int s = 0; s < 256; s++) {
 			if (b[s]) {
@@ -117,9 +109,9 @@ public abstract class StringUtils {
 		return 255;
 	}
 
-	private final static char[] HexChar = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
+	private static final char[] HexChar = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
 
-	public final static void formatHexicalByteSet(StringBuilder sb, boolean[] b) {
+	public static void formatHexicalByteSet(StringBuilder sb, boolean[] b) {
 		int end = 0;
 		for (int c = 0; c < b.length; c++) {
 			if (b[c]) {
@@ -135,7 +127,7 @@ public abstract class StringUtils {
 
 	private static void formatHedicalByteSet(StringBuilder sb, boolean[] b, int offset) {
 		int n = 0;
-		if (b[offset + 0]) {
+		if (b[offset]) {
 			n |= (1 << 3);
 		}
 		if (b[offset + 1]) {
@@ -150,7 +142,7 @@ public abstract class StringUtils {
 		sb.append(HexChar[n]);
 	}
 
-	public final static void formatStringLiteral(StringBuilder sb, char openChar, String text, char closeChar) {
+	public static void formatStringLiteral(StringBuilder sb, char openChar, String text, char closeChar) {
 		char slashChar = '\\';
 		sb.append(openChar);
 		int i = 0;
@@ -175,7 +167,7 @@ public abstract class StringUtils {
 		sb.append(closeChar);
 	}
 
-	public final static void formatUTF8(StringBuilder sb, byte[] utf8) {
+	public static void formatUTF8(StringBuilder sb, byte[] utf8) {
 		String s = newString(utf8);
 		if (Arrays.equals(utf8, utf8(s))) {
 			formatStringLiteral(sb, '"', s, '"');
@@ -188,14 +180,14 @@ public abstract class StringUtils {
 		}
 	}
 
-	public final static String quoteString(char openChar, String text, char closeChar) {
+	public static String quoteString(char openChar, String text, char closeChar) {
 		StringBuilder sb = new StringBuilder();
-		StringUtils.formatStringLiteral(sb, openChar, text, closeChar);
+		formatStringLiteral(sb, openChar, text, closeChar);
 		return sb.toString();
 	}
 
-	public final static String unquoteString(String text) {
-		if (text.indexOf("\\") == -1) {
+	public static String unquoteString(String text) {
+		if (!text.contains("\\")) {
 			return text;
 		}
 		CharReader r = new CharReader(text);
@@ -210,14 +202,14 @@ public abstract class StringUtils {
 		return sb.toString();
 	}
 
-	public final static String stringfyByteSet(boolean[] b) {
+	public static String stringfyByteSet(boolean[] b) {
 		StringBuilder sb = new StringBuilder();
 		formatByteSet(sb, b);
 		return sb.toString();
 	}
 
 	// USED
-	public final static int parseInt(String text, int defval) {
+	public static int parseInt(String text, int defval) {
 		if (text.length() > 0) {
 			try {
 				return Integer.parseInt(text);
@@ -229,10 +221,10 @@ public abstract class StringUtils {
 	}
 
 	// Used in Factory.newCharClass
-	public final static int parseAscii(String t) {
+	public static int parseAscii(String t) {
 		if (t.startsWith("\\x")) {
-			int c = StringUtils.parseHexicalNumber(t.charAt(2));
-			c = (c * 16) + StringUtils.parseHexicalNumber(t.charAt(3));
+			int c = parseHexicalNumber(t.charAt(2));
+			c = (c * 16) + parseHexicalNumber(t.charAt(3));
 			return c;
 		}
 		if (t.startsWith("\\u")) {
@@ -241,9 +233,6 @@ public abstract class StringUtils {
 		if (t.startsWith("\\") && t.length() > 1) {
 			int c = t.charAt(1);
 			switch (c) {
-			// case 'a': return '\007'; /* bel */
-			// case 'b': return '\b'; /* bs */
-			// case 'e': return '\033'; /* esc */
 			case 'f':
 				return '\f'; /* ff */
 			case 'n':
@@ -260,12 +249,12 @@ public abstract class StringUtils {
 		return -1;
 	}
 
-	public final static int parseUnicode(String t) {
+	public static int parseUnicode(String t) {
 		if (t.startsWith("\\u")) {
-			int c = StringUtils.parseHexicalNumber(t.charAt(2));
-			c = (c * 16) + StringUtils.parseHexicalNumber(t.charAt(3));
-			c = (c * 16) + StringUtils.parseHexicalNumber(t.charAt(4));
-			c = (c * 16) + StringUtils.parseHexicalNumber(t.charAt(5));
+			int c = parseHexicalNumber(t.charAt(2));
+			c = (c * 16) + parseHexicalNumber(t.charAt(3));
+			c = (c * 16) + parseHexicalNumber(t.charAt(4));
+			c = (c * 16) + parseHexicalNumber(t.charAt(5));
 			return c;
 		}
 		return t.charAt(0);
@@ -286,26 +275,26 @@ public abstract class StringUtils {
 	}
 
 	public static char parseHex4(char ch1, char ch2, char ch3, char ch4) {
-		int c = StringUtils.parseHexicalNumber(ch1);
-		c = (c * 16) + StringUtils.parseHexicalNumber(ch2);
-		c = (c * 16) + StringUtils.parseHexicalNumber(ch3);
-		c = (c * 16) + StringUtils.parseHexicalNumber(ch4);
+		int c = parseHexicalNumber(ch1);
+		c = (c * 16) + parseHexicalNumber(ch2);
+		c = (c * 16) + parseHexicalNumber(ch3);
+		c = (c * 16) + parseHexicalNumber(ch4);
 		return (char) c;
 	}
 
-	public final static String stringfyByte(int ch) {
+	public static String stringfyByte(int ch) {
 		StringBuilder sb = new StringBuilder();
 		formatByte(sb, ch);
 		return sb.toString();
 	}
 
-	public final static String stringfyBitmap(boolean[] b) {
+	public static String stringfyBitmap(boolean[] b) {
 		StringBuilder sb = new StringBuilder();
 		formatHexicalByteSet(sb, b);
 		return sb.toString();
 	}
 
-	public static final boolean[] parseByteMap(String text) {
+	public static boolean[] parseByteMap(String text) {
 		boolean[] b = Bytes.newMap(false);
 		CharReader r = new CharReader(text);
 		char ch = r.readChar();
@@ -313,12 +302,12 @@ public abstract class StringUtils {
 			char next = r.readChar();
 			if (next == '-') {
 				int ch2 = r.readChar();
-				if (ch > 0 && ch2 < 128) {
+				if (ch2 < 128) {
 					Bytes.appendRange(b, ch, ch2);
 				}
 				ch = r.readChar();
 			} else {
-				if (ch > 0 && ch < 128) {
+				if (ch < 128) {
 					Bytes.appendRange(b, ch, ch);
 				}
 				ch = next; // r.readChar();
@@ -327,11 +316,11 @@ public abstract class StringUtils {
 		return b;
 	}
 
-	public final static String formatParcentage(long a, long b) {
+	public static String formatParcentage(long a, long b) {
 		return String.format("%.3f", (double) a / b * 100.0);
 	}
 
-	public final static String formatMPS(long length, long nano) {
+	public static String formatMPS(long length, long nano) {
 		long micro = (nano) / 1000;
 		double sec = micro / 1000000.0;
 		double thr = length / sec / (1024 * 1024);

@@ -16,7 +16,7 @@ public class State {
 	}
 
 	public int getID() {
-		return this.ID;
+		return ID;
 	}
 
 	@Override
@@ -26,20 +26,19 @@ public class State {
 
 	@Override
 	public int hashCode() {
-		return new Integer(ID).hashCode();
+		return Integer.valueOf(ID).hashCode();
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj != null && obj instanceof State) {
-			final State state = (State) obj;
-			return this.getID() == state.getID();
+		if (obj instanceof State) {
+			State state = (State) obj;
+			return getID() == state.getID();
 		}
 		return false;
 	}
 
 	public int compareTo(State state) {
-		return new Integer(ID).compareTo(state.getID());
+		return Integer.compare(ID, state.getID());
 	}
-
 }

@@ -245,11 +245,11 @@ public class CParserGenerator extends CommonParserGenerator {
 		Line("#define MAXLABEL " + c);
 		NewLine();
 		var space = " ".repeat(12 + _ns().length());
-		Statement("void* " + _ns() + "parse(const char *text,");
-		Statement(space + "size_t len,");
-		Statement(space + "void *,");
-		Statement(space + "void* (*fnew)(symbol_t, const char *, size_t, size_t, void *),");
-		Statement(space + "void  (*fset)(void *, size_t, symbol_t, void *, void *),");
+		Line("void* " + _ns() + "parse(const char *text,");
+		Line(space + "size_t len,");
+		Line(space + "void *,");
+		Line(space + "void* (*fnew)(symbol_t, const char *, size_t, size_t, void *),");
+		Line(space + "void  (*fset)(void *, size_t, symbol_t, void *, void *),");
 		Statement(space + "void  (*fgc)(void *, int, void *))");
 		NewLine();
 		Statement("long " + _ns() + "match(const char *text, size_t len)");

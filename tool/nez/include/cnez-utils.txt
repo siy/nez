@@ -1,4 +1,4 @@
-void cnez_dump(void *v, FILE *fp)
+void cnez_dump(void *v, FILE *fp, int depth)
 {
 	size_t i;
 	Tree *t = (Tree*)v;
@@ -6,9 +6,16 @@ void cnez_dump(void *v, FILE *fp)
 		fputs("null", fp);
 		return;
 	}
-//	if(t->refc != 1) {
-//		fprintf(fp, "@%ld", t->refc);
-//	}
+	/*
+	if(t->refc != 1) {
+		fprintf(fp, "@%ld", t->refc);
+	}
+	*/
+	fputs("\n", fp);
+	for(i = 0; i < depth; i++) {
+		fputs(" ", fp);
+	}
+
 	fputs("[#", fp);
 	fputs(_tags[t->tag], fp);
 	if(t->size == 0) {
@@ -26,7 +33,7 @@ void cnez_dump(void *v, FILE *fp)
 				fputs(_labels[t->labels[i]], fp);
 				fputs("=", fp);
 			}
-			cnez_dump(t->childs[i], fp);
+			cnez_dump(t->childs[i], fp, depth + 1);
 		}
 	}
 	fputs("]", fp);
@@ -35,10 +42,11 @@ void cnez_dump(void *v, FILE *fp)
 #ifndef UNUSE_MAIN
 #include<sys/time.h> // for using gettimeofday
 
-static const char *get_input(const char *path, size_t *size)
+static char *get_input(const char *path, size_t *size)
 {
 	FILE *fp = fopen(path, "rb");
-    if(fp != NULL) {		
+
+	if(fp != NULL) {
 		size_t len;
 		fseek(fp, 0, SEEK_END);
 		len = (size_t) ftell(fp);
@@ -50,11 +58,11 @@ static const char *get_input(const char *path, size_t *size)
 			exit(1);
 		}
 		fclose(fp);
-		size[0] = len;
-		return (const char*)buf;
+		*size = len;
+		return buf;
 	}
-	size[0] = strlen(path);
-	return path;
+
+	return NULL;
 }
 
 static double timediff(struct timeval *s, struct timeval *e)
@@ -64,46 +72,89 @@ static double timediff(struct timeval *s, struct timeval *e)
 	return t1 + t2; /* ms */
 }
 
+int run_bench(const char* name, const char *input, int len, void* (*parse)(const char *input, size_t len)) {
+	double tsum = 0.0;
+	double t[5];
+	int i = 0;
+	for(i = 0; i < 5; i++) {
+		struct timeval s, e;
+		gettimeofday(&s, NULL);
+		void *data = parse(input, len);
+		gettimeofday(&e, NULL);
+		if(data == NULL) {
+			fprintf(stdout, "%s FAIL %f[ms]\n", name, timediff(&s, &e));
+			return 0;
+		}
+		t[i] = timediff(&s, &e);
+		tsum += t[i];
+		cnez_free(data);
+	}
+	if(tsum != 0.0) {
+		fprintf(stdout, "%s OK %.4f[ms] %.3f %.3f %.3f %.3f %.3f\n", name, tsum / 5, t[0], t[1], t[2], t[3], t[4]);
+	}
+	return 1;
+}
+
 int cnez_main(int ac, const char **av, void* (*parse)(const char *input, size_t len))
 {
 	int j;
 	size_t len;
+	int verbose = 0;
+	int bench = 0;
+	int mem = 0;
+
 	if(ac == 1) {
-		fprintf(stdout, "Usage: %s file [or input-text]\n", av[0]);
+		fprintf(stdout, "Usage: %s [-v] [-b] [-m] file1 file2 ...\n\t-v - Verbose (print AST)\n\t-m - Dump memory\n\t-b - Run benchmark\n", av[0]);
 		return 1;
 	}
+
 	for(j = 1; j < ac; j++) {
-		const char *input = get_input(av[j], &len);
-		if(getenv("BENCH") != NULL) {
-			double tsum = 0.0;
-			double t[5];
-			int i = 0;
-			for(i = 0; i < 5; i++) {
-				struct timeval s, e;
-				gettimeofday(&s, NULL);
-				void *data = parse(input, len);
-				gettimeofday(&e, NULL);
-				if(data == NULL) {
-					fprintf(stdout, "%s FAIL %f[ms]\n", av[j], timediff(&s, &e));
-					break;
-				}
-				t[i] = timediff(&s, &e);
-				tsum += t[i];
-				cnez_free(data);
-			}
-			if(tsum != 0.0) {
-				fprintf(stdout, "%s OK %.4f[ms] %.3f %.3f %.3f %.3f %.3f\n", av[j], tsum / 5, t[0], t[1], t[2], t[3], t[4]);
-			}
+		if (av[j][0] != '-') {
+			break;
 		}
-		else {
-			void *data = parse(input, len);
-			cnez_dump(data, stdout);
-			fprintf(stdout, "\n");
-			if(getenv("MEM") != NULL) {
+
+		if(!strcmp(av[j], "-v")) {
+			verbose = 1;
+		}
+
+		if(!strcmp(av[j], "-b")) {
+			bench = 1;
+		}
+
+		if(!strcmp(av[j], "-m")) {
+			mem = 1;
+		}
+	}
+
+	for(; j < ac; j++) {
+		char *input = get_input(av[j], &len);
+
+		if (input == NULL) {
+			fprintf(stdout, "Unable to open file '%s'\n", av[j]);
+			continue;
+		}
+
+		if(bench) {
+			if (!run_bench(av[j], (const char*)input, len, parse)) {
+				return -1;
+			}
+		} else {
+			void *data = parse((const char*)input, len);
+
+			if (verbose) {
+				cnez_dump(data, stdout, 0);
+				fprintf(stdout, "\n");
+			} else {
+				fprintf(stdout, "%s - %s\n", av[j], data ? "PASS" : "FAIL");
+			}
+
+			if(mem) {
 				cnez_dump_memory("Memory Usage", data);
 			}
 			cnez_free(data);
 		}
+
+		free((void*) input);
 	}
 	return 0;
 }

@@ -140,7 +140,7 @@ public class CParserGenerator extends CommonParserGenerator {
 	protected void generateFooter(Grammar g) {
 		importFileContent("cnez-utils.txt");
 		//
-		BeginDecl("void* " + _ns()
+		BeginDecl("Tree* " + _ns()
 					  + "parse(const char *text, size_t len, void *thunk, void* (*fnew)(symbol_t, const unsigned char *, size_t, size_t, void *), void  (*fset)(void *, size_t, symbol_t, void *, void *), void  (*fgc)(void *, int, void *))");
 		{
 			VarDecl("void*", "result", _Null());
@@ -244,8 +244,18 @@ public class CParserGenerator extends CommonParserGenerator {
 		}
 		Line("#define MAXLABEL " + c);
 		NewLine();
+		Line("typedef struct Tree {");
+		Line("    long           refc;");
+		Line("    symbol_t       tag;");
+		Line("    const unsigned char    *text;");
+		Line("    size_t         len;");
+		Line("    size_t         size;");
+		Line("    symbol_t      *labels;");
+		Line("    struct Tree  **childs;");
+		Line("} Tree;");
+		NewLine();
 		var space = " ".repeat(12 + _ns().length());
-		Line("void* " + _ns() + "parse(const char *text,");
+		Line("Tree* " + _ns() + "parse(const char *text,");
 		Line(space + "size_t len,");
 		Line(space + "void *,");
 		Line(space + "void* (*fnew)(symbol_t, const char *, size_t, size_t, void *),");
@@ -257,6 +267,8 @@ public class CParserGenerator extends CommonParserGenerator {
 		Statement("const char* " + _ns() + "tag(symbol_t n)");
 		NewLine();
 		Statement("const char* " + _ns() + "label(symbol_t n)");
+		NewLine();
+		Statement("void cnez_dump(Tree* t, FILE *fp, int depth)");
 		NewLine();
 		Line("#ifdef __cplusplus");
 		Line("}");

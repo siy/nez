@@ -548,7 +548,7 @@ void _log(ParserContext *c, int op, void *value, struct Tree *tree)
 	c->unused_log++;
 }
 
-void cnez_dump(void *v, FILE *fp, int depth);
+void cnez_dump(Tree* v, FILE *fp, int depth);
 
 static void DEBUG_dumplog(ParserContext *c)
 {

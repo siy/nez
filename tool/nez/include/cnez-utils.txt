@@ -1,7 +1,6 @@
-void cnez_dump(void *v, FILE *fp, int depth)
+void cnez_dump(Tree* t, FILE *fp, int depth)
 {
     size_t i;
-    Tree *t = (Tree*)v;
     if(t == NULL) {
         fputs("null", fp);
         return;

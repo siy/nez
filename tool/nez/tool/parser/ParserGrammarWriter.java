@@ -143,6 +143,9 @@ public class ParserGrammarWriter {
 	protected void Line(String stmt) {
 		file.writeIndent(stmt);
 	}
+	protected void NewLine() {
+		file.writeIndent();
+	}
 
 	protected String _LineComment() {
 		return "//";

@@ -38,6 +38,7 @@ public abstract class Command {
 	static {
 		COMMANDS.put("bench", Cbench::new);
 		COMMANDS.put("code", Ccode::new);
+		COMMANDS.put("cnez", Ccnez::new);
 		COMMANDS.put("dump", Cdump::new);
 		COMMANDS.put("format", Cformat::new);
 		COMMANDS.put("match", Cmatch::new);

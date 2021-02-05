@@ -25,6 +25,16 @@ Now, you will run `nez.jar` with:
 java -jar nez.jar ....
 ```
 
+On Linux systems you can use `nez.sh` as follows:
+- copy `nez.sh` into user binaries directory, usually something like `~/.local/bin`
+- copy built `nez.jar` into `lib` directory next to user binaries directory. For example, if user binaries are in  `~/.local/bin`, then `nez.jar` should be put into `~/.local/lib`.
+
+Now you can invoke NEZ just like any other tool:
+```
+ $ nez ...
+```
+Without parameerts utility will print usage information, available commands, etc.
+
 ## Development
 Nez is originally developed by [Kimio Kuramitsu](http://kuramitsulab.github.io/) with his graduate students in Yokohama National University, JAPAN. 
 

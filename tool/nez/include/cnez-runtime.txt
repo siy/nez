@@ -3,6 +3,10 @@
 #include<string.h>
 #include<assert.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct Tree;
 struct TreeLog;
 struct MemoEntry;

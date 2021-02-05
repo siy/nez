@@ -3,6 +3,8 @@ package nez.tool.parser;
 import nez.lang.Grammar;
 import nez.util.StringUtils;
 
+import java.util.Locale;
+
 public class CParserGenerator extends CommonParserGenerator {
 
 	public CParserGenerator() {
@@ -119,6 +121,10 @@ public class CParserGenerator extends CommonParserGenerator {
 
 	@Override
 	protected void generateHeader(Grammar g) {
+		Line("// ");
+		Line("// " + _basename() + " grammar parser.");
+		Line("//");
+		NewLine();
 		importFileContent("cnez-runtime.txt");
 	}
 
@@ -134,7 +140,8 @@ public class CParserGenerator extends CommonParserGenerator {
 	protected void generateFooter(Grammar g) {
 		importFileContent("cnez-utils.txt");
 		//
-		BeginDecl("void* " + _ns() + "parse(const char *text, size_t len, void *thunk, void* (*fnew)(symbol_t, const unsigned char *, size_t, size_t, void *), void  (*fset)(void *, size_t, symbol_t, void *, void *), void  (*fgc)(void *, int, void *))");
+		BeginDecl("void* " + _ns()
+					  + "parse(const char *text, size_t len, void *thunk, void* (*fnew)(symbol_t, const unsigned char *, size_t, size_t, void *), void  (*fset)(void *, size_t, symbol_t, void *, void *), void  (*fgc)(void *, int, void *))");
 		{
 			VarDecl("void*", "result", _Null());
 			VarDecl(_state(), "ParserContext_new((const unsigned char*)text, len)");
@@ -191,14 +198,33 @@ public class CParserGenerator extends CommonParserGenerator {
 		}
 		EndDecl();
 		Line("#endif/*MAIN*/");
-		file.writeIndent("// End of File");
+		NewLine();
+		Line("#ifdef __cplusplus");
+		Line("}");
+		Line("#endif");
+
+		Line("// End of File");
 		generateHeaderFile();
-		showManual("cnez-man.txt", new String[] { "$cmd$", _basename() });
+		showManual("cnez-man.txt", new String[]{"$cmd$", _basename()});
 	}
 
 	private void generateHeaderFile() {
+		var upcaseName = _basename().toUpperCase(Locale.ROOT) + "_H";
 		setFileBuilder(".h");
+		Line("// ");
+		Line("// Header file for " + _basename() + " grammar parser.");
+		Line("//");
+		NewLine();
+		Line("#ifndef __" + upcaseName);
+		Line("#define __" + upcaseName);
+		NewLine();
+		Line("#ifdef __cplusplus");
+		Line("extern \"C\" {");
+		Line("#endif");
+		NewLine();
 		Statement("typedef unsigned long int symbol_t");
+		NewLine();
+
 		int c = 1;
 		for (String s : tagList) {
 			if (s.equals("")) {
@@ -217,10 +243,26 @@ public class CParserGenerator extends CommonParserGenerator {
 			c++;
 		}
 		Line("#define MAXLABEL " + c);
-		Statement("void* " + _ns() + "parse(const char *text, size_t len, void *, void* (*fnew)(symbol_t, const char *, size_t, size_t, void *), void  (*fset)(void *, size_t, symbol_t, void *, void *), void  (*fgc)(void *, int, void *))");
+		NewLine();
+		var space = " ".repeat(12 + _ns().length());
+		Statement("void* " + _ns() + "parse(const char *text,");
+		Statement(space + "size_t len,");
+		Statement(space + "void *,");
+		Statement(space + "void* (*fnew)(symbol_t, const char *, size_t, size_t, void *),");
+		Statement(space + "void  (*fset)(void *, size_t, symbol_t, void *, void *),");
+		Statement(space + "void  (*fgc)(void *, int, void *))");
+		NewLine();
 		Statement("long " + _ns() + "match(const char *text, size_t len)");
+		NewLine();
 		Statement("const char* " + _ns() + "tag(symbol_t n)");
+		NewLine();
 		Statement("const char* " + _ns() + "label(symbol_t n)");
+		NewLine();
+		Line("#ifdef __cplusplus");
+		Line("}");
+		Line("#endif");
+		NewLine();
+		Line("#endif /* __" + upcaseName + " */");
 		file.close();
 	}
 

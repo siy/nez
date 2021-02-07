@@ -1,4 +1,5 @@
 /bin/
+/out/
 /build/
 /test_result/
 /build_test/

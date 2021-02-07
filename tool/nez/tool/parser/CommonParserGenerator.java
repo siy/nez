@@ -872,6 +872,8 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 						}
 						Else();
 						{
+							Verbose("from CPG:875");
+
 							BackState(e, n);
 							Statement(_Func(memoFail, _int(memoPoint)));
 							Fail();
@@ -976,7 +978,16 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 			return names;
 		}
 
+		private String stringify(Object obj) {
+			return "\"" + obj.toString()
+				.replace("\\", "\\\\")
+				.replace("\"", "\\\"")
+				+ "\"";
+		}
+
 		private void BackState(Expression inner, String[] names) {
+			Statement(_Func("reportError", stringify(inner), names[0]));
+
 			BackPos(names[0]);
 			if (names[1] != null) {
 				BackTree(names[1]);
@@ -1122,6 +1133,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 						}
 						Else();
 						{
+							Verbose("from CPG:1126");
 							BackState(sub, n);
 						}
 						EndIf();
@@ -1203,6 +1215,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 				Verbose(sub.toString());
 				If(_Not(f));
 				{
+					Verbose("from CPG:1208");
 					BackState(sub, n);
 				}
 				EndIf();
@@ -1227,6 +1240,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 				Verbose(sub.toString());
 				If(_Not(f));
 				{
+					Verbose("from CPG:1233");
 					BackState(sub, n);
 					Break();
 				}
@@ -1296,6 +1310,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 					Fail();
 				}
 				EndIf();
+				Verbose("from CPG:1303");
 				BackState(sub, n);
 				EndScope();
 			}

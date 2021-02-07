@@ -139,13 +139,19 @@ public class CParserGenerator extends CommonParserGenerator {
 	@Override
 	protected void generateFooter(Grammar g) {
 		importFileContent("cnez-utils.txt");
-		//
-		BeginDecl("Tree* " + _ns()
-					  + "parse(const char *text, size_t len, void *thunk, void* (*fnew)(symbol_t, const unsigned char *, size_t, size_t, void *), void  (*fset)(void *, size_t, symbol_t, void *, void *), void  (*fgc)(void *, int, void *))");
+		var space = " ".repeat(12 + _ns().length());
+
+		BeginDecl("void* " + _ns() + "parse(const char *text,\n"
+					  + space + "size_t len,\n"
+					  + space + "void *thunk,\n"
+					  + space + "void (*ferr)(const char *, const unsigned char *, void *),\n"
+					  + space + "void* (*fnew)(symbol_t, const unsigned char *, size_t, size_t, void *),\n"
+					  + space + "void  (*fset)(void *, size_t, symbol_t, void *, void *),\n"
+					  + space + "void  (*fgc)(void *, int, void *))");
 		{
 			VarDecl("void*", "result", _Null());
 			VarDecl(_state(), "ParserContext_new((const unsigned char*)text, len)");
-			Statement(_Func("initTreeFunc", "thunk", "fnew", "fset", "fgc"));
+			Statement(_Func("initTreeFunc", "thunk", "ferr", "fnew", "fset", "fgc"));
 			InitMemoPoint();
 			If(_funccall(_funcname(g.getStartProduction())));
 			{
@@ -163,7 +169,7 @@ public class CParserGenerator extends CommonParserGenerator {
 		EndDecl();
 		BeginDecl("static void* cnez_parse(const char *text, size_t len)");
 		{
-			Return(_ns() + "parse(text, len, NULL, NULL, NULL, NULL)");
+			Return(_ns() + "parse(text, len, NULL, NULL, NULL, NULL, NULL)");
 		}
 		EndDecl();
 		BeginDecl("long " + _ns() + "match(const char *text, size_t len)");
@@ -244,20 +250,23 @@ public class CParserGenerator extends CommonParserGenerator {
 		}
 		Line("#define MAXLABEL " + c);
 		NewLine();
+
 		Line("typedef struct Tree {");
-		Line("    long           refc;");
-		Line("    symbol_t       tag;");
-		Line("    const unsigned char    *text;");
-		Line("    size_t         len;");
-		Line("    size_t         size;");
-		Line("    symbol_t      *labels;");
-		Line("    struct Tree  **childs;");
+		Line("long           refc;");
+		Line("symbol_t       tag;");
+		Line("const unsigned char    *text;");
+		Line("size_t         len;");
+		Line("size_t         size;");
+		Line("symbol_t      *labels;");
+		Line("struct Tree  **childs;");
 		Line("} Tree;");
+
 		NewLine();
 		var space = " ".repeat(12 + _ns().length());
-		Line("Tree* " + _ns() + "parse(const char *text,");
+		Line("void* " + _ns() + "parse(const char *text,");
 		Line(space + "size_t len,");
-		Line(space + "void *,");
+		Line(space + "void* thunk,");
+		Line(space + "void (*ferr)(const char *, const unsigned char *, void *),");
 		Line(space + "void* (*fnew)(symbol_t, const char *, size_t, size_t, void *),");
 		Line(space + "void  (*fset)(void *, size_t, symbol_t, void *, void *),");
 		Statement(space + "void  (*fgc)(void *, int, void *))");
@@ -270,6 +279,8 @@ public class CParserGenerator extends CommonParserGenerator {
 		NewLine();
 		Statement("void cnez_dump(Tree* t, FILE *fp, int depth)");
 		NewLine();
+		Statement("void cnez_free(void *t)");
+		NewLine();
 		Line("#ifdef __cplusplus");
 		Line("}");
 		Line("#endif");
@@ -277,5 +288,4 @@ public class CParserGenerator extends CommonParserGenerator {
 		Line("#endif /* __" + upcaseName + " */");
 		file.close();
 	}
-
 }

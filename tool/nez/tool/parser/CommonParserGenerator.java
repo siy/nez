@@ -978,16 +978,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 			return names;
 		}
 
-		private String stringify(Object obj) {
-			return "\"" + obj.toString()
-				.replace("\\", "\\\\")
-				.replace("\"", "\\\"")
-				+ "\"";
-		}
-
 		private void BackState(Expression inner, String[] names) {
-			Statement(_Func("reportError", stringify(inner), names[0]));
-
 			BackPos(names[0]);
 			if (names[1] != null) {
 				BackTree(names[1]);

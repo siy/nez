@@ -1,5 +1,6 @@
 package nez.tool.parser;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -41,10 +42,8 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 		super(fileExt);
 	}
 
-	protected boolean verboseMode = true;
 	protected boolean UniqueNumberingSymbol = true;
 	protected boolean SupportedSwitchCase = true;
-	protected boolean SupportedDoWhile = true;
 	protected boolean UsingBitmap;
 	protected boolean SupportedRange;
 	protected boolean SupportedMatch2;
@@ -136,19 +135,19 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 	}
 
 	final void DeclSet(boolean[] b, boolean Iteration) {
-		if (Iteration && strategy.SSE) {
-			byte[] range = rangeSEE(b);
-			if (range != null) {
-				String key = StringUtils.stringfyBitmap(b) + "*";
-				String name = nameMap.get(key);
-				if (name == null) {
-					name = _range() + nameMap.size();
-					nameMap.put(key, name);
-					DeclConst(type("$range"), name, range.length, _initByteArray(range));
-				}
-				return;
-			}
-		}
+//		if (Iteration && strategy.SSE) {
+//			byte[] range = rangeSEE(b);
+//			if (range != null) {
+//				String key = StringUtils.stringfyBitmap(b) + "*";
+//				String name = nameMap.get(key);
+//				if (name == null) {
+//					name = _range() + nameMap.size();
+//					nameMap.put(key, name);
+//					DeclConst(type("$range"), name, range.length, _initByteArray(range));
+//				}
+//				return;
+//			}
+//		}
 		if (SupportedRange && range(b) != null) {
 			return;
 		}
@@ -228,7 +227,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 			}
 		}
 		if (start < end) {
-			return new int[]{ start, end };
+			return new int[]{start, end};
 		}
 		return null;
 	}
@@ -273,8 +272,13 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 	}
 
 	final void DeclMatchText(byte[] text) {
-		if ((SupportedMatch2 && isMatchText(text, 2)) || (SupportedMatch3 && isMatchText(text, 3)) || (SupportedMatch4 && isMatchText(text, 4)) || (SupportedMatch5 && isMatchText(text, 5)) || (SupportedMatch6 && isMatchText(text, 6))
-				|| (SupportedMatch7 && isMatchText(text, 7)) || (SupportedMatch8 && isMatchText(text, 8))) {
+		if ((SupportedMatch2 && isMatchText(text, 2))
+			|| (SupportedMatch3 && isMatchText(text, 3))
+			|| (SupportedMatch4 && isMatchText(text, 4))
+			|| (SupportedMatch5 && isMatchText(text, 5))
+			|| (SupportedMatch6 && isMatchText(text, 6))
+			|| (SupportedMatch7 && isMatchText(text, 7))
+			|| (SupportedMatch8 && isMatchText(text, 8))) {
 			return;
 		}
 		DeclText(text);
@@ -652,7 +656,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 			}
 			if (e.size() == 1) {
 				// single selection
-				e.get(0).visit(this, null);
+				e.get(0).visit(this, a);
 			} else {
 				for (Expression sub : e) {
 					checkInner(sub);
@@ -829,20 +833,31 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 		}
 
 		private String _eval(Expression e) {
+			return _eval(e, _pErr());
+		}
+
+		private String _eval(Expression e, String expr) {
 			String f = _funcname(e);
 			if (f == null) {
 				return null;
 			}
-			return _funccall(f);
+			return _funccall(f, expr);
 		}
 
-		private String _eval(String uname) {
-			return _funccall(_funcname(uname));
+//		private String _eval(String uname) {
+//			return _funccall(_funcname(uname));
+//		}
+
+		private String _eval(String uname, String expr) {
+			return _funccall(_funcname(uname), expr);
 		}
 
 		private void generateFunction(String name, Expression e) {
 			Integer memoPoint = memoPointMap.get(name);
-			Verbose(e.toString());
+			NewLine();
+			Verbose("");
+			Verbose("Function which matches following rule: " + e.toString());
+			Verbose("");
 			initLocal();
 			BeginFunc(name);
 			{
@@ -872,7 +887,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 						}
 						Else();
 						{
-							Verbose("from CPG:875");
+							ReportError(891, _pErr(), name + " (" + e.toString() + ") {"  + name + "}");
 
 							BackState(e, n);
 							Statement(_Func(memoFail, _int(memoPoint)));
@@ -883,7 +898,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 					EndIf();
 					Return(_Binary("memo", _Eq(), "1"));
 				} else {
-					visit(e, null);
+					visit(e, name);
 					Succ();
 				}
 			}
@@ -993,9 +1008,11 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 
 		@Override
 		public Object visitNonTerminal(NonTerminal e, Object a) {
-			String f = _eval(e.getUniqueName());
+			Verbose("visitNonTerminal");
+			String f = _eval(e.getUniqueName(), _pErr());
 			If(_Not(f));
 			{
+				ReportError(1014, _pErr(), e.toString() + " {"  + a + "}");
 				Fail();
 			}
 			EndIf();
@@ -1004,41 +1021,49 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 
 		@Override
 		public Object visitEmpty(Nez.Empty e, Object a) {
+			Verbose("visitEmpty");
 			return null;
 		}
 
 		@Override
 		public Object visitFail(Nez.Fail e, Object a) {
+			Verbose("visitFail");
+			ReportError(1028, _pErr(), e.toString() + " {"  + a + "}");
 			Fail();
 			return null;
 		}
 
 		@Override
 		public Object visitByte(Nez.Byte e, Object a) {
+			Verbose("visitByte");
 			If(_Func("read"), _NotEq(), _byte(e.byteChar));
 			{
+				ReportError(1037, _pErr(), e.toString() + " {"  + a + "}");
 				Fail();
 			}
 			EndIf();
-			checkBinaryEOF(e.byteChar == 0);
+			checkBinaryEOF(e.byteChar == 0, a);
 			return null;
 		}
 
 		@Override
 		public Object visitByteSet(Nez.ByteSet e, Object a) {
+			Verbose("visitByteSet");
 			If(_Not(MatchByteArray(e.byteset, true)));
 			{
+				ReportError(1049, _pErr(), e.toString() + " {"  + a + "}");
 				Fail();
 			}
 			EndIf();
-			checkBinaryEOF(e.byteset[0]);
+			checkBinaryEOF(e.byteset[0], a);
 			return null;
 		}
 
-		private void checkBinaryEOF(boolean checked) {
+		private void checkBinaryEOF(boolean checked, final Object a) {
 			if (strategy.BinaryGrammar && checked) {
 				If(_Func("eof"));
 				{
+					ReportError(1061, _pErr(), "EOF" + " {"  + a + "}");
 					Fail();
 				}
 				EndIf();
@@ -1062,16 +1087,19 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 
 		@Override
 		public Object visitAny(Nez.Any e, Object a) {
+			Verbose("visitAny");
 			if (strategy.BinaryGrammar) {
 				Statement(_Func("move", "1"));
 				If(_Func("eof"));
 				{
+					ReportError(1089, _pErr(), e.toString() + " {"  + a + "}");
 					Fail();
 				}
 				EndIf();
 			} else {
 				If(_Func("read"), _Eq(), "0");
 				{
+					ReportError(1096, _pErr(), e.toString() + " {"  + a + "}");
 					Fail();
 				}
 				EndIf();
@@ -1081,8 +1109,10 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 
 		@Override
 		public Object visitMultiByte(Nez.MultiByte e, Object a) {
+			Verbose("visitMultiByte");
 			If(_Not(_Match(e.byteseq)));
 			{
+				ReportError(1107, _pErr(), e.toString() + " {"  + a + "}");
 				Fail();
 			}
 			EndIf();
@@ -1091,6 +1121,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 
 		@Override
 		public Object visitPair(Nez.Pair e, Object a) {
+			Verbose("visitPair");
 			for (Expression sub : e) {
 				visit(sub, a);
 			}
@@ -1099,6 +1130,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 
 		@Override
 		public Object visitSequence(Nez.Sequence e, Object a) {
+			Verbose("visitSequence");
 			for (Expression sub : e) {
 				visit(sub, a);
 			}
@@ -1107,9 +1139,12 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 
 		@Override
 		public Object visitChoice(Nez.Choice e, Object a) {
+			Verbose("visitChoice");
 			if (e.predicted != null && SupportedSwitchCase) {
-				generateSwitch(e, e.predicted);
+				Verbose("visitChoice: generateSwitch");
+				generateSwitch(e, e.predicted, a);
 			} else {
+				Verbose("visitChoice: alternate");
 				BeginScope();
 				String temp = InitVal(_temp(), _True());
 				for (Expression sub : e) {
@@ -1124,7 +1159,6 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 						}
 						Else();
 						{
-							Verbose("from CPG:1126");
 							BackState(sub, n);
 						}
 						EndIf();
@@ -1133,6 +1167,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 				}
 				If(temp);
 				{
+					ReportError(1158, _pErr(), "one of " + e.toString() + " {"  + a + "}");
 					Fail();
 				}
 				EndIf();
@@ -1141,14 +1176,15 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 			return null;
 		}
 
-		private void generateSwitch(Nez.Choice choice, ChoicePrediction p) {
+		private void generateSwitch(Nez.Choice choice, ChoicePrediction p, Object a) {
 			if (choice.size() == 1) {
 				Verbose.println("single choice: " + choice);
-				choice.get(0).visit(this, null);
+				choice.get(0).visit(this, a);
 			} else {
 				String temp = InitVal(_temp(), _True());
 				Switch(_GetArray(_index(p.indexMap), _Func("prefetch")));
 				Case("0");
+				ReportError(1175, _pErr(), "not being here {" + a + "}");
 				Fail();
 				for (int i = 0; i < choice.size(); i++) {
 					Case(_int(i + 1));
@@ -1167,6 +1203,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 				EndSwitch();
 				If(_Not(temp));
 				{
+					ReportError(1194, _pErr(), choice.toString() + " {"  + a + "}");
 					Fail();
 				}
 				EndIf();
@@ -1175,9 +1212,11 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 
 		@Override
 		public Object visitDispatch(Nez.Dispatch e, Object a) {
+			Verbose("visitDispatch");
 			String temp = InitVal(_temp(), _True());
 			Switch(_GetArray(_index(e.indexMap), _Func("prefetch")));
 			Case("0");
+			ReportError(1206, _pErr(), "should not be here " + e.toString() + " {"  + a + "}");
 			Fail();
 			for (int i = 1; i < e.size(); i++) {
 				Expression sub = e.get(i);
@@ -1191,6 +1230,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 			EndSwitch();
 			If(_Not(temp));
 			{
+				ReportError(1220, _pErr(), e.toString() + " {"  + a + "}");
 				Fail();
 			}
 			EndIf();
@@ -1199,41 +1239,60 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 
 		@Override
 		public Object visitOption(Nez.Option e, Object a) {
+			Verbose("visitOption");
+			BeginLocalScope();
+			String temp = InitVal(_temp(), _pErr());
+			VarAssign(_pErr(), _False());
 			Expression sub = e.get(0);
 			if (!tryOptionOptimization(sub)) {
+				Verbose("visitOption : regular case");
 				String f = _eval(sub);
 				String[] n = SaveState(sub);
 				Verbose(sub.toString());
 				If(_Not(f));
 				{
-					Verbose("from CPG:1208");
 					BackState(sub, n);
 				}
 				EndIf();
 			}
+			VarAssign(_pErr(), temp);
+			EndLocalScope();
 			return null;
 		}
 
 		@Override
 		public Object visitZeroMore(Nez.ZeroMore e, Object a) {
-			if (!tryRepetitionOptimization(e.get(0), false)) {
-				generateWhile(e, a);
+			Verbose("visitZeroMore");
+			BeginLocalScope();
+			String temp = InitVal(_temp(), _pErr());
+			VarAssign(_pErr(), _False());
+			if (!tryRepetitionOptimization(e.get(0), false, a)) {
+				Verbose("visitZeroMore: generateWhile");
+				generateWhile(e, false, a);
 			}
+			VarAssign(_pErr(), temp);
+			EndLocalScope();
 			return null;
 		}
 
-		private void generateWhile(Expression e, Object a) {
+		private void generateWhile(Expression e, boolean oneMore, Object a) {
 			Expression sub = e.get(0);
-			String f = _eval(sub);
+			String f = _eval(sub, _pErr());
 			While(_True());
 			{
 				String[] n = SaveState(sub);
 				Verbose(sub.toString());
 				If(_Not(f));
 				{
-					Verbose("from CPG:1233");
+					if (oneMore) {
+						ReportError(1257, _pErr(), " at least one " + f + " (" + sub + ")" + " {"  + a + "}");
+					}
 					BackState(sub, n);
 					Break();
+				}
+				Else();
+				{
+					VarAssign(_pErr(), _False());
 				}
 				EndIf();
 				CheckInfiniteLoop(sub, n[0]);
@@ -1243,19 +1302,31 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 
 		@Override
 		public Object visitOneMore(Nez.OneMore e, Object a) {
-			if (!tryRepetitionOptimization(e.get(0), true)) {
+			Verbose("visitOneMore");
+			BeginLocalScope();
+			String temp = InitVal(_temp(), _pErr());
+			if (!tryRepetitionOptimization(e.get(0), true, a)) {
+				Verbose("visitOneMore : general case");
 				String f = _eval(e.get(0));
 				if (f != null) {
 					If(_Not(f));
 					{
+						ReportError(1276, _pErr(), e.toString() + " {"  + a + "}");
 						Fail();
+					}
+					Else();
+					{
+						VarAssign(_pErr(), _False());
 					}
 					EndIf();
 				} else {
 					visit(e.get(0), a);
 				}
-				generateWhile(e, a);
+				//TODO: may trigger false error reporting, if first match is successful above?
+				generateWhile(e, true, a);
 			}
+			VarAssign(_pErr(), temp);
+			EndLocalScope();
 			return null;
 		}
 
@@ -1271,14 +1342,16 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 
 		@Override
 		public Object visitAnd(Nez.And e, Object a) {
+			Verbose("visitAnd");
 			Expression sub = e.get(0);
-			if (!tryAndOptimization(sub)) {
+			if (!tryAndOptimization(sub, a)) {
 				String f = _eval(sub);
 				BeginScope();
 				String n = SavePos();
 				Verbose(sub.toString());
 				If(_Not(f));
 				{
+					ReportError(1308, _pErr(), e.toString() + " {"  + a + "}");
 					Fail();
 				}
 				EndIf();
@@ -1290,18 +1363,20 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 
 		@Override
 		public Object visitNot(Nez.Not e, Object a) {
+			Verbose("visitNot");
 			Expression sub = e.get(0);
-			if (!tryNotOptimization(sub)) {
+			if (!tryNotOptimization(sub, a)) {
+				Verbose("visitNot : regular case");
 				String f = _eval(sub);
 				BeginScope();
 				String[] n = SaveState(sub);
 				Verbose(sub.toString());
 				If(f);
 				{
+					ReportError(1370, _pErr(), e.toString() + " {"  + a + "}");
 					Fail();
 				}
 				EndIf();
-				Verbose("from CPG:1303");
 				BackState(sub, n);
 				EndScope();
 			}
@@ -1362,12 +1437,13 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 			return false;
 		}
 
-		private boolean tryRepetitionOptimization(Expression inner, boolean OneMore) {
+		private boolean tryRepetitionOptimization(Expression inner, boolean OneMore, Object a) {
 			if (strategy.Olex) {
 				if (inner instanceof Nez.Byte) {
 					Nez.Byte e = (Nez.Byte) inner;
 					if (OneMore) {
-						visit(inner, null);
+						visit(inner, a);
+						VarAssign(_pErr(), _False());
 					}
 					While(_Binary(_Func("prefetch"), _Eq(), _byte(e.byteChar)));
 					{
@@ -1385,26 +1461,9 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 				}
 				if (inner instanceof Nez.ByteSet) {
 					Nez.ByteSet e = (Nez.ByteSet) inner;
-					if (strategy.SSE) {
-						String name = _range(e.byteset);
-						if (name != null) {
-							byte[] r = rangeSEE(e.byteset);
-							assert r != null;
-							Verbose.println("range: " + name + " " + e);
-							if (OneMore) {
-								If(_Not(_Func("checkOneMoreRange", name, _int(r.length))));
-								{
-									Fail();
-								}
-								EndIf();
-							} else {
-								Statement(_Func("skipRange", name, _int(r.length)));
-							}
-							return true;
-						}
-					}
 					if (OneMore) {
-						visit(inner, null);
+						visit(inner, a);
+						VarAssign(_pErr(), _False());
 					}
 					While(MatchByteArray(e.byteset, false));
 					{
@@ -1423,7 +1482,8 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 				if (inner instanceof Nez.MultiByte) {
 					Nez.MultiByte e = (Nez.MultiByte) inner;
 					if (OneMore) {
-						visit(inner, null);
+						visit(inner, a);
+						VarAssign(_pErr(), _False());
 					}
 					While(_Match(e.byteseq));
 					{
@@ -1435,7 +1495,8 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 				if (inner instanceof Nez.Any) {
 					// Nez.Any e = (Nez.Any) inner;
 					if (OneMore) {
-						visit(inner, null);
+						visit(inner, a);
+						VarAssign(_pErr(), _False());
 					}
 					While(_Not(_Func("eof")));
 					{
@@ -1448,32 +1509,35 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 			return false;
 		}
 
-		private boolean tryAndOptimization(Expression inner) {
+		private boolean tryAndOptimization(Expression inner, final Object a) {
 			if (strategy.Olex) {
 				if (inner instanceof Nez.Byte) {
 					Nez.Byte e = (Nez.Byte) inner;
 					If(_Func("prefetch"), _NotEq(), _byte(e.byteChar));
 					{
+						ReportError(1485, _pErr(), e.toString() + " {"  + a + "}");
 						Fail();
 					}
 					EndIf();
-					checkBinaryEOF(e.byteChar == 0);
+					checkBinaryEOF(e.byteChar == 0, a);
 					return true;
 				}
 				if (inner instanceof Nez.ByteSet) {
 					Nez.ByteSet e = (Nez.ByteSet) inner;
 					If(_Not(MatchByteArray(e.byteset, false)));
 					{
+						ReportError(1496, _pErr(), e.toString() + "(byte set)" + " {"  + a + "}");
 						Fail();
 					}
 					EndIf();
-					checkBinaryEOF(e.byteset[0]);
+					checkBinaryEOF(e.byteset[0], a);
 					return true;
 				}
 				if (inner instanceof Nez.MultiByte) {
 					Nez.MultiByte e = (Nez.MultiByte) inner;
 					If(_Not(_Match(e.byteseq)));
 					{
+						ReportError(1507, _pErr(), new String(e.byteseq, StandardCharsets.UTF_8) + " {"  + a + "}");
 						Fail();
 					}
 					EndIf();
@@ -1483,6 +1547,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 					// Nez.Any e = (Nez.Any) inner;
 					If(_Func("eof"));
 					{
+						ReportError(1517, _pErr(), "not an EOF" + " {"  + a + "}");
 						Fail();
 					}
 					EndIf();
@@ -1492,32 +1557,35 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 			return false;
 		}
 
-		private boolean tryNotOptimization(Expression inner) {
+		private boolean tryNotOptimization(Expression inner, final Object a) {
 			if (strategy.Olex) {
 				if (inner instanceof Nez.Byte) {
 					Nez.Byte e = (Nez.Byte) inner;
 					If(_Func("prefetch"), _Eq(), _byte(e.byteChar));
 					{
+						ReportError(1533, _pErr(), "not " + Character.toString(e.byteChar) + " {"  + a + "}");
 						Fail();
 					}
 					EndIf();
-					checkBinaryEOF(e.byteChar != 0);
+					checkBinaryEOF(e.byteChar != 0, a);
 					return true;
 				}
 				if (inner instanceof Nez.ByteSet) {
 					Nez.ByteSet e = (Nez.ByteSet) inner;
 					If(MatchByteArray(e.byteset, false));
 					{
+						ReportError(1544, _pErr(), "not " + e.byteset + " | " + e.toString() + " {"  + a + "}");
 						Fail();
 					}
 					EndIf();
-					checkBinaryEOF(!e.byteset[0]);
+					checkBinaryEOF(!e.byteset[0], a);
 					return true;
 				}
 				if (inner instanceof Nez.MultiByte) {
 					Nez.MultiByte e = (Nez.MultiByte) inner;
 					If(_Match(e.byteseq));
 					{
+						ReportError(1555, _pErr(), "not " + new String(e.byteseq, StandardCharsets.UTF_8) + " {"  + a + "}");
 						Fail();
 					}
 					EndIf();
@@ -1527,6 +1595,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 					// Nez.Any e = (Nez.Any) inner;
 					If(_Not(_Func("eof")));
 					{
+						ReportError(1566, _pErr(), "EOF" + " {"  + a + "}");
 						Fail();
 					}
 					EndIf();
@@ -1540,24 +1609,28 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 
 		@Override
 		public Object visitBeginTree(Nez.BeginTree e, Object a) {
+			Verbose("visitBeginTree");
 			Statement(_Func("beginTree", _int(e.shift)));
 			return null;
 		}
 
 		@Override
 		public Object visitEndTree(Nez.EndTree e, Object a) {
+			Verbose("visitEndTree");
 			Statement(_Func("endTree", _int(e.shift), _tag(e.tag), _text(e.value)));
 			return null;
 		}
 
 		@Override
 		public Object visitFoldTree(Nez.FoldTree e, Object a) {
+			Verbose("visitFoldTree");
 			Statement(_Func("foldTree", _int(e.shift), _label(e.label)));
 			return null;
 		}
 
 		@Override
 		public Object visitLinkTree(Nez.LinkTree e, Object a) {
+			Verbose("visitLinkTree");
 			BeginScope();
 			String tree = SaveTree();
 			visit(e.get(0), a);
@@ -1569,18 +1642,21 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 
 		@Override
 		public Object visitTag(Nez.Tag e, Object a) {
+			Verbose("visitTag");
 			Statement(_Func("tagTree", _tag(e.tag)));
 			return null;
 		}
 
 		@Override
 		public Object visitReplace(Nez.Replace e, Object a) {
+			Verbose("visitReplace");
 			Statement(_Func("valueTree", _text(e.value)));
 			return null;
 		}
 
 		@Override
 		public Object visitDetree(Nez.Detree e, Object a) {
+			Verbose("visitDetree");
 			BeginScope();
 			String n1 = SaveTree();
 			String n2 = SaveLog();
@@ -1593,6 +1669,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 
 		@Override
 		public Object visitBlockScope(Nez.BlockScope e, Object a) {
+			Verbose("visitBlockScope");
 			BeginScope();
 			String n = SaveSymbolTable();
 			visit(e.get(0), a);
@@ -1603,6 +1680,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 
 		@Override
 		public Object visitLocalScope(LocalScope e, Object a) {
+			Verbose("visitLocalScope");
 			BeginScope();
 			String n = SaveSymbolTable();
 			Statement(_Func("addSymbolMask", _table(e.tableName)));
@@ -1614,6 +1692,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 
 		@Override
 		public Object visitSymbolAction(SymbolAction e, Object a) {
+			Verbose("visitSymbolAction");
 			BeginScope();
 			String ppos = SavePos();
 			visit(e.get(0), a);
@@ -1624,18 +1703,21 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 
 		@Override
 		public Object visitSymbolPredicate(SymbolPredicate e, Object a) {
+			Verbose("visitSymbolPredicate");
 			BeginScope();
 			String ppos = SavePos();
 			visit(e.get(0), a);
 			if (e.op == FunctionName.is) {
 				If(_Not(_Func("equals", _table(e.tableName), ppos)));
 				{
+					ReportError(1670, _pErr(), "equals " + _table(e.tableName) + " {"  + a + "}");
 					Fail();
 				}
 				EndIf();
 			} else {
 				If(_Not(_Func("contains", _table(e.tableName), ppos)));
 				{
+					ReportError(1677, _pErr(), "contains" + _table(e.tableName) + " {"  + a + "}");
 					Fail();
 				}
 				EndIf();
@@ -1646,8 +1728,10 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 
 		@Override
 		public Object visitSymbolMatch(SymbolMatch e, Object a) {
+			Verbose("visitSymbolMatch");
 			If(_Not(_Func("matchSymbol", _table(e.tableName))));
 			{
+				ReportError(1690, _pErr(), "matchSymbol" + _table(e.tableName) + " {"  + a + "}");
 				Fail();
 			}
 			EndIf();
@@ -1656,15 +1740,18 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 
 		@Override
 		public Object visitSymbolExists(SymbolExists e, Object a) {
+			Verbose("visitSymbolExists");
 			if (e.symbol == null) {
 				If(_Not(_Func("exists", _table(e.tableName))));
 				{
+					ReportError(1702, _pErr(), "exists" + _table(e.tableName) + " {"  + a + "}");
 					Fail();
 				}
 				EndIf();
 			} else {
 				If(_Not(_Func("existsSymbol", _table(e.tableName), _text(e.symbol))));
 				{
+					ReportError(1709, _pErr(), "existsSymbol" + _table(e.tableName) + " {"  + a + "}");
 					Fail();
 				}
 				EndIf();
@@ -1674,6 +1761,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 
 		@Override
 		public Object visitScan(Nez.Scan e, Object a) {
+			Verbose("visitScan");
 			BeginScope();
 			String ppos = SavePos();
 			visit(e.get(0), a);
@@ -1684,6 +1772,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 
 		@Override
 		public Object visitRepeat(Nez.Repeat e, Object a) {
+			Verbose("visitRepeat");
 			While(_Func("decCount"));
 			{
 				visit(e.get(0), a);
@@ -1694,17 +1783,20 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 
 		@Override
 		public Object visitIf(IfCondition e, Object a) {
+			Verbose("visitIf");
 			return null;
 		}
 
 		@Override
 		public Object visitOn(OnCondition e, Object a) {
+			Verbose("visitOn");
 			// TODO Auto-generated method stub
 			return null;
 		}
 
 		@Override
 		public Object visitLabel(Label e, Object a) {
+			Verbose("visitLabel");
 			// TODO Auto-generated method stub
 			return null;
 		}
@@ -1854,8 +1946,16 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 		return _argument(_state(), type(_state()));
 	}
 
+	protected String _printErr() {
+		return _argument(_pErr(), type(_pErr()));
+	}
+
 	protected String _funccall(String name) {
-		return name + "(" + _state() + ")";
+		return _funccall(name, "1");
+	}
+
+	protected String _funccall(String name, String secondParam) {
+		return name + "(" + _state() + ", " + secondParam + ")";
 	}
 
 	/* Statement */
@@ -1894,7 +1994,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 	}
 
 	protected final void BeginFunc(String f) {
-		BeginFunc(type("$parse"), f, _argument());
+		BeginFunc(type("$parse"), f, _argument() + ", " + _printErr());
 	}
 
 	protected void EndFunc() {
@@ -1936,6 +2036,25 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 
 	protected void Fail() {
 		Return(_False());
+	}
+
+	protected static String stringify(String input) {
+		return "\"" + input
+			.replace("\\", "\\\\")
+			.replace("\"", "\\\"")
+			 + "\""; //"\\"+=\\""
+
+	}
+
+	protected void ReportError(int line, final String expr, String text) {
+		var msg = stringify("CPG:" + line + ": Expecting " + text);
+
+		Verbose(msg);
+		If("p_err");
+		{
+			Statement(_Func("reportError", msg));
+		}
+		EndIf();
 	}
 
 	protected void If(String cond) {
@@ -2050,6 +2169,10 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 
 	protected String _state() {
 		return "c";
+	}
+
+	protected String _pErr() {
+		return "p_err";
 	}
 
 	protected String _pos() {

@@ -47,7 +47,7 @@ public class ParserStrategy {
 
 	/* Generator */
 	public boolean VerboseCode = true;
-	public boolean SSE;
+	public boolean SSE = false;
 
 	/* Profiling */
 	public boolean Coverage;

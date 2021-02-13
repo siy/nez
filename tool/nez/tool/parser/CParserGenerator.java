@@ -50,6 +50,7 @@ public class CParserGenerator extends CommonParserGenerator {
 		addType(_log(), "size_t");
 		addType(_table(), "size_t");
 		addType(_state(), "ParserContext *");
+		addType(_pErr(), "int");
 	}
 
 	@Override
@@ -130,10 +131,15 @@ public class CParserGenerator extends CommonParserGenerator {
 
 	@Override
 	protected void generatePrototypes() {
+		NewLine();
+		LineComment("");
 		LineComment("Prototypes");
+		LineComment("");
+		NewLine();
 		for (String name : crossRefNames) {
-			Statement(_defun("int", name) + "(ParserContext *c)");
+			Statement(_defun("int", name) + "(ParserContext *c, int p_err)");
 		}
+		NewLine();
 	}
 
 	@Override

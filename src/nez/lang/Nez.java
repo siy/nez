@@ -679,10 +679,6 @@ public class Nez {
 		}
 	}
 
-	public abstract static class Action extends Terminal implements TreeConstruction {
-		Object value;
-	}
-
 	public static class LinkTree extends Unary implements TreeConstruction {
 		public Symbol label;
 

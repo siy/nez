@@ -1,3 +1,8 @@
+
+// 
+// email grammar parser.
+//
+
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
@@ -1078,3 +1083,383 @@ static inline int ParserContext_bitis(ParserContext *c, int *bits, size_t n)
 }
 
 
+static int _T = 0;
+static int _L = 0;
+static int _S = 0;
+static const unsigned char _set0[256] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+static int _TEmail = 1;
+static int _TList = 2;
+static const char * _tags[3] = {"","Email","List"};
+static const char * _labels[1] = {""};
+static const char * _tables[1] = {""};
+// Prototypes
+int p_LOCAL(ParserContext *c);
+
+// 
+// Function which matches following rule: '.' ~LOCAL
+// 
+static inline int e2(ParserContext * c) {
+   if (ParserContext_read(c) != 46) {
+      // "CPG:1037: Expecting '.'"
+      ParserContext_reportError(c,"CPG:1037: Expecting '.'");
+      return 0;
+   }
+   if (!p_LOCAL(c)) {
+      // "CPG:1014: Expecting ~LOCAL"
+      ParserContext_reportError(c,"CPG:1014: Expecting ~LOCAL");
+      return 0;
+   }
+   return 1;
+}
+
+// 
+// Function which matches following rule: [\-0-9A-Za-z]+ ('.' ~LOCAL)?
+// 
+int p_LOCAL(ParserContext * c) {
+   if (!_set0[ParserContext_read(c)]) {
+      // "CPG:1049: Expecting [\\-0-9A-Za-z]"
+      ParserContext_reportError(c,"CPG:1049: Expecting [\\-0-9A-Za-z]");
+      return 0;
+   }
+   while (_set0[ParserContext_prefetch(c)]) {
+      ParserContext_move(c,1);
+   }
+   const unsigned char * pos = c->pos;
+   // '.' ~LOCAL
+   if (!e2(c)) {
+      c->pos = pos;
+   }
+   return 1;
+}
+
+// 
+// Function which matches following rule: '.' [\-0-9A-Za-z]+
+// 
+static inline int e3(ParserContext * c) {
+   if (ParserContext_read(c) != 46) {
+      // "CPG:1037: Expecting '.'"
+      ParserContext_reportError(c,"CPG:1037: Expecting '.'");
+      return 0;
+   }
+   if (!_set0[ParserContext_read(c)]) {
+      // "CPG:1049: Expecting [\\-0-9A-Za-z]"
+      ParserContext_reportError(c,"CPG:1049: Expecting [\\-0-9A-Za-z]");
+      return 0;
+   }
+   while (_set0[ParserContext_prefetch(c)]) {
+      ParserContext_move(c,1);
+   }
+   return 1;
+}
+
+// 
+// Function which matches following rule: ~LOCAL '@' [\-0-9A-Za-z]+ ('.' [\-0-9A-Za-z]+)+
+// 
+static inline int p_EMAIL(ParserContext * c) {
+   if (!p_LOCAL(c)) {
+      // "CPG:1014: Expecting ~LOCAL"
+      ParserContext_reportError(c,"CPG:1014: Expecting ~LOCAL");
+      return 0;
+   }
+   if (ParserContext_read(c) != 64) {
+      // "CPG:1037: Expecting '@'"
+      ParserContext_reportError(c,"CPG:1037: Expecting '@'");
+      return 0;
+   }
+   if (!_set0[ParserContext_read(c)]) {
+      // "CPG:1049: Expecting [\\-0-9A-Za-z]"
+      ParserContext_reportError(c,"CPG:1049: Expecting [\\-0-9A-Za-z]");
+      return 0;
+   }
+   while (_set0[ParserContext_prefetch(c)]) {
+      ParserContext_move(c,1);
+   }
+   if (!e3(c)) {
+      // "CPG:1276: Expecting ('.' [\\-0-9A-Za-z]+)+"
+      ParserContext_reportError(c,"CPG:1276: Expecting ('.' [\\-0-9A-Za-z]+)+");
+      return 0;
+   }
+   int temp = 1;
+   while (1) {
+      const unsigned char * pos = c->pos;
+      // '.' [\-0-9A-Za-z]+
+      if (!e3(c)) {
+         // from CPG:1233, from visitOneMore
+         if (temp) {
+            // "CPG:1251: Expecting  at least one e3(c) ('.' [\\-0-9A-Za-z]+)"
+            ParserContext_reportError(c,"CPG:1251: Expecting  at least one e3(c) ('.' [\\-0-9A-Za-z]+)");
+         }
+         c->pos = pos;
+         break;
+      } else {
+         temp = 0;
+      }
+   }
+   return 1;
+}
+
+// 
+// Function which matches following rule: !~EMAIL .
+// 
+static inline int e1(ParserContext * c) {
+   {
+      const unsigned char * pos = c->pos;
+      // ~EMAIL
+      if (p_EMAIL(c)) {
+         // "CPG:1328: Expecting !~EMAIL"
+         ParserContext_reportError(c,"CPG:1328: Expecting !~EMAIL");
+         return 0;
+      }
+      // from CPG:1322
+      c->pos = pos;
+   }
+   if (ParserContext_read(c) == 0) {
+      // "CPG:1096: Expecting ."
+      ParserContext_reportError(c,"CPG:1096: Expecting .");
+      return 0;
+   }
+   return 1;
+}
+
+// 
+// Function which matches following rule: $(({ ~EMAIL #Email }))
+// 
+static inline int e4(ParserContext * c) {
+   size_t left = ParserContext_saveTree(c);
+   ParserContext_beginTree(c,0);
+   if (!p_EMAIL(c)) {
+      // "CPG:1014: Expecting ~EMAIL"
+      ParserContext_reportError(c,"CPG:1014: Expecting ~EMAIL");
+      return 0;
+   }
+   ParserContext_endTree(c,0,_TEmail,NULL, 0);
+   ParserContext_linkTree(c,_L);
+   ParserContext_backTree(c,left);
+   return 1;
+}
+
+// 
+// Function which matches following rule: (!~EMAIL .)* ($(({ ~EMAIL #Email })))?
+// 
+static inline int e0(ParserContext * c) {
+   int temp = 1;
+   while (1) {
+      const unsigned char * pos = c->pos;
+      // !~EMAIL .
+      if (!e1(c)) {
+         // from CPG:1233, from visitZeroMore
+         c->pos = pos;
+         break;
+      } else {
+         temp = 0;
+      }
+   }
+   const unsigned char * pos2 = c->pos;
+   size_t left = ParserContext_saveTree(c);
+   size_t log = ParserContext_saveLog(c);
+   // $(({ ~EMAIL #Email }))
+   if (!e4(c)) {
+      c->pos = pos2;
+      ParserContext_backTree(c,left);
+      ParserContext_backLog(c,log);
+   }
+   return 1;
+}
+
+// 
+// Function which matches following rule: { ((!~EMAIL .)* ($(({ ~EMAIL #Email })))?)* #List }
+// 
+static inline int pFile(ParserContext * c) {
+   ParserContext_beginTree(c,0);
+   int temp = 1;
+   while (1) {
+      const unsigned char * pos = c->pos;
+      size_t left = ParserContext_saveTree(c);
+      size_t log = ParserContext_saveLog(c);
+      // (!~EMAIL .)* ($(({ ~EMAIL #Email })))?
+      if (!e0(c)) {
+         // from CPG:1233, from visitZeroMore
+         c->pos = pos;
+         ParserContext_backTree(c,left);
+         ParserContext_backLog(c,log);
+         break;
+      } else {
+         temp = 0;
+      }
+      if (pos == c->pos) {
+         break;
+      }
+   }
+   ParserContext_endTree(c,0,_TList,NULL, 0);
+   return 1;
+}
+void cnez_dump(Tree* t, FILE *fp, int depth)
+{
+    size_t i;
+    if(t == NULL) {
+        fputs("null", fp);
+        return;
+    }
+    /*
+    if(t->refc != 1) {
+        fprintf(fp, "@%ld", t->refc);
+    }
+    */
+    fputs("\n", fp);
+    for(i = 0; i < depth; i++) {
+        fputs(" ", fp);
+    }
+
+    fputs("[#", fp);
+    fputs(_tags[t->tag], fp);
+    if(t->size == 0) {
+        fputs(" '", fp);
+        for(i = 0; i < t->len; i++) {
+            fputc(t->text[i], fp);
+        }
+        fputs("'", fp);
+    }
+    else {
+        for(i = 0; i < t->size; i++) {
+            fputs(" ", fp);
+            if(t->labels[i] != 0) {
+                fputs("$", fp);
+                fputs(_labels[t->labels[i]], fp);
+                fputs("=", fp);
+            }
+            cnez_dump(t->childs[i], fp, depth + 1);
+        }
+    }
+    fputs("]", fp);
+}
+
+#ifndef UNUSE_MAIN
+#include<sys/time.h> // for using gettimeofday
+
+#define NUM_BENCH_RUNS 1000
+
+static char *get_input(const char *path, size_t *size)
+{
+    FILE *fp = fopen(path, "rb");
+
+    if(fp != NULL) {
+        size_t len;
+        fseek(fp, 0, SEEK_END);
+        len = (size_t) ftell(fp);
+        fseek(fp, 0, SEEK_SET);
+        char *buf = (char *) calloc(1, len + 1);
+        size_t readed = fread(buf, 1, len, fp);
+        if(readed != len) {
+            fprintf(stderr, "read error: %s\n", path);
+            exit(1);
+        }
+        fclose(fp);
+        *size = len;
+        return buf;
+    }
+
+    return NULL;
+}
+
+/* calculate time difference in us */
+static double timediff(struct timeval *s, struct timeval *e)
+{
+    double t1 = (e->tv_sec - s->tv_sec) * 1000000.0;
+    double t2 = (e->tv_usec - s->tv_usec);
+    return t1 + t2;
+}
+
+int run_bench(const char* name, const char *input, int len, void* (*parse)(const char *input, size_t len)) {
+    double tsum = 0.0;
+    double t[NUM_BENCH_RUNS];
+
+    int i = 0;
+    for(i = 0; i < NUM_BENCH_RUNS; i++) {
+        struct timeval s, e;
+        gettimeofday(&s, NULL);
+        void *data = parse(input, len);
+        gettimeofday(&e, NULL);
+        if(data == NULL) {
+            fprintf(stdout, "%s - FAIL %f[us]\n", name, timediff(&s, &e));
+            return 0;
+        }
+        t[i] = timediff(&s, &e);
+        tsum += t[i];
+        cnez_free(data);
+    }
+    fprintf(stdout, "%s - PASS %0.4f[us]\n", name, tsum / NUM_BENCH_RUNS);
+
+    return 1;
+}
+
+int cnez_main(int ac, const char **av, void* (*parse)(const char *input, size_t len))
+{
+    int j;
+    size_t len;
+    int verbose = 0;
+    int bench = 0;
+    int mem = 0;
+
+    if(ac == 1) {
+        fprintf(stdout,
+                "Usage: %s [-v] [-b] [-m] file1 file2 ...\n"
+                "\t-v - Verbose (print AST)\n"
+                "\t-m - Dump memory\n"
+                "\t-b - Run benchmark\n",
+                av[0]);
+        return 1;
+    }
+
+    for(j = 1; j < ac; j++) {
+        if (av[j][0] != '-') {
+            break;
+        }
+
+        if(!strcmp(av[j], "-v")) {
+            verbose = 1;
+        }
+
+        if(!strcmp(av[j], "-b")) {
+            bench = 1;
+        }
+
+        if(!strcmp(av[j], "-m")) {
+            mem = 1;
+        }
+    }
+
+    for(; j < ac; j++) {
+        char *input = get_input(av[j], &len);
+
+        if (input == NULL) {
+            fprintf(stdout, "Unable to open file '%s'\n", av[j]);
+            continue;
+        }
+
+        if(bench) {
+            if (!run_bench(av[j], (const char*)input, len, parse)) {
+                return -1;
+            }
+        } else {
+            struct timeval s, e;
+            gettimeofday(&s, NULL);
+            void *data = parse((const char*)input, len);
+            gettimeofday(&e, NULL);
+
+            if (verbose) {
+                cnez_dump(data, stdout, 0);
+                fprintf(stdout, "\n");
+            } else {
+                fprintf(stdout, "%s - %s in %0.4f[us]\n", av[j], data ? "PASS" : "FAIL", timediff(&s, &e));
+            }
+
+            if(mem) {
+                cnez_dump_memory("Memory Usage", data);
+            }
+            cnez_free(data);
+        }
+
+        free((void*) input);
+    }
+    return 0;
+}

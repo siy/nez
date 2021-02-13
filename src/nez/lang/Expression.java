@@ -163,89 +163,45 @@ public abstract class Expression extends AbstractList<Expression> implements Sou
 		}
 
 		public abstract Object visitNonTerminal(NonTerminal e, Object a);
-
 		public abstract Object visitEmpty(Nez.Empty e, Object a);
-
 		public abstract Object visitFail(Nez.Fail e, Object a);
-
 		public abstract Object visitByte(Nez.Byte e, Object a);
-
 		public abstract Object visitByteSet(Nez.ByteSet e, Object a);
-
 		public abstract Object visitAny(Nez.Any e, Object a);
-
 		public abstract Object visitMultiByte(Nez.MultiByte e, Object a);
-
 		public abstract Object visitPair(Nez.Pair e, Object a);
-
 		public abstract Object visitSequence(Nez.Sequence e, Object a);
-
 		public abstract Object visitChoice(Nez.Choice e, Object a);
-
 		public abstract Object visitDispatch(Nez.Dispatch e, Object a);
-
 		public abstract Object visitOption(Nez.Option e, Object a);
-
 		public abstract Object visitZeroMore(Nez.ZeroMore e, Object a);
-
 		public abstract Object visitOneMore(Nez.OneMore e, Object a);
-
 		public abstract Object visitAnd(Nez.And e, Object a);
-
 		public abstract Object visitNot(Nez.Not e, Object a);
-
 		public abstract Object visitBeginTree(Nez.BeginTree e, Object a);
-
 		public abstract Object visitFoldTree(Nez.FoldTree e, Object a);
-
 		public abstract Object visitLinkTree(Nez.LinkTree e, Object a);
-
 		public abstract Object visitTag(Nez.Tag e, Object a);
-
 		public abstract Object visitReplace(Nez.Replace e, Object a);
-
 		public abstract Object visitEndTree(Nez.EndTree e, Object a);
-
 		public abstract Object visitDetree(Nez.Detree e, Object a);
-
 		public abstract Object visitBlockScope(Nez.BlockScope e, Object a);
-
 		public abstract Object visitLocalScope(Nez.LocalScope e, Object a);
-
 		public abstract Object visitSymbolAction(Nez.SymbolAction e, Object a);
-
 		public abstract Object visitSymbolPredicate(Nez.SymbolPredicate e, Object a);
-
 		public abstract Object visitSymbolMatch(Nez.SymbolMatch e, Object a);
-
 		public abstract Object visitSymbolExists(Nez.SymbolExists e, Object a);
-
 		public abstract Object visitIf(Nez.IfCondition e, Object a);
-
 		public abstract Object visitOn(Nez.OnCondition e, Object a);
-
 		public abstract Object visitScan(Nez.Scan scanf, Object a);
-
 		public abstract Object visitRepeat(Nez.Repeat e, Object a);
-
 		public abstract Object visitLabel(Nez.Label e, Object a);
-
-		public Object visitExtended(Expression e, Object a) {
-			return a;
-		}
-
 	}
 
 	private static final ExpressionFormatter defaultFormatter = new ExpressionFormatter();
 
 	public static void format(Expression e, StringBuilder sb) {
 		defaultFormatter.format(sb, e);
-	}
-
-	public static String Stringfy(Expression e) {
-		StringBuilder sb = new StringBuilder();
-		defaultFormatter.format(sb, e);
-		return sb.toString();
 	}
 
 	public static class ExpressionFormatter extends Expression.Visitor {

@@ -39,7 +39,8 @@ void cnez_dump(Tree* t, FILE *fp, int depth)
 }
 
 #ifndef UNUSE_MAIN
-#include<sys/time.h> // for using gettimeofday
+
+#include<sys/time.h>
 
 #define NUM_BENCH_RUNS 1000
 
@@ -152,11 +153,13 @@ int cnez_main(int ac, const char **av, void* (*parse)(const char *input, size_t 
             gettimeofday(&e, NULL);
 
             if (verbose) {
-                cnez_dump(data, stdout, 0);
-                fprintf(stdout, "\n");
-            } else {
-                fprintf(stdout, "%s - %s in %0.4f[us]\n", av[j], data ? "PASS" : "FAIL", timediff(&s, &e));
+                if (data != NULL) {
+                    fprintf(stdout, "AST:\n");
+                    cnez_dump(data, stdout, 0);
+                    fprintf(stdout, "\n");
+                }
             }
+            fprintf(stdout, "%s - %s in %0.4f[us]\n", av[j], data ? "PASS" : "FAIL", timediff(&s, &e));
 
             if(mem) {
                 cnez_dump_memory("Memory Usage", data);
@@ -168,4 +171,4 @@ int cnez_main(int ac, const char **av, void* (*parse)(const char *input, size_t 
     }
     return 0;
 }
-#endif/*UNUSE_MAIN*/
+#endif  /* UNUSE_MAIN */

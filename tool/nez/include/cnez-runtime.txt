@@ -270,43 +270,43 @@ static void LINK(void *parent, size_t n, symbol_t label, void *child, void *thun
 static void PERR(const char *message, const unsigned char *pos, void *thunk) {
     ParserContext *ctx = (ParserContext*) thunk;
 
-    if(pos > ctx->inputs) {
-        const unsigned char* p = ctx->inputs;
-        const unsigned char* line = ctx->pos - 1;
-        int r = 1;
-        int c = 1;
+    /* TODO: rework API and calculate row/col before calling error reporting function */
+    const unsigned char* p = ctx->inputs;
+    const unsigned char* line = ctx->pos - 1;
+    int r = 1;
+    int c = 1;
 
-        while(p != line) {
-            if (*p == '\n') {
-                r++;
-                c = 1;
-            } else {
-                c++;
-            }
-            p++;
+    while(p != line) {
+        if (*p == '\n') {
+            r++;
+            c = 1;
+        } else {
+            c++;
         }
-
-        fprintf(stderr, "ERROR at %d:%d\n", r, c);
-
-        while(*--line != '\n' && line > ctx->inputs) {
-        }
-        if (*line == '\n') {
-            line++;
-        }
-
-        p = line;
-        fputs(" > ", stderr);
-        while(p != (ctx->pos - 1)) {
-            fputc(*p++, stderr);
-        }
-        fprintf(stderr, "\n");
-        p = line;
-        fputs(" > ", stderr);
-        while(p++ != (ctx->pos - 1)) {
-            fputc('-', stderr);
-        }
-        fprintf(stderr, "^ - %s\n", message);
+        p++;
     }
+
+    fprintf(stderr, "ERROR at %d:%d\n", r, c);
+
+    while(*--line != '\n' && line > ctx->inputs) {
+    }
+
+    if (*line == '\n') {
+        line++;
+    }
+
+    p = line;
+    fputs(" > ", stderr);
+    while(p != (ctx->pos - 1)) {
+        fputc(*p++, stderr);
+    }
+    fprintf(stderr, "\n");
+    p = line;
+    fputs(" > ", stderr);
+    while(p++ != (ctx->pos - 1)) {
+        fputc('-', stderr);
+    }
+    fprintf(stderr, "^ - %s\n", message);
 }
 
 void cnez_free(void *t)
@@ -576,8 +576,7 @@ static int ParserContext_checkOneMoreRange(ParserContext *c, const unsigned char
 
 // AST
 
-static
-void _log(ParserContext *c, int op, void *value, struct Tree *tree)
+static void _log(ParserContext *c, int op, void *value, struct Tree *tree)
 {
 	if(!(c->unused_log < c->log_size)) {
 		TreeLog *newlogs = (TreeLog *)_calloc(c->log_size * 2, sizeof(TreeLog));
@@ -724,7 +723,7 @@ static void ParserContext_backTree(ParserContext *c, size_t back)
 }
 
 static void ParserContext_reportError(ParserContext* c, const char* message) {
-    if (c->last_error < c->pos) {
+    if (c->pos > c->inputs && c->last_error < c->pos) {
         c->perr(message, c->pos, c->thunk);
         c->last_error = c->pos;
     }
@@ -742,8 +741,7 @@ typedef struct SymbolTableEntry {
 } SymbolTableEntry;
 
 
-static
-void _push(ParserContext *c, symbol_t table, const unsigned char * utf8, size_t length) 
+static void _push(ParserContext *c, symbol_t table, const unsigned char * utf8, size_t length)
 {
 	if (!(c->tableSize < c->tableMax)) {
 		SymbolTableEntry* newtable = (SymbolTableEntry*)_calloc(sizeof(SymbolTableEntry), (c->tableMax + 256));
@@ -773,8 +771,7 @@ static int ParserContext_saveSymbolPoint(ParserContext *c)
 	return c->tableSize;
 }
 
-static 
-void ParserContext_backSymbolPoint(ParserContext *c, int savePoint) 
+static void ParserContext_backSymbolPoint(ParserContext *c, int savePoint)
 {
 	if (c->tableSize != savePoint) {
 		c->tableSize = savePoint;
@@ -786,14 +783,12 @@ void ParserContext_backSymbolPoint(ParserContext *c, int savePoint)
 	}
 }
 
-static
-void ParserContext_addSymbol(ParserContext *c, symbol_t table, const unsigned char *ppos) {
+static void ParserContext_addSymbol(ParserContext *c, symbol_t table, const unsigned char *ppos) {
 	size_t length = c->pos - ppos;
 	_push(c, table, ppos, length);
 }
 
-static
-void ParserContext_addSymbolMask(ParserContext *c, symbol_t table) {
+static void ParserContext_addSymbolMask(ParserContext *c, symbol_t table) {
 	_push(c, table, NullSymbol, 4);
 }
 
@@ -902,8 +897,7 @@ static int ParserContext_decCount(ParserContext *c)
 
 // Memotable ------------------------------------------------------------
 
-static
-void ParserContext_initMemo(ParserContext *c, int w, int n)
+static void ParserContext_initMemo(ParserContext *c, int w, int n)
 {
     int i;
     c->memoSize = w * n + 1;
@@ -917,8 +911,7 @@ static  uniquekey_t longkey( uniquekey_t pos, int memoPoint) {
     return ((pos << 12) | memoPoint);
 }
 
-static
-int ParserContext_memoLookup(ParserContext *c, int memoPoint)
+static int ParserContext_memoLookup(ParserContext *c, int memoPoint)
 {
     uniquekey_t key = longkey((c->pos - c->inputs), memoPoint);
     unsigned int hash = (unsigned int) (key % c->memoSize);
@@ -930,8 +923,7 @@ int ParserContext_memoLookup(ParserContext *c, int memoPoint)
     return NotFound;
 }
 
-static
-int ParserContext_memoLookupTree(ParserContext *c, int memoPoint)
+static int ParserContext_memoLookupTree(ParserContext *c, int memoPoint)
 {
     uniquekey_t key = longkey((c->pos - c->inputs), memoPoint);
     unsigned int hash = (unsigned int) (key % c->memoSize);
@@ -945,8 +937,7 @@ int ParserContext_memoLookupTree(ParserContext *c, int memoPoint)
     return NotFound;
 }
 
-static
-void ParserContext_memoSucc(ParserContext *c, int memoPoint, const unsigned char* ppos)
+static void ParserContext_memoSucc(ParserContext *c, int memoPoint, const unsigned char* ppos)
 {
     uniquekey_t key = longkey((ppos - c->inputs), memoPoint);
     unsigned int hash = (unsigned int) (key % c->memoSize);
@@ -959,8 +950,7 @@ void ParserContext_memoSucc(ParserContext *c, int memoPoint, const unsigned char
     m->stateValue = -1;
 }
 
-static
-void ParserContext_memoTreeSucc(ParserContext *c, int memoPoint, const unsigned char* ppos)
+static void ParserContext_memoTreeSucc(ParserContext *c, int memoPoint, const unsigned char* ppos)
 {
     uniquekey_t key = longkey((ppos - c->inputs), memoPoint);
     unsigned int hash = (unsigned int) (key % c->memoSize);
@@ -973,8 +963,7 @@ void ParserContext_memoTreeSucc(ParserContext *c, int memoPoint, const unsigned 
     m->stateValue = -1;
 }
 
-static
-void ParserContext_memoFail(ParserContext *c, int memoPoint)
+static void ParserContext_memoFail(ParserContext *c, int memoPoint)
 {
 	uniquekey_t key = longkey((c->pos - c->inputs), memoPoint);
     unsigned int hash = (unsigned int) (key % c->memoSize);
@@ -986,67 +975,6 @@ void ParserContext_memoFail(ParserContext *c, int memoPoint)
     m->result = FailFound;
     m->stateValue = -1;
 }
-
-	/* State Version */
-
-//	public final int lookupStateMemo(int memoPoint) {
-//		long key = longkey(pos, memoPoint, shift);
-//		int hash = (int) (key % memoArray.length);
-//		MemoEntry m = c->memoArray[hash];
-//		if (m.key == key) {
-//			c->pos += m.consumed;
-//			return m.result;
-//		}
-//		return NotFound;
-//	}
-//
-//	public final int lookupStateTreeMemo(int memoPoint) {
-//		long key = longkey(pos, memoPoint, shift);
-//		int hash = (int) (key % memoArray.length);
-//		MemoEntry m = c->memoArray[hash];
-//		if (m.key == key && m.stateValue == c->stateValue) {
-//			c->pos += m.consumed;
-//			c->left = m.memoTree;
-//			return m.result;
-//		}
-//		return NotFound;
-//	}
-//
-//	public void memoStateSucc(int memoPoint, int ppos) {
-//		long key = longkey(ppos, memoPoint, shift);
-//		int hash = (int) (key % memoArray.length);
-//		MemoEntry m = c->memoArray[hash];
-//		m.key = key;
-//		m.memoTree = left;
-//		m.consumed = pos - ppos;
-//		m.result = SuccFound;
-//		m.stateValue = c->stateValue;
-//		// c->CountStored += 1;
-//	}
-//
-//	public void memoStateTreeSucc(int memoPoint, int ppos) {
-//		long key = longkey(ppos, memoPoint, shift);
-//		int hash = (int) (key % memoArray.length);
-//		MemoEntry m = c->memoArray[hash];
-//		m.key = key;
-//		m.memoTree = left;
-//		m.consumed = pos - ppos;
-//		m.result = SuccFound;
-//		m.stateValue = c->stateValue;
-//		// c->CountStored += 1;
-//	}
-//
-//	public void memoStateFail(int memoPoint) {
-//		long key = longkey(pos, memoPoint, shift);
-//		int hash = (int) (key % memoArray.length);
-//		MemoEntry m = c->memoArray[hash];
-//		m.key = key;
-//		m.memoTree = left;
-//		m.consumed = 0;
-//		m.result = FailFound;
-//		m.stateValue = c->stateValue;
-//	}
-
 
 static void ParserContext_free(ParserContext *c)
 {

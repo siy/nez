@@ -166,6 +166,14 @@ public class CParserGenerator extends CommonParserGenerator {
 				{
 					Statement("result = c->fnew(0, (const unsigned char*)text, (c->pos - (const unsigned char*)text), 0, c->thunk)");
 				}
+				Else();
+				{
+					If(_Binary(_Field(_state(), _last_error()), _NotEq(), _Field(_state(), _inputs())));
+					{
+						Statement("result = NULL");
+					}
+					EndIf();
+				}
 				EndIf();
 			}
 			EndIf();

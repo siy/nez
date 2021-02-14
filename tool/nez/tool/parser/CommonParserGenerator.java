@@ -1076,10 +1076,10 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 		public Object visitPair(Nez.Pair e, Object a) {
 			Verbose("visitPair");
 
-			Verbose("visitPair : first");
+			Verbose("visitPair : first " + e.first.getClass().getSimpleName());
 			visit(e.first, a);
 
-			Verbose("visitPair : next");
+			Verbose("visitPair : next " + e.first.getClass().getSimpleName());
 
 			if (canMatchEmptyInput(e.first)) {
 				visit(e.next, a);
@@ -1118,15 +1118,19 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 		}
 
 		boolean canMatchEmptyInput(Expression e) {
-			if (e instanceof Nez.Option) {
+			if (e instanceof Nez.Option || e instanceof Nez.ZeroMore || e instanceof NonTerminal || e instanceof Nez.LinkTree) {
 				return true;
 			}
 
-			if (e instanceof Nez.ZeroMore) {
+			if (e instanceof Nez.BeginTree || e instanceof Nez.EndTree) {
 				return true;
 			}
 
-			if (e instanceof Nez.Pair || e instanceof Nez.Sequence) {
+			if (e instanceof Nez.Not || e instanceof Nez.Pair) {
+				return !canMatchEmptyInput(e.get(0));
+			}
+
+			if (e instanceof Nez.Sequence || e instanceof Nez.And) {
 				for (var sub : e) {
 					if (!canMatchEmptyInput(sub)) {
 						return false;
@@ -1148,6 +1152,8 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 				Verbose("visitChoice: alternate");
 				BeginScope();
 				String temp = InitVal(_temp(), _True());
+				String temp2 = InitVal(_temp(), _pErr());
+				VarAssign(_pErr(), _False());
 				for (Expression sub : e) {
 					String f = _eval(sub);
 					If(temp);
@@ -1166,6 +1172,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 					}
 					EndIf();
 				}
+				VarAssign(_pErr(), temp2);
 				If(temp);
 				{
 					ReportError(1158, _pErr(), "one of " + e.toString() + " {"  + a + "}");
@@ -1365,6 +1372,9 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 		@Override
 		public Object visitNot(Nez.Not e, Object a) {
 			Verbose("visitNot");
+//			BeginLocalScope();
+//			String temp = InitVal(_temp(), _pErr());
+//			VarAssign(_pErr(), _False());
 			Expression sub = e.get(0);
 			if (!tryNotOptimization(sub, a)) {
 				Verbose("visitNot : regular case");
@@ -1374,13 +1384,16 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 				Verbose(sub.toString());
 				If(f);
 				{
-					ReportError(1370, _pErr(), e.toString() + " {"  + a + "}");
+					//ReportError(1370, temp, "not " + e.toString() + " {"  + a + "}");
+					ReportError(1370, _pErr(), "not " + e.toString() + " {"  + a + "}");
 					Fail();
 				}
 				EndIf();
 				BackState(sub, n);
 				EndScope();
 			}
+//			VarAssign(_pErr(), temp);
+//			EndLocalScope();
 			return null;
 		}
 
@@ -1516,7 +1529,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 					Nez.Byte e = (Nez.Byte) inner;
 					If(_Func("prefetch"), _NotEq(), _byte(e.byteChar));
 					{
-						ReportError(1485, _pErr(), e.toString() + " {"  + a + "}");
+						//ReportError(1485, _pErr(), e.toString() + " {"  + a + "}");
 						Fail();
 					}
 					EndIf();
@@ -1527,7 +1540,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 					Nez.ByteSet e = (Nez.ByteSet) inner;
 					If(_Not(MatchByteArray(e.byteset, false)));
 					{
-						ReportError(1496, _pErr(), e.toString() + "(byte set)" + " {"  + a + "}");
+						//ReportError(1496, _pErr(), e.toString() + "(byte set)" + " {"  + a + "}");
 						Fail();
 					}
 					EndIf();
@@ -1538,7 +1551,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 					Nez.MultiByte e = (Nez.MultiByte) inner;
 					If(_Not(_Match(e.byteseq)));
 					{
-						ReportError(1507, _pErr(), new String(e.byteseq, StandardCharsets.UTF_8) + " {"  + a + "}");
+						//ReportError(1507, _pErr(), new String(e.byteseq, StandardCharsets.UTF_8) + " {"  + a + "}");
 						Fail();
 					}
 					EndIf();
@@ -1548,7 +1561,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 					// Nez.Any e = (Nez.Any) inner;
 					If(_Func("eof"));
 					{
-						ReportError(1517, _pErr(), "not an EOF" + " {"  + a + "}");
+						//ReportError(1517, _pErr(), "not an EOF" + " {"  + a + "}");
 						Fail();
 					}
 					EndIf();
@@ -1564,7 +1577,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 					Nez.Byte e = (Nez.Byte) inner;
 					If(_Func("prefetch"), _Eq(), _byte(e.byteChar));
 					{
-						ReportError(1533, _pErr(), "not " + Character.toString(e.byteChar) + " {"  + a + "}");
+						//ReportError(1533, _pErr(), "not " + Character.toString(e.byteChar) + " {"  + a + "}");
 						Fail();
 					}
 					EndIf();
@@ -1575,7 +1588,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 					Nez.ByteSet e = (Nez.ByteSet) inner;
 					If(MatchByteArray(e.byteset, false));
 					{
-						ReportError(1544, _pErr(), "not " + e.byteset + " | " + e.toString() + " {"  + a + "}");
+						//ReportError(1544, _pErr(), "not " + e.byteset + " | " + e.toString() + " {"  + a + "}");
 						Fail();
 					}
 					EndIf();
@@ -1586,7 +1599,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 					Nez.MultiByte e = (Nez.MultiByte) inner;
 					If(_Match(e.byteseq));
 					{
-						ReportError(1555, _pErr(), "not " + new String(e.byteseq, StandardCharsets.UTF_8) + " {"  + a + "}");
+						//ReportError(1555, _pErr(), "not " + new String(e.byteseq, StandardCharsets.UTF_8) + " {"  + a + "}");
 						Fail();
 					}
 					EndIf();
@@ -1596,7 +1609,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 					// Nez.Any e = (Nez.Any) inner;
 					If(_Not(_Func("eof")));
 					{
-						ReportError(1566, _pErr(), "EOF" + " {"  + a + "}");
+						//ReportError(1566, _pErr(), "EOF" + " {"  + a + "}");
 						Fail();
 					}
 					EndIf();
@@ -2178,6 +2191,14 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 
 	protected String _pos() {
 		return "pos";
+	}
+
+	protected String _last_error() {
+		return "last_error";
+	}
+
+	protected String _inputs() {
+		return "inputs";
 	}
 
 	protected String _cpos() {

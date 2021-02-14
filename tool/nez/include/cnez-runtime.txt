@@ -17,6 +17,7 @@ typedef struct ParserContext {
     const unsigned char  *inputs;
     size_t length;
     const unsigned char  *pos;
+    const unsigned char  *last_error;
     struct Tree *left;
     int err;
 
@@ -391,6 +392,7 @@ static ParserContext *ParserContext_new(const unsigned char *text, size_t len)
     c->inputs = text;
     c->length = len;
     c->pos = text;
+    c->last_error = text;
     c->left = NULL;
     // tree
     c->log_size = 64;
@@ -722,7 +724,10 @@ static void ParserContext_backTree(ParserContext *c, size_t back)
 }
 
 static void ParserContext_reportError(ParserContext* c, const char* message) {
-    c->perr(message, c->pos, c->thunk);
+    if (c->last_error < c->pos) {
+        c->perr(message, c->pos, c->thunk);
+        c->last_error = c->pos;
+    }
 }
 
 // Symbol Table ---------------------------------------------------------

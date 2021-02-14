@@ -4,8 +4,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import nez.ast.Symbol;
 import nez.lang.Bitmap;
@@ -99,7 +100,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 
 	/* Types */
 
-	protected HashMap<String, String> typeMap = new HashMap<>();
+	protected Map<String, String> typeMap = new HashMap<>();
 
 	protected abstract void initLanguageSpec();
 
@@ -113,16 +114,16 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 
 	/* Symbols */
 
-	protected HashMap<String, String> nameMap = new HashMap<>();
+	protected Map<String, String> nameMap = new HashMap<>();
 
 	protected UList<String> tagList = new UList<>(new String[8]);
-	protected HashMap<String, Integer> tagMap = new HashMap<>();
+	protected Map<String, Integer> tagMap = new HashMap<>();
 
-	protected HashMap<String, Integer> labelMap = new HashMap<>();
+	protected Map<String, Integer> labelMap = new HashMap<>();
 	protected UList<String> labelList = new UList<>(new String[8]);
 
 	protected UList<String> tableList = new UList<>(new String[8]);
-	protected HashMap<String, Integer> tableMap = new HashMap<>();
+	protected Map<String, Integer> tableMap = new HashMap<>();
 
 	final String _set(boolean[] b) {
 		String key = StringUtils.stringfyBitmap(b);
@@ -448,11 +449,11 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 	}
 
 	/* function */
-	HashMap<String, String> exprMap = new HashMap<>();
-	HashMap<String, Expression> funcMap = new HashMap<>();
-	ArrayList<String> funcList = new ArrayList<>();
-	HashSet<String> crossRefNames = new HashSet<>();
-	HashMap<String, Integer> memoPointMap = new HashMap<>();
+	Map<String, String> exprMap = new HashMap<>();
+	Map<String, Expression> funcMap = new HashMap<>();
+	List<String> funcList = new ArrayList<>();
+	Set<String> crossRefNames = new HashSet<>();
+	Map<String, Integer> memoPointMap = new HashMap<>();
 
 	private String _funcname(Expression e) {
 		if (e instanceof NonTerminal) {
@@ -462,7 +463,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 		return exprMap.get(key);
 	}
 
-	HashMap<String, HashSet<String>> nodes = new HashMap<>();
+	Map<String, Set<String>> nodes = new HashMap<>();
 
 	private void addEdge(String sour, String dest) {
 		if (sour != null) {
@@ -471,48 +472,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 	}
 
 	void sortFuncList(String start) {
-		class TopologicalSorter {
-			private final HashMap<String, HashSet<String>> nodes;
-			private final LinkedList<String> result;
-			private final HashMap<String, Short> visited;
-
-			TopologicalSorter(HashMap<String, HashSet<String>> nodes) {
-				this.nodes = nodes;
-				this.result = new LinkedList<>();
-				this.visited = new HashMap<>();
-				for (Map.Entry<String, HashSet<String>> e : this.nodes.entrySet()) {
-					if (visited.get(e.getKey()) == null) {
-						visit(e.getKey(), e.getValue());
-					}
-				}
-			}
-
-			private void visit(String key, HashSet<String> nextNodes) {
-				short visiting = 1;
-				visited.put(key, visiting);
-				if (nextNodes != null) {
-					for (String nextNode : nextNodes) {
-						var v = visited.get(nextNode);
-						if (v == null) {
-							visit(nextNode, nodes.get(nextNode));
-						} else if (visiting == v) {
-							if (!key.equals(nextNode)) {
-								Verbose.println("Cyclic " + key + " => " + nextNode);
-								crossRefNames.add(nextNode);
-							}
-						}
-					}
-				}
-				Short visited1 = 2;
-				visited.put(key, visited1);
-				result.add(key);
-			}
-
-			public ArrayList<String> getResult() {
-				return new ArrayList<>(result);
-			}
-		}
-		TopologicalSorter sorter = new TopologicalSorter(nodes);
+		TopologicalSorter sorter = new TopologicalSorter(nodes, crossRefNames);
 		funcList = sorter.getResult();
 		if (!funcList.contains(start)) {
 			funcList.add(start);
@@ -560,7 +520,6 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 				return true;
 			}
 			addEdge(cur, f);
-			// crossRefNames.add(f);
 			return false;
 		}
 
@@ -582,7 +541,6 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 				cur = stacked;
 			}
 			addEdge(cur, f);
-			// crossRefNames.add(f);
 		}
 
 		private void checkNonLexicalInner(Expression e) {
@@ -825,7 +783,6 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 	}
 
 	class ParserGeneratorVisitor extends Expression.Visitor {
-
 		void generate() {
 			for (String f : funcList) {
 				generateFunction(f, funcMap.get(f));
@@ -843,10 +800,6 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 			}
 			return _funccall(f, expr);
 		}
-
-//		private String _eval(String uname) {
-//			return _funccall(_funcname(uname));
-//		}
 
 		private String _eval(String uname, String expr) {
 			return _funccall(_funcname(uname), expr);
@@ -927,7 +880,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 			}
 		}
 
-		HashMap<String, String> localMap;
+		Map<String, String> localMap;
 
 		private void initLocal() {
 			localMap = new HashMap<>();
@@ -1088,18 +1041,18 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 		@Override
 		public Object visitAny(Nez.Any e, Object a) {
 			Verbose("visitAny");
+
 			if (strategy.BinaryGrammar) {
 				Statement(_Func("move", "1"));
 				If(_Func("eof"));
 				{
-					ReportError(1089, _pErr(), e.toString() + " {"  + a + "}");
 					Fail();
 				}
 				EndIf();
 			} else {
+				//Check for EOF
 				If(_Func("read"), _Eq(), "0");
 				{
-					ReportError(1096, _pErr(), e.toString() + " {"  + a + "}");
 					Fail();
 				}
 				EndIf();
@@ -1122,19 +1075,67 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 		@Override
 		public Object visitPair(Nez.Pair e, Object a) {
 			Verbose("visitPair");
-			for (Expression sub : e) {
-				visit(sub, a);
+
+			Verbose("visitPair : first");
+			visit(e.first, a);
+
+			Verbose("visitPair : next");
+
+			if (canMatchEmptyInput(e.first)) {
+				visit(e.next, a);
+			} else {
+				BeginLocalScope();
+				String temp = InitVal(_temp(), _pErr());
+				VarAssign(_pErr(), _True());
+				visit(e.next, a);
+				VarAssign(_pErr(), temp);
+				EndLocalScope();
 			}
+
 			return null;
 		}
 
 		@Override
 		public Object visitSequence(Nez.Sequence e, Object a) {
 			Verbose("visitSequence");
+
+			boolean enableErrors = false;
+
 			for (Expression sub : e) {
-				visit(sub, a);
+				if (!enableErrors) {
+					visit(sub, a);
+					enableErrors = !canMatchEmptyInput(sub);
+				} else {
+					BeginLocalScope();
+					String temp = InitVal(_temp(), _pErr());
+					VarAssign(_pErr(), _True());
+					visit(sub, a);
+					VarAssign(_pErr(), temp);
+					EndLocalScope();
+				}
 			}
 			return null;
+		}
+
+		boolean canMatchEmptyInput(Expression e) {
+			if (e instanceof Nez.Option) {
+				return true;
+			}
+
+			if (e instanceof Nez.ZeroMore) {
+				return true;
+			}
+
+			if (e instanceof Nez.Pair || e instanceof Nez.Sequence) {
+				for (var sub : e) {
+					if (!canMatchEmptyInput(sub)) {
+						return false;
+					}
+				}
+				return true;
+			}
+
+			return false;
 		}
 
 		@Override

@@ -1079,9 +1079,9 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 			Verbose("visitPair : first " + e.first.getClass().getSimpleName());
 			visit(e.first, a);
 
-			Verbose("visitPair : next " + e.first.getClass().getSimpleName());
+			Verbose("visitPair : next " + e.next.getClass().getSimpleName());
 
-			if (canMatchEmptyInput(e.first)) {
+			if (canMatchEmptyInput(e.first) || canMatchEmptyInput(e.next)) {
 				visit(e.next, a);
 			} else {
 				BeginLocalScope();
@@ -1126,8 +1126,12 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 				return true;
 			}
 
-			if (e instanceof Nez.Not || e instanceof Nez.Pair) {
+			if (e instanceof Nez.Not) {
 				return !canMatchEmptyInput(e.get(0));
+			}
+
+			if (e instanceof Nez.Pair) {
+				return canMatchEmptyInput(e.get(0));
 			}
 
 			if (e instanceof Nez.Sequence || e instanceof Nez.And) {
@@ -1189,13 +1193,20 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 				Verbose.println("single choice: " + choice);
 				choice.get(0).visit(this, a);
 			} else {
+				BeginScope();
 				String temp = InitVal(_temp(), _True());
+				String temp2 = InitVal(_temp(), _pErr());
+				VarAssign(_pErr(), _False());
+
 				Switch(_GetArray(_index(p.indexMap), _Func("prefetch")));
 				Case("0");
-				ReportError(1175, _pErr(), "not being here {" + a + "}");
-				Fail();
+				BeginLocalScope();
+					ReportError(1175, _pErr(), "not being here {" + a + "}");
+					Fail();
+				EndLocalScope();
 				for (int i = 0; i < choice.size(); i++) {
 					Case(_int(i + 1));
+					BeginLocalScope();
 					Expression sub = choice.get(i);
 					String f = _eval(sub);
 					if (p.striped[i]) {
@@ -1206,15 +1217,18 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 					}
 					VarAssign(temp, f);
 					Break();
+					EndLocalScope();
 					EndCase();
 				}
 				EndSwitch();
+				VarAssign(_pErr(), temp2);
 				If(_Not(temp));
 				{
 					ReportError(1194, _pErr(), choice.toString() + " {"  + a + "}");
 					Fail();
 				}
 				EndIf();
+				EndScope();
 			}
 		}
 

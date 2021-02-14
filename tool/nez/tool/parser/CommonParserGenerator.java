@@ -1081,7 +1081,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 
 			Verbose("visitPair : next " + e.next.getClass().getSimpleName());
 
-			if (canMatchEmptyInput(e.first) || canMatchEmptyInput(e.next)) {
+			if (canMatchEmptyInput(e.first) /* || canMatchEmptyInput(e.next) */) {
 				visit(e.next, a);
 			} else {
 				BeginLocalScope();
@@ -1131,7 +1131,7 @@ public abstract class CommonParserGenerator extends ParserGrammarWriter {
 			}
 
 			if (e instanceof Nez.Pair) {
-				return canMatchEmptyInput(e.get(0));
+				return canMatchEmptyInput(e.get(0)) && canMatchEmptyInput(e.get(1));
 			}
 
 			if (e instanceof Nez.Sequence || e instanceof Nez.And) {
